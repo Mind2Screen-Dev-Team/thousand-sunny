@@ -1,0 +1,20 @@
+services:
+  core-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    image: core-app:latest
+    container_name: core-app
+    ports:
+      - 8081:8080
+    volumes:
+      - ./storage:/app/storage
+      - ./config.yaml:/app/config.yaml
+    restart: unless-stopped
+    networks:
+      - app_core_net
+
+networks:
+  app_core_net:
+    name: app_core_net
+    external: true

@@ -1,0 +1,106 @@
+package config
+
+import (
+	"flag"
+
+	"go.uber.org/config"
+)
+
+type Cfg struct {
+	App   App   `yaml:"app"`
+	Http  Http  `yaml:"http"`
+	Cache Cache `yaml:"cache"`
+	DB    DB    `yaml:"db"`
+	Log   Log   `yaml:"log"`
+}
+
+type App struct {
+	Env    string `yaml:"env"`
+	Name   string `yaml:"name"`
+	Domain string `yaml:"domain"`
+}
+
+type Http struct {
+	Address string `yaml:"address"`
+}
+
+type Cache struct {
+	Disabled   bool            `yaml:"disabled"`
+	DBName     string          `yaml:"dbname"`
+	Port       int             `yaml:"port"`
+	Address    string          `yaml:"address"`
+	Credential CacheCredential `yaml:"credential"`
+}
+
+type CacheCredential struct {
+	Enabled  bool   `yaml:"enabled"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
+type DB struct {
+	Disabled   bool         `yaml:"disabled"`
+	Driver     string       `yaml:"driver"`
+	DBName     string       `yaml:"dbname"`
+	Port       int          `yaml:"port"`
+	Address    string       `yaml:"address"`
+	Credential DBCredential `yaml:"credential"`
+	Options    DBOptions    `yaml:"options"`
+}
+
+type DBOptions struct {
+	Timezone          string `yaml:"timezone"`
+	Sslmode           string `yaml:"sslmode"`
+	ConnectionTimeout int    `yaml:"connectionTimeout"`
+}
+
+type DBCredential struct {
+	Enabled  bool   `yaml:"enabled"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
+type Log struct {
+	Debug XLog `yaml:"debug"`
+	IO    XLog `yaml:"io"`
+	TRX   XLog `yaml:"trx"`
+}
+
+type XLog struct {
+	Disabled       bool         `yaml:"disabled"`
+	ClientKey      []string     `yaml:"clientKey"`
+	EnabledConsole bool         `yaml:"enabledConsole"`
+	Level          int          `yaml:"level"`
+	Rotation       XLogRotation `yaml:"rotation"`
+}
+
+type XLogRotation struct {
+	BasePath  string `yaml:"basePath"`
+	Filename  string `yaml:"filename"`
+	MaxBackup int    `yaml:"maxBackup"`
+	MaxSize   int    `yaml:"maxSize"`
+	MaxAge    int    `yaml:"maxAge"`
+	LocalTime bool   `yaml:"localTime"`
+	Compress  bool   `yaml:"compress"`
+}
+
+func ProvideConfig() (Cfg, error) {
+	var (
+		c       Cfg
+		cfgPath string
+	)
+
+	flag.StringVar(&cfgPath, "cfg", "config.yaml", "load config path")
+	flag.Parse()
+
+	cfg, err := config.NewYAML(config.File(cfgPath))
+	if err != nil {
+		return c, err
+	}
+
+	if err := cfg.Get("").Populate(&c); err != nil {
+		return c, err
+	}
+
+	return c, nil
+}
