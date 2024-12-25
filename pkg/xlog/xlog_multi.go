@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"time"
 
 	"github.com/rs/zerolog"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -85,6 +86,9 @@ func NewZeroLog(rotation *lumberjack.Logger, opts ...LogOptionFn) zerolog.Logger
 	if len(opt.Fields) > 0 {
 		ctx = ctx.Fields(opt.Fields)
 	}
+
+	// Set Default into time format with nano
+	zerolog.TimeFieldFormat = time.RFC3339Nano
 
 	return ctx.Timestamp().Logger()
 }
