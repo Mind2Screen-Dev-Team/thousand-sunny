@@ -10,7 +10,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
 )
 
-func ProvidePGxDB(c config.Cfg, wg *WaitGroupStop, lc fx.Lifecycle) (*pgx.Conn, error) {
+func ProvidePGxDB(c config.Cfg, lc fx.Lifecycle) (*pgx.Conn, error) {
 
 	var (
 		ctx = context.Background()
@@ -43,12 +43,7 @@ func ProvidePGxDB(c config.Cfg, wg *WaitGroupStop, lc fx.Lifecycle) (*pgx.Conn, 
 
 	lc.Append(
 		fx.Hook{
-			OnStart: func(ctx context.Context) error {
-				wg.Add(1)
-				return nil
-			},
 			OnStop: func(ctx context.Context) error {
-				defer wg.Done()
 				return conn.Close(ctx)
 			},
 		},

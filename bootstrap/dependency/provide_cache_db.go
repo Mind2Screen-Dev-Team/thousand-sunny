@@ -11,7 +11,7 @@ import (
 	"go.uber.org/fx"
 )
 
-func ProvideRedisDB(c config.Cfg, wg *WaitGroupStop, lc fx.Lifecycle) *redis.Client {
+func ProvideRedisDB(c config.Cfg, lc fx.Lifecycle) *redis.Client {
 	var (
 		dbIdx, _ = strconv.Atoi(c.Cache.DBName)
 		rdb      = redis.NewClient(
@@ -27,12 +27,7 @@ func ProvideRedisDB(c config.Cfg, wg *WaitGroupStop, lc fx.Lifecycle) *redis.Cli
 
 	lc.Append(
 		fx.Hook{
-			OnStart: func(ctx context.Context) error {
-				wg.Add(1)
-				return nil
-			},
 			OnStop: func(ctx context.Context) error {
-				defer wg.Done()
 				return rdb.Close()
 			},
 		},

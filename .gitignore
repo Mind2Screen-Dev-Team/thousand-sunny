@@ -30,3 +30,7 @@ go.work.sum
 # config files
 *config.yaml
 !example.config.yaml
+
+# Binnary
+bin/*
+!bin/README.md

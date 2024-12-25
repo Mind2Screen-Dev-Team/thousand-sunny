@@ -11,7 +11,6 @@ func (Registry) DependencyProvider() Provider {
 		fx.Module("app-core",
 			fx.Provide(
 				config.ProvideConfig,
-				dependency.ProvideSyncStop,
 				dependency.ProvideDebugLogger,
 				dependency.ProvideIOLogger,
 				dependency.ProvideTRXLogger,

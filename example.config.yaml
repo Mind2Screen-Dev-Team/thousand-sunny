@@ -1,25 +1,52 @@
 app:
   env: "dev"
   name: "example-app"
-  domain: "localhost"
-
+  domain: "http://localhost"
 http:
   address: "127.0.0.1:8080"
-
 log:
-  enabledConsole: true
-  enabledFile: true
-  level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-  rotation:
-    pathFile: "./storage/logs/core/app_core.log" # where you need store to store log and what a log name
-    maxBackup: 10 # how much backup files
-    maxSize: 100 # how much maximum megabytes
-    maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
-    localTime: false # default UTC | false
-    compress: false # default false
-
+  debug: # For logging debug app
+    disabled: false
+    enabledConsole: true
+    level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+    rotation:
+      basePath: "./storage/logs/core/debug" # where you need store to store log and what a log name
+      filename: "app_core_debug_process.log" # what a log name
+      maxBackup: 10 # how much backup files
+      maxSize: 100 # how much maximum megabytes
+      maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
+      localTime: false # default UTC | false
+      compress: false # default false
+  io: # For logging api input-output / IO proccess
+    disabled: false
+    enabledConsole: true
+    level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+    rotation:
+      basePath: "./storage/logs/core/io" # where you need store to store log and what a log name
+      filename: "app_core_api_io_process.log" #  what a log name
+      maxBackup: 10 # how much backup files
+      maxSize: 100 # how much maximum megabytes
+      maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
+      localTime: false # default UTC | false
+      compress: false # default false
+  trx: # For logging Transaction process your client
+    disabled: false
+    clientKey: # this is will be as directory
+      - CLIENT_001
+      - CLIENT_002
+      - CLIENT_003
+    enabledConsole: true
+    level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+    rotation:
+      basePath: "./storage/logs/core/trx/{CLIENT}" # where you need store to store log and what a log name and {CLIENT} will be replaced by client key
+      filename: "app_core_api_for_{CLIENT}_trx_process.log" # what a log name and {CLIENT} will be replaced by client key
+      maxBackup: 10 # how much backup files
+      maxSize: 100 # how much maximum megabytes
+      maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
+      localTime: false # default UTC | false
+      compress: false # default false
 cache:
-  enabled: true
+  disabled: false
   dbname: "0"
   port: 6379
   address: "localhost"
@@ -27,9 +54,9 @@ cache:
     enabled: true
     username: "default"
     password: ""
-
 db:
-  enabled: true
+  disabled: false
+  driver: "postgres"
   dbname: "example-db"
   port: 5432
   address: "localhost"
