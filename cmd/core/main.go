@@ -11,12 +11,11 @@ func main() {
 	fx.New(
 		registry.Fx,
 		registry.Dependency,
-		registry.Http,
-		registry.HttpGlobalMiddleware,
-
 		registry.DependencyStartUp,
+		registry.Http,
 		registry.HttpStartUp,
+		registry.HttpGlobalMiddleware,
 	).Run()
 
-	defer dependency.Rotate()
+	defer dependency.RotateLog()
 }

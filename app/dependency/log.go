@@ -1,6 +1,7 @@
 package dependency
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -17,7 +18,7 @@ var (
 	_TrxLogger   *xlog.TrxLogger
 )
 
-func Rotate() {
+func RotateLog() {
 	if _DebugLogger != nil {
 		if err := _DebugLogger.LogRotation.Rotate(); err != nil {
 			log.Printf("try to rotate 'debug:logger', got err: %+v\n", err)
@@ -42,12 +43,12 @@ func Rotate() {
 
 func ProvideDebugLogger(c config.Cfg) *xlog.DebugLogger {
 	var (
-		cfg   = c.Log["debug"]
-		xpath = path.Join(cfg.Rotation.BasePath, cfg.Rotation.Filename)
-		l     = xlog.DebugLogger{
+		cfg       = c.Log["debug"]
+		xfilename = path.Join(cfg.Rotation.BasePath, cfg.Rotation.Filename)
+		l         = xlog.DebugLogger{
 			SingleLogger: xlog.SingleLogger{
 				LogRotation: lumberjack.Logger{
-					Filename:   xpath,                  // where you need store to store log and what a log name
+					Filename:   xfilename,              // where you need store to store log and what a log name
 					MaxBackups: cfg.Rotation.MaxBackup, // how much backup files
 					MaxSize:    cfg.Rotation.MaxSize,   // how much maximum megabytes
 					MaxAge:     cfg.Rotation.MaxAge,    // how much maximum days, default is 0 that means not deleted old logs
@@ -69,7 +70,7 @@ func ProvideDebugLogger(c config.Cfg) *xlog.DebugLogger {
 		// # options fields
 		xlog.SetField("appName", c.App.Name),
 		xlog.SetField("appEnv", c.App.Env),
-		xlog.SetField("appLogKind", "debug:logger"),
+		xlog.SetField("appLog", "debug:logger"),
 	)
 	_DebugLogger = &l
 
@@ -78,12 +79,12 @@ func ProvideDebugLogger(c config.Cfg) *xlog.DebugLogger {
 
 func ProvideIoLogger(c config.Cfg) *xlog.IOLogger {
 	var (
-		cfg   = c.Log["io"]
-		xpath = path.Join(cfg.Rotation.BasePath, cfg.Rotation.Filename)
-		l     = xlog.IOLogger{
+		cfg       = c.Log["io"]
+		xfilename = path.Join(cfg.Rotation.BasePath, cfg.Rotation.Filename)
+		l         = xlog.IOLogger{
 			SingleLogger: xlog.SingleLogger{
 				LogRotation: lumberjack.Logger{
-					Filename:   xpath,                  // where you need store to store log and what a log name
+					Filename:   xfilename,              // where you need store to store log and what a log name
 					MaxBackups: cfg.Rotation.MaxBackup, // how much backup files
 					MaxSize:    cfg.Rotation.MaxSize,   // how much maximum megabytes
 					MaxAge:     cfg.Rotation.MaxAge,    // how much maximum days, default is 0 that means not deleted old logs
@@ -105,7 +106,7 @@ func ProvideIoLogger(c config.Cfg) *xlog.IOLogger {
 		// # fields
 		xlog.SetField("appName", c.App.Name),
 		xlog.SetField("appEnv", c.App.Env),
-		xlog.SetField("appLogKind", "io:logger"),
+		xlog.SetField("appLog", "io:logger"),
 	)
 	_IOLogger = &l
 
@@ -137,13 +138,13 @@ func ProvideTrxLogger(c config.Cfg) *xlog.TrxLogger {
 				),
 			)
 
-			xpath = path.Join(basePath, filename)
+			xfilename = path.Join(basePath, filename)
 		)
 
 		entries[i] = xlog.NewEntryWithOptions(
 			key,
 			&lumberjack.Logger{
-				Filename:   xpath,                  // where you need store to store log and what a log name
+				Filename:   xfilename,              // where you need store to store log and what a log name
 				MaxBackups: cfg.Rotation.MaxBackup, // how much backup files
 				MaxSize:    cfg.Rotation.MaxSize,   // how much maximum megabytes
 				MaxAge:     cfg.Rotation.MaxAge,    // how much maximum days, default is 0 that means not deleted old logs
@@ -159,8 +160,7 @@ func ProvideTrxLogger(c config.Cfg) *xlog.TrxLogger {
 			// # fields
 			xlog.SetField("appName", c.App.Name),
 			xlog.SetField("appEnv", c.App.Env),
-			xlog.SetField("appLogKind", "trx:logger"),
-			xlog.SetField("appLogTrx", key),
+			xlog.SetField("appLog", fmt.Sprintf("trx:logger:%s", key)),
 		)
 	}
 
