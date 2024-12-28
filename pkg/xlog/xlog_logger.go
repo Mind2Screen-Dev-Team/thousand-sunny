@@ -19,7 +19,7 @@ type (
 		SingleLogger
 	}
 
-	TRXLogger struct {
+	TrxLogger struct {
 		MultiLogger
 	}
 )

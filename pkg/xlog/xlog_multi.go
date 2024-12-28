@@ -19,6 +19,9 @@ type LogOptions struct {
 
 	// Level creates a child logger with the minimum accepted level set to level.
 	Level int
+
+	// Console Out
+	Out io.Writer
 }
 
 type LogOptionFn func(opt *LogOptions)
@@ -39,6 +42,12 @@ func EnableConsoleLogging() LogOptionFn {
 	}
 }
 
+func SetConsoleOutput(out io.Writer) LogOptionFn {
+	return func(opt *LogOptions) {
+		opt.Out = out
+	}
+}
+
 func SetLevelLog(lvl int) LogOptionFn {
 	return func(opt *LogOptions) {
 		opt.Level = lvl
@@ -51,6 +60,7 @@ func NewZeroLog(rotation *lumberjack.Logger, opts ...LogOptionFn) zerolog.Logger
 		lvl zerolog.Level
 		opt = LogOptions{
 			Fields: make(map[string]any),
+			Out:    os.Stderr,
 		}
 	)
 
@@ -59,7 +69,7 @@ func NewZeroLog(rotation *lumberjack.Logger, opts ...LogOptionFn) zerolog.Logger
 	}
 
 	if opt.EnabledConsole {
-		mw = append(mw, zerolog.ConsoleWriter{Out: os.Stderr})
+		mw = append(mw, zerolog.ConsoleWriter{Out: opt.Out})
 	}
 
 	// Set Log File

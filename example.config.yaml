@@ -2,8 +2,9 @@ app:
   env: "dev"
   name: "example-app"
   domain: "http://localhost"
-http:
-  address: "127.0.0.1:8080"
+server:
+  http:
+    address: "127.0.0.1:8080"
 log:
   debug: # For logging debug app
     disabled: false
@@ -46,25 +47,27 @@ log:
       localTime: false # default UTC | false
       compress: false # default false
 cache:
-  disabled: false
-  dbname: "0"
-  port: 6379
-  address: "localhost"
-  credential:
-    enabled: true
-    username: "default"
-    password: ""
+  redis:
+    disabled: false
+    dbname: "0"
+    port: 6379
+    address: "localhost"
+    credential:
+      enabled: true
+      username: "default"
+      password: ""
 db:
-  disabled: false
-  driver: "postgres"
-  dbname: "example-db"
-  port: 5432
-  address: "localhost"
-  credential:
-    enabled: true
-    username: "postgres"
-    password: "QwErTy2025"
-  options:
-    timezone: "Asia/Jakarta"
-    sslmode: "disable"
-    connectionTimeout: 30
+  postgres:
+    disabled: false
+    driver: "postgres"
+    dbname: "example-db"
+    port: 5432
+    address: "localhost"
+    credential:
+      enabled: true
+      username: "postgres"
+      password: "example"
+    options:
+      timezone: "Asia/Jakarta"
+      sslmode: "disable"
+      connectionTimeout: 30

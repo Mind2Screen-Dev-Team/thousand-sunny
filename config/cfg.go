@@ -6,12 +6,33 @@ import (
 	"go.uber.org/config"
 )
 
+func ProvideConfig() (Cfg, error) {
+	var (
+		c       Cfg
+		cfgPath string
+	)
+
+	flag.StringVar(&cfgPath, "cfg", "config.yaml", "load config path")
+	flag.Parse()
+
+	cfg, err := config.NewYAML(config.File(cfgPath))
+	if err != nil {
+		return c, err
+	}
+
+	if err := cfg.Get("").Populate(&c); err != nil {
+		return c, err
+	}
+
+	return c, nil
+}
+
 type Cfg struct {
-	App   App   `yaml:"app"`
-	Http  Http  `yaml:"http"`
-	Cache Cache `yaml:"cache"`
-	DB    DB    `yaml:"db"`
-	Log   Log   `yaml:"log"`
+	App    App               `yaml:"app"`
+	Server map[string]Server `yaml:"server"`
+	DB     map[string]DB     `yaml:"db"`
+	Cache  map[string]Cache  `yaml:"cache"`
+	Log    map[string]Log    `yaml:"log"`
 }
 
 type App struct {
@@ -20,7 +41,7 @@ type App struct {
 	Domain string `yaml:"domain"`
 }
 
-type Http struct {
+type Server struct {
 	Address string `yaml:"address"`
 }
 
@@ -61,20 +82,14 @@ type DBCredential struct {
 }
 
 type Log struct {
-	Debug XLog `yaml:"debug"`
-	IO    XLog `yaml:"io"`
-	TRX   XLog `yaml:"trx"`
+	Disabled       bool        `yaml:"disabled"`
+	ClientKey      []string    `yaml:"clientKey"`
+	EnabledConsole bool        `yaml:"enabledConsole"`
+	Level          int         `yaml:"level"`
+	Rotation       LogRotation `yaml:"rotation"`
 }
 
-type XLog struct {
-	Disabled       bool         `yaml:"disabled"`
-	ClientKey      []string     `yaml:"clientKey"`
-	EnabledConsole bool         `yaml:"enabledConsole"`
-	Level          int          `yaml:"level"`
-	Rotation       XLogRotation `yaml:"rotation"`
-}
-
-type XLogRotation struct {
+type LogRotation struct {
 	BasePath  string `yaml:"basePath"`
 	Filename  string `yaml:"filename"`
 	MaxBackup int    `yaml:"maxBackup"`
@@ -82,25 +97,4 @@ type XLogRotation struct {
 	MaxAge    int    `yaml:"maxAge"`
 	LocalTime bool   `yaml:"localTime"`
 	Compress  bool   `yaml:"compress"`
-}
-
-func ProvideConfig() (Cfg, error) {
-	var (
-		c       Cfg
-		cfgPath string
-	)
-
-	flag.StringVar(&cfgPath, "cfg", "config.yaml", "load config path")
-	flag.Parse()
-
-	cfg, err := config.NewYAML(config.File(cfgPath))
-	if err != nil {
-		return c, err
-	}
-
-	if err := cfg.Get("").Populate(&c); err != nil {
-		return c, err
-	}
-
-	return c, nil
 }

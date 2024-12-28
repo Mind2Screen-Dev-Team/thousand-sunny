@@ -13,6 +13,13 @@ func As(f any) any {
 	return fx.Annotate(
 		f,
 		fx.As(new(Middleware)),
-		fx.ResultTags(`group:"middlewares"`),
+		fx.ResultTags(`group:"global:http:middleware"`),
+	)
+}
+
+func To(f any) any {
+	return fx.Annotate(
+		f,
+		fx.ParamTags(`group:"global:http:middleware"`),
 	)
 }
