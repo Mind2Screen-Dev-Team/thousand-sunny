@@ -10,8 +10,18 @@ import (
 func main() {
 	fx.New(
 		registry.Fx,
-		registry.Dependency,
-		registry.DependencyStartUp,
+		registry.DependencyConfig,
+		registry.DependencyLogger,
+
+		// Cache
+		registry.DependencyCache,
+		registry.DependencyCacheStartUp,
+
+		// Database
+		registry.DependencyDatabase,
+		registry.DependencyDatabaseStartUp,
+
+		// HTTP
 		registry.Http,
 		registry.HttpStartUp,
 		registry.HttpGlobalMiddleware,
