@@ -3,7 +3,7 @@
 
 Embark on your next adventure with the Thousand Sunny! Inspired by the legendary ship from One Piece, this Go project skeleton is designed for speed, flexibility, and scalability. Whether you’re building small tools or large applications, the Thousand Sunny will guide your journey to success.
 
-![Going Merry](./storage/assets/Thousand-Sunny.webp "Going Merry")
+![Going Merry](./storage/assets/Thousand-Sunny.webp "Thousand Sunny")
 
 ## 🗂 Project Structure
 
