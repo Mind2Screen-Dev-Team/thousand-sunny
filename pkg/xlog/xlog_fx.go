@@ -46,7 +46,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			Msg("OnStop hook executing")
 	case *fxevent.OnStopExecuted:
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().
+			l.DebugLog.Logger.Debug().
 				Err(e.Err).
 				Str("callee", e.FunctionName).
 				Str("caller", e.CallerName).
@@ -61,13 +61,13 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			Msg("OnStart hook executed")
 	case *fxevent.Supplied:
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().
+			l.DebugLog.Logger.Debug().
 				Err(e.Err).
 				Str("type", e.TypeName).
 				Strs("stacktrace", e.StackTrace).
 				Strs("moduletrace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
-				Msg("error encountered while applying options")
+				Msg("Debug encountered while applying options")
 			return
 		}
 
@@ -90,12 +90,12 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		}
 
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().
+			l.DebugLog.Logger.Debug().
 				Err(e.Err).
 				Strs("stacktrace", e.StackTrace).
 				Strs("moduletrace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
-				Msg("error encountered while applying options")
+				Msg("Debug encountered while applying options")
 		}
 	case *fxevent.Replaced:
 		for _, rtype := range e.OutputTypeNames {
@@ -108,12 +108,12 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		}
 
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().
+			l.DebugLog.Logger.Debug().
 				Err(e.Err).
 				Strs("stacktrace", e.StackTrace).
 				Strs("moduletrace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
-				Msg("error encountered while replacing")
+				Msg("Debug encountered while replacing")
 		}
 	case *fxevent.Decorated:
 		for _, rtype := range e.OutputTypeNames {
@@ -127,20 +127,20 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		}
 
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().
+			l.DebugLog.Logger.Debug().
 				Err(e.Err).
 				Strs("stacktrace", e.StackTrace).
 				Strs("moduletrace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
-				Msg("error encountered while applying options")
+				Msg("Debug encountered while applying options")
 		}
 	case *fxevent.Run:
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().
+			l.DebugLog.Logger.Debug().
 				Str("name", e.Name).
 				Str("kind", e.Kind).
 				Func(moduleField(e.ModuleName)).
-				Msg("error returned")
+				Msg("Debug returned")
 			return
 		}
 
@@ -157,7 +157,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			Msg("invoking")
 	case *fxevent.Invoked:
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().
+			l.DebugLog.Logger.Debug().
 				Err(e.Err).
 				Str("function", e.FunctionName).
 				Str("stack", e.Trace).
@@ -170,24 +170,24 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			Msg("received signal")
 	case *fxevent.Stopped:
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().Err(e.Err).Msg("stop failed")
+			l.DebugLog.Logger.Debug().Err(e.Err).Msg("stop failed")
 		}
 	case *fxevent.RollingBack:
-		l.DebugLog.Logger.Error().Err(e.StartErr).Msg("start failed, rolling back")
+		l.DebugLog.Logger.Debug().Err(e.StartErr).Msg("start failed, rolling back")
 	case *fxevent.RolledBack:
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().Err(e.Err).Msg("rollback failed")
+			l.DebugLog.Logger.Debug().Err(e.Err).Msg("rollback failed")
 		}
 	case *fxevent.Started:
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().Err(e.Err).Msg("start failed")
+			l.DebugLog.Logger.Debug().Err(e.Err).Msg("start failed")
 			return
 		}
 
-		l.DebugLog.Logger.Info().Msg("started")
+		l.DebugLog.Logger.Debug().Msg("started")
 	case *fxevent.LoggerInitialized:
 		if e.Err != nil {
-			l.DebugLog.Logger.Error().Err(e.Err).Msg("custom logger initialization failed")
+			l.DebugLog.Logger.Debug().Err(e.Err).Msg("custom logger initialization failed")
 			return
 		}
 

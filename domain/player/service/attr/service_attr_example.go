@@ -1,1 +1,0 @@
-package service_attr_example

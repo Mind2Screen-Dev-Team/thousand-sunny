@@ -2,7 +2,6 @@ package xhttp
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -11,22 +10,11 @@ import (
 
 type FileInfo struct {
 	FileName    string `json:"filename"`
-	ContentType string `json:"content_type"`
+	ContentType string `json:"contentType"`
 	Size        int64  `json:"size"`
 }
 
-type StrReqBody string
-
-func (b StrReqBody) String() string {
-	return string(b)
-}
-
-const (
-	STR_REQ_BODY = StrReqBody("STR_REQ_BODY")
-)
-
-func DeepCopyRequest(r *http.Request, saveReqBody ...bool) *http.Request {
-	// Read the body if it's non-nil
+func CopyRequestBody(r *http.Request) []byte {
 	var bodyBytes []byte
 	if r.Body != nil {
 		bodyBytes, _ = io.ReadAll(r.Body)
@@ -34,14 +22,17 @@ func DeepCopyRequest(r *http.Request, saveReqBody ...bool) *http.Request {
 		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	}
 
-	if len(saveReqBody) > 0 {
-		if saveReqBody[0] && bodyBytes != nil {
-			r = r.WithContext(context.WithValue(r.Context(), STR_REQ_BODY, string(bodyBytes)))
-		}
-	}
+	return bodyBytes
+}
 
-	// Create a shallow copy of the request
-	rCopy := r.Clone(r.Context())
+func DeepCopyRequest(r *http.Request) *http.Request {
+	var (
+		// Read the body if it's non-nil
+		bodyBytes = CopyRequestBody(r)
+
+		// Create a shallow copy of the request
+		rCopy = r.Clone(r.Context())
+	)
 
 	// Replace the body of the new request with a new reader wrapping the copied bytes
 	if bodyBytes != nil {
@@ -83,12 +74,6 @@ func DeepCopyRequest(r *http.Request, saveReqBody ...bool) *http.Request {
 
 			// Assign the copied file headers to the new request
 			rCopy.MultipartForm.File[key] = copiedFileHeaders
-		}
-	}
-
-	if len(saveReqBody) > 0 {
-		if saveReqBody[0] && bodyBytes != nil {
-			rCopy = rCopy.WithContext(context.WithValue(rCopy.Context(), STR_REQ_BODY, string(bodyBytes)))
 		}
 	}
 

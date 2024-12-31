@@ -82,11 +82,20 @@ type DBCredential struct {
 }
 
 type Log struct {
-	Disabled       bool        `yaml:"disabled"`
-	ClientKey      []string    `yaml:"clientKey"`
-	EnabledConsole bool        `yaml:"enabledConsole"`
-	Level          int         `yaml:"level"`
-	Rotation       LogRotation `yaml:"rotation"`
+	Disabled bool       `yaml:"disabled"`
+	Console  LogConsole `yaml:"console"`
+	File     LogFile    `yaml:"file"`
+}
+
+type LogConsole struct {
+	Disabled bool `yaml:"disabled"`
+	Level    int  `yaml:"level"`
+}
+
+type LogFile struct {
+	Disabled bool        `yaml:"disabled"`
+	Level    int         `yaml:"level"`
+	Rotation LogRotation `yaml:"rotation"`
 }
 
 type LogRotation struct {

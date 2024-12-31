@@ -2,6 +2,7 @@ package xlog
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
@@ -159,6 +160,10 @@ func (zl *ZeroLogger) attachFields(event *zerolog.Event, fields []any) *zerolog.
 		if i+1 < len(fields) {
 			key, ok := fields[i].(string)
 			if ok {
+				if slices.Contains([]string{"err", "error"}, key) {
+					event = event.Interface(key, fmt.Sprintf("%+v", fields[i+1]))
+					continue
+				}
 				event = event.Interface(key, fields[i+1])
 			}
 		}

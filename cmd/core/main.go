@@ -4,27 +4,33 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/app/dependency"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/app/module"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/app/registry"
 )
 
 func main() {
 	fx.New(
+		// Main
 		registry.Fx,
-		registry.DependencyConfig,
-		registry.DependencyLogger,
+		registry.GlobalConfig,
+		registry.GlobalLogger,
 
 		// Cache
-		registry.DependencyCache,
-		registry.DependencyCacheStartUp,
+		registry.Cache,
+		registry.CacheStartUp,
 
 		// Database
-		registry.DependencyDatabase,
-		registry.DependencyDatabaseStartUp,
+		registry.Database,
+		registry.DatabaseStartUp,
 
 		// HTTP
 		registry.Http,
 		registry.HttpStartUp,
 		registry.HttpGlobalMiddleware,
+		registry.HttpPrivateMiddleware,
+
+		// Modules
+		module.ProvideModules(),
 	).Run()
 
 	defer dependency.RotateLog()
