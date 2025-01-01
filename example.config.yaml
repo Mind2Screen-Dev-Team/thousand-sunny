@@ -5,8 +5,6 @@ app:
 server:
   http:
     address: "127.0.0.1:8080"
-    multipart:
-      maxMemory: 100 # MB
 log:
   debug: # For logging debug app
     disabled: false
