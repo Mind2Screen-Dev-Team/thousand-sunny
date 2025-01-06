@@ -37,6 +37,9 @@ help:
 print-path:
 	@echo "Current PATH: $(PATH)"
 
+sqlc-gen:
+	@sqlc generate
+
 # Command Setup
 setup:
 	@echo "- Install Goose For Migration & Seeder Tool"
@@ -100,7 +103,7 @@ migrate-down-to:
 	@$(GOOSE_MIGRATE_CMD) down-to $(v)
 
 migrate-create:
-	@$(GOOSE_MIGRATE_CMD) create $(n) $(t)
+	@$(GOOSE_MIGRATE_CMD) create $(n) sql
 
 migrate-redo:
 	@$(GOOSE_MIGRATE_CMD) redo
@@ -140,7 +143,7 @@ seeder-down-to:
 	@$(GOOSE_SEEDER_CMD) down-to $(v)
 
 seeder-create:
-	@$(GOOSE_SEEDER_CMD) create $(n) $(t)
+	@$(GOOSE_SEEDER_CMD) create $(n) sql
 
 seeder-redo:
 	@$(GOOSE_SEEDER_CMD) redo
@@ -170,18 +173,18 @@ migrate-help:
 	@echo "Usage: make [migrate | seeder]-[command] [OPTIONS]"
 	@echo ""
 	@echo "Commands:"
-	@echo "  ( migrate | seeder )-up                    Migrate the DB to the most recent version available"
-	@echo "  ( migrate | seeder )-up-by-one             Migrate the DB up by 1"
-	@echo "  ( migrate | seeder )-up-to VERSION         Migrate the DB to a specific VERSION"
-	@echo "  ( migrate | seeder )-down                  Roll back the version by 1"
-	@echo "  ( migrate | seeder )-down-to VERSION       Roll back to a specific VERSION"
-	@echo "  ( migrate | seeder )-create NAME [sql|go]  Creates new migration file with the current timestamp"
-	@echo "  ( migrate | seeder )-redo                  Re-run the latest migration"
-	@echo "  ( migrate | seeder )-reset                 Roll back all migrations"
-	@echo "  ( migrate | seeder )-status                Dump the migration status for the current DB"
-	@echo "  ( migrate | seeder )-version               Print the current version of the database"
-	@echo "  ( migrate | seeder )-fix                   Apply sequential ordering to migrations"
-	@echo "  ( migrate | seeder )-validate              Check migration files without running them"
+	@echo "  [ migrate | seeder ]-up                    Migrate the DB to the most recent version available"
+	@echo "  [ migrate | seeder ]-up-by-one             Migrate the DB up by 1"
+	@echo "  [ migrate | seeder ]-up-to VERSION         Migrate the DB to a specific VERSION"
+	@echo "  [ migrate | seeder ]-down                  Roll back the version by 1"
+	@echo "  [ migrate | seeder ]-down-to VERSION       Roll back to a specific VERSION"
+	@echo "  [ migrate | seeder ]-create NAME			Creates new migration file with the current timestamp"
+	@echo "  [ migrate | seeder ]-redo                  Re-run the latest migration"
+	@echo "  [ migrate | seeder ]-reset                 Roll back all migrations"
+	@echo "  [ migrate | seeder ]-status                Dump the migration status for the current DB"
+	@echo "  [ migrate | seeder ]-version               Print the current version of the database"
+	@echo "  [ migrate | seeder ]-fix                   Apply sequential ordering to migrations"
+	@echo "  [ migrate | seeder ]-validate              Check migration files without running them"
 	@echo ""
 	@echo "Options by env file:"
 	@echo "  DB_GOOSE_DRIVER         Database driver (postgres, mysql, sqlite3, mssql, redshift, tidb, clickhouse, vertica, ydb, turso)"
@@ -189,12 +192,12 @@ migrate-help:
 	@echo "  DB_GOOSE_MIGRATION_DIR  Directory for migration files (default: current directory)"
 	@echo ""
 	@echo "Examples:"
-	@echo "  make ( migrate | seeder )-up" 
-	@echo "  make ( migrate | seeder )-up-by-one"
-	@echo "  make ( migrate | seeder )-up-to v=20240922160357"
-	@echo "  make ( migrate | seeder )-down"
-	@echo "  make ( migrate | seeder )-down-to v=20240922160357"
-	@echo "  make ( migrate | seeder )-status"
-	@echo "  make ( migrate | seeder )-version"
-	@echo "  make ( migrate | seeder )-create n=<migration_name> t=<sql|go>"
-	@echo "  make ( migrate | seeder )-validate"
+	@echo "  make [ migrate | seeder ]-up" 
+	@echo "  make [ migrate | seeder ]-up-by-one"
+	@echo "  make [ migrate | seeder ]-up-to v=20240922160357"
+	@echo "  make [ migrate | seeder ]-down"
+	@echo "  make [ migrate | seeder ]-down-to v=20240922160357"
+	@echo "  make [ migrate | seeder ]-status"
+	@echo "  make [ migrate | seeder ]-version"
+	@echo "  make [ migrate | seeder ]-create n=<migration_name>"
+	@echo "  make [ migrate | seeder ]-validate"

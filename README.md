@@ -10,11 +10,15 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 ```bash
 ├── app
 │   ├── dependency  # External dependencies or libraries used across the application.
+│   │   └── ...     # Create Dependency Here.
 │   ├── module      # Application-specific modules encapsulating core features.
+│   │   └── ...     # Create Module Here.
 │   └── registry    # Manages the initialization and registration of application components.
+│       └── ...     # Create Registry Here.
 ├── bin             # Compiled binaries or executables for the application.
 ├── cmd
-│   └── core        # Main entry point for the application.
+│   ├── asynq       # Main entry point for the 'asynq' application.
+│   └── core        # Main entry point for the 'core' application.
 ├── config          # Configuration files for managing application settings.
 ├── constant        # Application-wide constants to avoid hardcoding values.
 ├── database
@@ -25,24 +29,35 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │   └── repo        # Auto-generated repository code for data access.
 ├── internal        # Internal packages for application-specific functionality.
 │   ├── asynq       # Handles asynchronous task queues.
-│   │   └── handler # Specific handlers for processing tasks.
+│   │   ├── worker      # Specific handlers for processing workers.
+│   │   │   └── ...     # Other Worker Routing Handlers.
+│   │   └── scheduler   # Specific handlers for processing schedulers.
+│   │       └── ...     # Other Scheduler Routing Handlers.
 │   ├── http        # HTTP server and related components.
 │   │   ├── handler
-│   │   │   ├── health  # Ex. Handlers for application health check endpoints.
-│   │   │   ├── user    # Ex. Handlers for user-related endpoints.
-│   │   │   └── ....    # Other Handlers.
+│   │   │   ├── health  # Example. Handlers for application health check endpoints.
+│   │   │   ├── user    # Example. Handlers for user-related endpoints.
+│   │   │   └── ...     # Other Routing Handlers.
 │   │   ├── middleware  # HTTP middleware for request processing.
 │   │   │   ├── global  # Middleware applied to all requests globally.
+│   │   │   │   └── ... # Other Global Middleware.
 │   │   │   └── private # Middleware for restricted/private routes.
-│   │   └── router      # HTTP routing logic.
+│   │   │       └── ... # Other Private Middleware.
+│   │   └── router      # Base HTTP routing configuration (No need to add Something here).
 │   ├── repo         # Data access layer.
 │   │   ├── api      # Repository interfaces for APIs.
+│   │   │   └── ...  # Other API Repository.
 │   │   ├── attr     # Repositories for handling attributes.
+│   │   │   └── ...  # Other Attribute Repository.
 │   │   └── impl     # Implementation of repository interfaces.
+│   │       └── ...  # Other Implementaion Repository.
 │   └── service      # Business logic layer.
 │       ├── api      # API-specific services.
+│       │   └── ...  # Other API Service.
 │       ├── attr     # Services for managing attributes.
+│       │   └── ...  # Other Attribute Service.
 │       └── impl     # Implementation of service interfaces.
+│           └── ...  # Other Implementaion Service.
 ├── pkg             # Utility and reusable packages.
 │   ├── xauth        # Authentication helpers and utilities.
 │   ├── xecho        # Extensions for the Echo web framework.
@@ -54,11 +69,13 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │   └── xrsa         # RSA encryption and decryption utilities.
 └── storage         # Storage for static files and logs.
     ├── assets      # Static assets like images or documents.
+    │   └── ...     # Add other assets here.
     └── logs        # Application log files.
         └── core
-            ├── debug  # Debug-level logs.
-            ├── io     # Input/output operation logs.
-            └── trx    # Transaction logs for auditing or debugging.
+            ├── debug   # Debug-level logs.
+            │   └── ... # Add other assets here.
+            ├── io      # Input/output (incoming logs) operation logs.
+            └── trx     # Transaction logs for auditing or debugging.
 ```
 
 ## 📋 Features
@@ -79,14 +96,14 @@ Here's a quick look at what's done and what's still in progress:
 
 ## 📦 Installation and Setup
 
-To get started with Going-Merry-Go, follow these steps:
+To get started, follow these steps:
 
 ```bash
 # Clone the repository
-git clone git@github.com:Mind2Screen-Dev-Team/thousand-sunny.git
+git clone git@github.com:Mind2Screen-Dev-Team/be-brilife-digitalproduct.git
 
 # Navigate to the project directory
-cd thousand-sunny
+cd be-brilife-digitalproduct
 
 # Install dependencies and set up the project
 make setup
@@ -101,7 +118,7 @@ The Makefile provides a set of commands to help you manage and interact with you
 
 ### Setup Commands
 
-- **`make setup`**: Sets up the project by installing necessary tools like `protoc-gen-go`, `protoc-gen-go-grpc`, `goose`, and `pkl-gen-go`.
+- **`make setup`**: Sets up the project by installing necessary tools like `goose` and `sqlc`.
 
 ### Go Commands
 
@@ -147,7 +164,7 @@ These commands make it easy to manage your Go application, including its depende
 
 ## 📖 Documentation
 
-For detailed documentation and advanced usage, please refer to the [Wiki](https://github.com/Mind2Screen-Dev-Team/thousand-sunny/wiki) page.
+For detailed documentation and advanced usage, please refer to the [Wiki](https://github.com/Mind2Screen-Dev-Team/thousand-sunny) page.
 
 ## 📜 License
 

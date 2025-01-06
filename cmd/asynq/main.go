@@ -26,12 +26,6 @@ func main() {
 		// Repo SQLC Generator
 		registry.RepoGenerationSqlc,
 
-		// HTTP
-		registry.Http,
-		registry.HttpStartUp,
-		registry.HttpGlobalMiddleware,
-		registry.HttpPrivateMiddleware,
-
 		// Modules
 		module.ProvideModules,
 	).Run()
