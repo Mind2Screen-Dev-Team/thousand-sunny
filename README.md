@@ -134,13 +134,13 @@ The Makefile provides a set of commands to help you manage and interact with you
 - **`make migrate-up-by-one`**: Migrates the database up by one version.
 - **`make migrate-down`**: Rolls back the database version by one.
 - **`make migrate-status`**: Displays the migration status of the database.
-- **`make migrate-create n=<migration_name> t=<sql|go>`**: Creates a new migration file.
+- **`make migrate-create n=<migration_name>`**: Creates a new migration file.
 
 ### Seeder Commands
 
 - **`make seeder-up`**: Runs the seeders to populate the database.
 - **`make seeder-down`**: Rolls back the seeders by one version.
-- **`make seeder-create n=<seeder_name> t=<sql|go>`**: Creates a new seeder file.
+- **`make seeder-create n=<seeder_name>`**: Creates a new seeder file.
 
 ### Utility Commands
 
