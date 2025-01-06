@@ -6,15 +6,15 @@ services:
     image: core-app:latest
     container_name: core-app
     ports:
-      - 8081:8080
+      - 8080:8080
     volumes:
       - ./storage:/app/storage
-      - ./config.yaml:/app/config.yaml
+      - ./core.config.yaml:/app/config.yaml
     restart: unless-stopped
     networks:
-      - app_core_net
+      - core_app_net
 
 networks:
-  app_core_net:
-    name: app_core_net
+  core_app_net:
+    name: core_app_net
     external: true

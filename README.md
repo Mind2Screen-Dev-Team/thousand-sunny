@@ -1,9 +1,9 @@
 
-# 🚢 _Thousand Sunny_ - Project Skeleton
+# 🏴‍☠️ _Thousand Sunny_ 🏴‍☠️ - Project Skeleton
 
 Embark on your next adventure with the Thousand Sunny! Inspired by the legendary ship from One Piece, this Go project skeleton is designed for speed, flexibility, and scalability. Whether you’re building small tools or large applications, the Thousand Sunny will guide your journey to success.
 
-![Going Merry](./storage/assets/Thousand-Sunny.webp "Thousand Sunny")
+![Thousand-Sunny-Image](./storage/assets/Thousand-Sunny.webp "Thousand Sunny")
 
 ## 🗂 Project Structure
 
@@ -23,8 +23,11 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 ├── constant        # Application-wide constants to avoid hardcoding values.
 ├── database
 │   ├── migrations  # Database schema migrations for version control.
+│   │   └── ...     # List of migration files.
 │   ├── queries     # Custom Generator For SQLC queries for specific operations.
+│   │   └── ...     # List of sqlc generator queries.
 │   └── seeders     # Seed data for initializing or populating the database.
+│       └── ...     # List of seeder files.
 ├── gen
 │   └── repo        # Auto-generated repository code for data access.
 ├── internal        # Internal packages for application-specific functionality.
@@ -152,7 +155,7 @@ The Makefile provides a set of commands to help you manage and interact with you
 # Setup your project workspace
 make setup
 
-# Run a Go application (example: restapi)
+# Run a Go application (example: core, asynq)
 make go-run app=core
 
 # Migrate the database to the latest version

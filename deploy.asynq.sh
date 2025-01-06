@@ -25,7 +25,7 @@ else
 fi
 
 # Check if the Docker network exists
-NETWORK_NAME="app_core_net"
+NETWORK_NAME="asynq_app_net"
 if ! docker network inspect $NETWORK_NAME >/dev/null 2>&1; then
   echo "Network $NETWORK_NAME not found, creating it..."
   docker network create --driver bridge $NETWORK_NAME
@@ -40,10 +40,10 @@ make migrate-up || { echo 'Error: migrate up a db migrations.'; exit 1; }
 make migrate-status || { echo 'Error: migrate status a db migrations.'; exit 1; }
 
 # Docker Build Image services
-docker build -t core-app:latest -f Dockerfile.core . || { echo 'Error: build docker build image service.'; exit 1; }
+docker build -t asynq-app:latest -f Dockerfile.asynq . || { echo 'Error: build docker build image service.'; exit 1; }
 
 # Stop Docker Compose services
-docker compose down || { echo 'Error: take-down a service via docker compose.'; exit 1; }
+docker compose -f compose.asynq.yml down || { echo 'Error: take-down a service via docker compose.'; exit 1; }
 
 # Start Docker Compose services with build
-docker compose up -d || { echo 'Error: deploy a service via docker compose.'; exit 1; }
+docker compose -f compose.asynq.yml up -d || { echo 'Error: deploy a service via docker compose.'; exit 1; }
