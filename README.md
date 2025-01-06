@@ -102,10 +102,10 @@ To get started, follow these steps:
 
 ```bash
 # Clone the repository
-git clone git@github.com:Mind2Screen-Dev-Team/be-brilife-digitalproduct.git
+git clone git@github.com:Mind2Screen-Dev-Team/thousand-sunny.git
 
 # Navigate to the project directory
-cd be-brilife-digitalproduct
+cd thousand-sunny
 
 # Install dependencies and set up the project
 make setup
