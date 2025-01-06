@@ -76,7 +76,6 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
     └── logs        # Application log files.
         └── core
             ├── debug   # Debug-level logs.
-            │   └── ... # Add other assets here.
             ├── io      # Input/output (incoming logs) operation logs.
             └── trx     # Transaction logs for auditing or debugging.
 ```
