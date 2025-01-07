@@ -151,7 +151,7 @@ The Makefile provides a set of commands to help you manage and interact with you
 
 - **`make go-tidy`**: Cleans up the `go.mod` file by removing unnecessary dependencies.
 - **`make go-run a=<application>`**: Runs the specified application.
-- **`make go-run a=<application> -c=<configuration file>`**: Runs the specified application with configuration.
+- **`make go-run a=<application> c=<configuration file>`**: Runs the specified application with configuration.
 - **`make go-build a=<application>`**: Builds the specified application.
 
 ### Migration Commands
