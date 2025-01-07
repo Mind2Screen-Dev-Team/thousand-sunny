@@ -38,7 +38,7 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │   │       └── ...     # Other Scheduler Routing Handlers.
 │   ├── http        # HTTP server and related components.
 │   │   ├── handler
-│   │   │   ├── health  # Example. Handlers for application health check endpoints.
+│   │   │   ├── health  # Example. Handlers for health-related endpoints.
 │   │   │   ├── user    # Example. Handlers for user-related endpoints.
 │   │   │   └── ...     # Other Routing Handlers.
 │   │   ├── middleware  # HTTP middleware for request processing.
@@ -74,6 +74,10 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
     ├── assets      # Static assets like images or documents.
     │   └── ...     # Add other assets here.
     └── logs        # Application log files.
+        ├── asynq
+        │   ├── debug   # Debug-level logs.
+        │   ├── io      # Input/output (incoming logs) operation logs.
+        │   └── trx     # Transaction logs for auditing or debugging.
         └── core
             ├── debug   # Debug-level logs.
             ├── io      # Input/output (incoming logs) operation logs.
@@ -86,9 +90,10 @@ Here's a quick look at what's done and what's still in progress:
 
 ### Done ✅
 - 🗃️ **Base Structural Directory**: Well-organized code structure to get you started quickly.
-- 🔧 **Setup Uber Config**: Configuration uber tool setup.
 - 🔧 **Setup Uber Fx**: Uber Dependency injection tool setup.
+- 🔧 **Setup Uber Config**: Uber Configuration tool setup.
 - 📦 **SQLC Repositories Generator**: Repository generator tools.
+- 🌐 **Asynq Redis Queue Worker and Scheduler Handler and Router Loader**: Load and manage routes effortlessly.
 - 🌐 **HTTP Handler and Router Loader**: Load and manage routes effortlessly.
 - 📜 **DTO Validation**: Validate incoming data with ease.
 - 📦 **DB Migrations and Seeders**: Database migration and seeding tools.
@@ -111,7 +116,27 @@ cd thousand-sunny
 make setup
 
 # Run the application
-make go-run app=core
+make go-run a=core
+
+# Make it script deployment executeable
+chmod +x ./deploy.*.sh
+
+# IMPORTANT!:
+#   1. Run your docker apps before run this deploy scripts
+#   2. Run the deploy setup first
+#   3. Run the deploy script
+
+# For setup core app
+./deploy.core.sh setup
+
+# For setup asynq app
+./deploy.asynq.sh setup
+
+# For deploy core app
+./deploy.core.sh
+
+# For deploy asynq app
+./deploy.asynq.sh
 ```
 
 ## ⚙️ Makefile Commands
@@ -125,8 +150,9 @@ The Makefile provides a set of commands to help you manage and interact with you
 ### Go Commands
 
 - **`make go-tidy`**: Cleans up the `go.mod` file by removing unnecessary dependencies.
-- **`make go-run app=<application>`**: Runs the specified application.
-- **`make go-build app=<application>`**: Builds the specified application.
+- **`make go-run a=<application>`**: Runs the specified application.
+- **`make go-run a=<application> -c=<configuration file>`**: Runs the specified application with configuration.
+- **`make go-build a=<application>`**: Builds the specified application.
 
 ### Migration Commands
 

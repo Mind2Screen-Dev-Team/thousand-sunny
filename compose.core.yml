@@ -9,7 +9,7 @@ services:
       - 8080:8080
     volumes:
       - ./storage:/app/storage
-      - ./core.config.yaml:/app/config.yaml
+      - ./config.core.yaml:/app/config.yaml
     restart: unless-stopped
     networks:
       - core_app_net

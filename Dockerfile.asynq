@@ -35,4 +35,4 @@ COPY --from=builder /app/main /app/main
 EXPOSE 8080
 
 # Set the entrypoint
-ENTRYPOINT ["/app/main", "-cfg=config.yaml"]
+ENTRYPOINT ["/app/main", "-c=config.yaml"]

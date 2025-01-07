@@ -30,10 +30,29 @@ go.work.sum
 # env files
 .env
 
-# config files
-*config.yaml
-!example.config.yaml
-
 # Binnary
 bin/*
 !bin/README.md
+
+# Root FIle
+*
+!.gitignore
+!.example.env
+!example.config.yaml
+
+!compose.asynq.yml
+!compose.core.yml
+
+!deploy.asynq.sh
+!deploy.core.sh
+
+!Dockerfile.asynq
+!Dockerfile.core
+
+!go.mod
+!go.sum
+
+!LICENSE
+!Makefile
+!README.md
+!sqlc.yaml
