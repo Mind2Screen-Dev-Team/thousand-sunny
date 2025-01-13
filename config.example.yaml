@@ -4,6 +4,10 @@ app:
   domain: "http://localhost"
   timezone: "Asia/Jakarta"
 server:
+  asynq:
+    address: "127.0.0.1:8081"
+    route:
+      asynq.monitoring.route: /asynq/monitoring
   http:
     address: "127.0.0.1:8080"
 smtp:

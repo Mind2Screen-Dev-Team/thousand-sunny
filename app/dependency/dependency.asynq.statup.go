@@ -34,10 +34,11 @@ type InvokeAsynqServerParam struct {
 
 func InvokeAsynqServer(p InvokeAsynqServerParam) {
 	var (
-		env   = p.Config.App.Env
-		cfg   = p.Config.Cache["redis"]
-		DB, _ = strconv.Atoi(cfg.DBName)
-		ctx   = context.WithValue(context.Background(), xasynq.ASYNQ_ENV, env)
+		env      = p.Config.App.Env
+		asynqCfg = p.Config.Server["asynq"]
+		cfg      = p.Config.Cache["redis"]
+		DB, _    = strconv.Atoi(cfg.DBName)
+		ctx      = context.WithValue(context.Background(), xasynq.ASYNQ_ENV, env)
 	)
 
 	var (
@@ -67,7 +68,7 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 	)
 
 	var (
-		_rootpath   = "/monitoring/tasks"
+		_rootpath   = asynqCfg.Route["asynq. monitoring.route"]
 		asynqmonCfg = asynqmon.Options{
 			RootPath:     _rootpath,
 			RedisConnOpt: redisOpt,

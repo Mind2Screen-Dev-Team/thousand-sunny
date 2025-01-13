@@ -45,7 +45,8 @@ type App struct {
 }
 
 type Server struct {
-	Address string `yaml:"address"`
+	Route   map[string]string `yaml:"route"`
+	Address string            `yaml:"address"`
 }
 
 type SMTP struct {
