@@ -6,6 +6,16 @@ app:
 server:
   http:
     address: "127.0.0.1:8080"
+smtp:
+  gmail:
+    host: localhost
+    port: 587
+    credential:
+      email: admin.example.local
+      username: "example"
+      password: "example"
+template:
+  example.email.template: "./storage/template/my_template.tpl" 
 log:
   debug: # For logging debug app
     disabled: false

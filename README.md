@@ -62,6 +62,8 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │       └── impl     # Implementation of service interfaces.
 │           └── ...  # Other Implementaion Service.
 ├── pkg             # Utility and reusable packages.
+│   ├── xasynq       # Asynq sever helpers and utilities.
+│   ├── xmail        # Email helpers and utilities.
 │   ├── xauth        # Authentication helpers and utilities.
 │   ├── xecho        # Extensions for the Echo web framework.
 │   ├── xfilter      # Utilities for filtering data in requests.
@@ -73,6 +75,8 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 └── storage         # Storage for static files and logs.
     ├── assets      # Static assets like images or documents.
     │   └── ...     # Add other assets here.
+    ├── template    # Template files.
+    │   └── ...     # Add other template here.
     └── logs        # Application log files.
         ├── asynq
         │   ├── debug   # Debug-level logs.

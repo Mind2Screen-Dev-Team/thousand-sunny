@@ -14,6 +14,7 @@ func main() {
 		registry.Fx,
 		registry.GlobalConfig,
 		registry.GlobalLogger,
+		registry.GlobalEmail,
 
 		// Cache
 		registry.Cache,

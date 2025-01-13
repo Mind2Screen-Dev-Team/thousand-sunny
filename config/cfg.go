@@ -28,11 +28,13 @@ func ProvideConfig() (Cfg, error) {
 }
 
 type Cfg struct {
-	App    App               `yaml:"app"`
-	Server map[string]Server `yaml:"server"`
-	DB     map[string]DB     `yaml:"db"`
-	Cache  map[string]Cache  `yaml:"cache"`
-	Log    map[string]Log    `yaml:"log"`
+	App      App               `yaml:"app"`
+	Server   map[string]Server `yaml:"server"`
+	SMTP     map[string]SMTP   `yaml:"smtp"`
+	Template map[string]string `yaml:"template"`
+	DB       map[string]DB     `yaml:"db"`
+	Cache    map[string]Cache  `yaml:"cache"`
+	Log      map[string]Log    `yaml:"log"`
 }
 
 type App struct {
@@ -44,6 +46,18 @@ type App struct {
 
 type Server struct {
 	Address string `yaml:"address"`
+}
+
+type SMTP struct {
+	Host       string         `yaml:"host"`
+	Port       int            `yaml:"port"`
+	Credential SMTPCredential `yaml:"credential"`
+}
+
+type SMTPCredential struct {
+	Email    string `yaml:"email"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 type Cache struct {
