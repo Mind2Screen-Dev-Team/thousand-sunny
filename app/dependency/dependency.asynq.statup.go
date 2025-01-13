@@ -141,17 +141,17 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 		}, OnStop: func(ctx context.Context) error {
 
 			go func() {
-				p.logger.Logger.Info().Msg("asynq tasks server stopped")
+				defer p.logger.Logger.Info().Msg("asynq tasks server stopped")
 				_asynqTaskServer.Shutdown()
 			}()
 
 			go func() {
-				p.logger.Logger.Info().Msg("asynq schedule server stopped")
+				defer p.logger.Logger.Info().Msg("asynq schedule server stopped")
 				_asynqScheduleServer.Shutdown()
 			}()
 
 			go func() {
-				p.logger.Logger.Info().Msg("asynq cron scheduler stopped")
+				defer p.logger.Logger.Info().Msg("asynq cron scheduler stopped")
 				p.XAsynq.Scheduler.Shutdown()
 			}()
 
