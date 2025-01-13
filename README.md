@@ -32,6 +32,7 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │   └── repo        # Auto-generated repository code for data access.
 ├── internal        # Internal packages for application-specific functionality.
 │   ├── asynq       # Handles asynchronous task queues.
+│   │   ├── router      # Base Asynq routing configuration (No need to add Something here).
 │   │   ├── worker      # Specific handlers for processing workers.
 │   │   │   └── ...     # Other Worker Routing Handlers.
 │   │   └── scheduler   # Specific handlers for processing schedulers.
