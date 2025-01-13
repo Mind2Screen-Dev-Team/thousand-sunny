@@ -27,6 +27,10 @@ func main() {
 		// Repo SQLC Generator
 		registry.RepoGenerationSqlc,
 
+		// Asynq
+		registry.Asynq,
+		registry.AsynqStartUp,
+
 		// Modules
 		module.ProvideAsynqModules,
 	).Run()
