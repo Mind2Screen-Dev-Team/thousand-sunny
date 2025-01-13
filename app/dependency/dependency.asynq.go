@@ -2,7 +2,6 @@ package dependency
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -53,9 +52,8 @@ func ProvideAsynqServer(c config.Cfg, logger *xlog.DebugLogger, lc fx.Lifecycle)
 		OnStart: func(ctx context.Context) error {
 			go func() {
 				logger.Logger.Info().Str("address", cfg.Address).Msg("asynq monitoring server started")
-				err := srv.Start(cfg.Address)
-				if err != nil && err != http.ErrServerClosed {
-					log.Fatal(err.Error())
+				if err := srv.Start(cfg.Address); err != nil && err != http.ErrServerClosed {
+					logger.Logger.Error().Err(err).Msg("failed to start asynq monitoring server")
 				}
 			}()
 
