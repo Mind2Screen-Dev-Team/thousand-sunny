@@ -11,6 +11,10 @@ func ProvideCORS() CORS {
 
 type CORS struct{}
 
+func (CORS) Name() string {
+	return "cors"
+}
+
 func (CORS) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return middleware.CORS()(next)
 }

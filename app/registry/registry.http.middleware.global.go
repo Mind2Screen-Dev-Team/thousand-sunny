@@ -12,7 +12,7 @@ var (
 		fx.Module("http:server:global:middleware",
 			fx.Provide(
 				middleware.ProvideAs(global_middleware.ProvideCORS),
-				middleware.ProvideAs(global_middleware.ProvideRequestID),
+				middleware.ProvideAs(global_middleware.ProvideTraceID),
 				middleware.ProvideAs(global_middleware.ProvideIncomingLog),
 			),
 		),

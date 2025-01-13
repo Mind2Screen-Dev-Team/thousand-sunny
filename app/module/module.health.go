@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	HealthModule = fx.Module("module:health",
+	HealthHttpModule = fx.Module("module:http:health",
 		fx.Provide(
-			http_router.ProvideAs(handler_health.NewHealthHandler),
+			http_router.RegisterHttpAs(handler_health.NewHealthHandler),
 		),
 	)
 )

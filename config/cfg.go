@@ -36,9 +36,10 @@ type Cfg struct {
 }
 
 type App struct {
-	Env    string `yaml:"env"`
-	Name   string `yaml:"name"`
-	Domain string `yaml:"domain"`
+	Env      string `yaml:"env"`
+	Name     string `yaml:"name"`
+	Domain   string `yaml:"domain"`
+	Timezone string `yaml:"timezone"`
 }
 
 type Server struct {

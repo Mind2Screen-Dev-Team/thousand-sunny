@@ -2,6 +2,7 @@ app:
   env: "dev"
   name: "example-app"
   domain: "http://localhost"
+  timezone: "Asia/Jakarta"
 server:
   http:
     address: "127.0.0.1:8080"

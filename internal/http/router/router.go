@@ -5,16 +5,16 @@ import (
 	"go.uber.org/fx"
 )
 
-type Router interface {
+type HttpRouter interface {
 	Route() (method, path string)
 	Middleware() []echo.MiddlewareFunc
 	Serve(c echo.Context) error
 }
 
-func ProvideAs(f any) any {
+func RegisterHttpAs(f any) any {
 	return fx.Annotate(
 		f,
-		fx.As(new(Router)),
+		fx.As(new(HttpRouter)),
 		fx.ResultTags(`group:"global:http:router"`),
 	)
 }

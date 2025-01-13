@@ -27,7 +27,7 @@ func main() {
 		registry.RepoGenerationSqlc,
 
 		// Modules
-		module.ProvideModules,
+		module.ProvideAsynqModules,
 	).Run()
 
 	defer dependency.RotateLog()

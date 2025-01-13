@@ -7,13 +7,17 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func ProvideRequestID() RequestID {
-	return RequestID{}
+func ProvideTraceID() TraceID {
+	return TraceID{}
 }
 
-type RequestID struct{}
+type TraceID struct{}
 
-func (RequestID) Serve(next echo.HandlerFunc) echo.HandlerFunc {
+func (TraceID) Name() string {
+	return "trace.id"
+}
+
+func (TraceID) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Set(xlog.XLOG_TRACE_ID_KEY, xid.New())
 		return next(c)

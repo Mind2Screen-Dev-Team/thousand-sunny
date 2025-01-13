@@ -15,7 +15,7 @@ type InvokeHttpServerParam struct {
 
 	Echo       *echo.Echo
 	Middleware []http_middleware.Middleware `group:"global:http:middleware"`
-	Router     []http_router.Router         `group:"global:http:router"`
+	Router     []http_router.HttpRouter     `group:"global:http:router"`
 }
 
 func InvokeHttpServer(p InvokeHttpServerParam) {

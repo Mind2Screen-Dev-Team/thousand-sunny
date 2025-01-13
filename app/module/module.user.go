@@ -11,15 +11,14 @@ import (
 )
 
 var (
-	UserModule = fx.Module("module:user",
-		// service
+	UserHttpModule = fx.Module("module:http:user",
 		fx.Provide(
 			repo_impl.NewUserCURDRepo,
 			service_impl.NewUserCURDService,
 		),
 
 		// handler
-		fx.Provide(http_router.ProvideAs(handler_user.NewUserGetDetailHandlerFx)),
-		fx.Provide(http_router.ProvideAs(handler_user.NewUserCreateHandlerFx)),
+		fx.Provide(http_router.RegisterHttpAs(handler_user.NewUserGetDetailHandlerFx)),
+		fx.Provide(http_router.RegisterHttpAs(handler_user.NewUserCreateHandlerFx)),
 	)
 )

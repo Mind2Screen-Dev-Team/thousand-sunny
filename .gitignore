@@ -8,6 +8,10 @@
 *.so
 *.dylib
 
+# editor configuration
+.vscode
+.idea
+
 # Mac Finder
 .DS_Store
 
@@ -34,25 +38,15 @@ go.work.sum
 bin/*
 !bin/README.md
 
-# Root FIle
-*
-!.gitignore
-!.example.env
-!example.config.yaml
+# Need Ignore Configuration FIle
+*.yml
+*.yaml
+config.yaml
+config.asynq.yaml
+config.core.yaml
 
+# Ignore needed yaml files
 !compose.asynq.yml
 !compose.core.yml
-
-!deploy.asynq.sh
-!deploy.core.sh
-
-!Dockerfile.asynq
-!Dockerfile.core
-
-!go.mod
-!go.sum
-
-!LICENSE
-!Makefile
-!README.md
-!sqlc.yaml
+!config.example.yaml
+sqlc.yaml

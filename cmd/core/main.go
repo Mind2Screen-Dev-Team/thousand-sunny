@@ -33,7 +33,7 @@ func main() {
 		registry.HttpPrivateMiddleware,
 
 		// Modules
-		module.ProvideModules,
+		module.ProvideHttpModules,
 	).Run()
 
 	defer dependency.RotateLog()

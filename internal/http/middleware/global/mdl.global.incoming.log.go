@@ -35,6 +35,10 @@ type IncomingLog struct {
 	iolog xlog.Logger
 }
 
+func (IncomingLog) Name() string {
+	return "incoming.log"
+}
+
 func (in IncomingLog) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return echo.HandlerFunc(func(c echo.Context) error {
 		var (

@@ -6,6 +6,7 @@ import (
 )
 
 type Middleware interface {
+	Name() string
 	Serve(next echo.HandlerFunc) echo.HandlerFunc
 }
 
