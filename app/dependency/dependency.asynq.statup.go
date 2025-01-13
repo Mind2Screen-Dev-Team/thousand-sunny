@@ -68,7 +68,7 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 	)
 
 	var (
-		_rootpath   = asynqCfg.Route["asynq. monitoring.route"]
+		_rootpath   = asynqCfg.Route["asynq.monitoring.route"]
 		asynqmonCfg = asynqmon.Options{
 			RootPath:     _rootpath,
 			RedisConnOpt: redisOpt,
