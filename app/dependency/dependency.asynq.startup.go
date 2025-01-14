@@ -113,6 +113,9 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 		}
 	}
 
+	logger.Info("asynq information task worker and queue", "concurrencies", asynqTaskCfg.Concurrency, "queues", asynqTaskCfg.Queues)
+	logger.Info("asynq information schedule worker and queue", "concurrencies", asynqScheduleCfg.Concurrency, "queues", asynqScheduleCfg.Queues)
+
 	var (
 		_asynqmon            = asynqmon.New(asynqmonCfg)
 		_asynqTaskServer     = asynq.NewServer(redisOpt, asynqTaskCfg)
@@ -150,20 +153,14 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 			return nil
 		}, OnStop: func(ctx context.Context) error {
 
-			go func() {
-				defer logger.Info("asynq tasks server stopped")
-				_asynqTaskServer.Shutdown()
-			}()
+			_asynqTaskServer.Shutdown()
+			logger.Info("asynq tasks server stopped")
 
-			go func() {
-				defer logger.Info("asynq schedule server stopped")
-				_asynqScheduleServer.Shutdown()
-			}()
+			_asynqScheduleServer.Shutdown()
+			logger.Info("asynq schedule server stopped")
 
-			go func() {
-				defer logger.Info("asynq cron scheduler stopped")
-				p.XAsynq.Scheduler.Shutdown()
-			}()
+			p.XAsynq.Scheduler.Shutdown()
+			logger.Info("asynq cron scheduler stopped")
 
 			return nil
 		},
