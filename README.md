@@ -186,7 +186,7 @@ The Makefile provides a set of commands to help you manage and interact with you
 make setup
 
 # Run a Go application (example: core, asynq)
-make go-run app=core
+make go-run a=core
 
 # Migrate the database to the latest version
 make migrate-up
