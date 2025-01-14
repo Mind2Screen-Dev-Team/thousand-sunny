@@ -76,7 +76,7 @@ if [[ "$1" != "setup" ]]; then
         docker build -t asynq-app:latest -f Dockerfile.asynq . || { echo 'Error: Failed to build Docker asynq image.'; exit 1; }
 
         # Stop Docker Compose services
-        docker compose -f compose.asynq.yml down || { echo 'Error: Failed to stop Docker Compose asynq services.'; exit 1; }
+        docker compose -f compose.asynq.yml down
 
         # Start Docker Compose services with build
         docker compose -f compose.asynq.yml up -d || { echo 'Error: Failed to start Docker Compose asynq services.'; exit 1; }
