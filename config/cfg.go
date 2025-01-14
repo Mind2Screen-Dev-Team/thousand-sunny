@@ -45,8 +45,8 @@ type App struct {
 }
 
 type Server struct {
-	Route   map[string]string `yaml:"route"`
-	Address string            `yaml:"address"`
+	Address    string            `yaml:"address"`
+	Additional map[string]string `yaml:"additional"`
 }
 
 type SMTP struct {
@@ -56,6 +56,7 @@ type SMTP struct {
 }
 
 type SMTPCredential struct {
+	Name     string `yaml:"name"`
 	Email    string `yaml:"email"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`

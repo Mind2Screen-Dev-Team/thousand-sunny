@@ -6,8 +6,9 @@ app:
 server:
   asynq:
     address: "127.0.0.1:8081"
-    route:
-      asynq.monitoring.route: /asynq/monitoring
+    additional:
+      asynq.route.monitoring: /asynq/monitoring
+      asynq.log.level: '2' # Debug: 1 | Info: 2 | Warn: 3 | Error: 4 | Fatal: 5
   http:
     address: "127.0.0.1:8080"
 smtp:
@@ -15,6 +16,7 @@ smtp:
     host: localhost
     port: 587
     credential:
+      name: "Admin Example"
       email: admin.example.local
       username: "example"
       password: "example"

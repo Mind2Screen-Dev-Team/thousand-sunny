@@ -27,7 +27,7 @@ type InvokeAsynqServerParam struct {
 	Lifecycle fx.Lifecycle
 	Config    config.Cfg
 	Echo      *echo.Echo
-	logger    *xlog.DebugLogger
+	Logger    *xlog.DebugLogger
 	XAsynq    *xasynq.Asynq
 	Router    []asynq_router.AsynqRouter `group:"global:asynq:router"`
 }
@@ -37,13 +37,18 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 		env      = p.Config.App.Env
 		asynqCfg = p.Config.Server["asynq"]
 		cfg      = p.Config.Cache["redis"]
-		DB, _    = strconv.Atoi(cfg.DBName)
-		ctx      = context.WithValue(context.Background(), xasynq.ASYNQ_ENV, env)
+		all, _   = asynqCfg.Additional["asynq.log.level"]
+
+		logLevel, _ = strconv.Atoi(all)
+		DB, _       = strconv.Atoi(cfg.DBName)
+		logger      = xlog.NewLogger(p.Logger.Logger)
+		addr        = fmt.Sprintf("%s:%d", cfg.Address, cfg.Port)
+		ctx         = context.WithValue(context.Background(), xasynq.ASYNQ_ENV, env)
 	)
 
 	var (
 		redisOpt = asynq.RedisClientOpt{
-			Addr:     cfg.Address,
+			Addr:     addr,
 			Username: cfg.Credential.Username,
 			Password: cfg.Credential.Password,
 			DB:       DB,
@@ -53,14 +58,18 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 		asynqScheduleMux = asynq.NewServeMux()
 
 		asynqTaskCfg = asynq.Config{
-			Queues: make(map[string]int),
+			Queues:   make(map[string]int),
+			Logger:   xasynq.NewAsynqZeroLogger(p.Logger.Logger),
+			LogLevel: asynq.LogLevel(logLevel),
 			BaseContext: func() context.Context {
 				return ctx
 			},
 		}
 
 		asynqScheduleCfg = asynq.Config{
-			Queues: make(map[string]int),
+			Queues:   make(map[string]int),
+			Logger:   xasynq.NewAsynqZeroLogger(p.Logger.Logger),
+			LogLevel: asynq.LogLevel(logLevel),
 			BaseContext: func() context.Context {
 				return ctx
 			},
@@ -68,7 +77,7 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 	)
 
 	var (
-		_rootpath   = asynqCfg.Route["asynq.monitoring.route"]
+		_rootpath   = asynqCfg.Additional["asynq.route.monitoring"]
 		asynqmonCfg = asynqmon.Options{
 			RootPath:     _rootpath,
 			RedisConnOpt: redisOpt,
@@ -118,23 +127,23 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 		OnStart: func(ctx context.Context) error {
 
 			go func() {
-				p.logger.Logger.Info().Msg("asynq tasks server started")
+				logger.Info("asynq tasks server started")
 				if err := _asynqTaskServer.Start(asynqTaskMux); err != nil && !errors.Is(err, http.ErrServerClosed) {
-					p.logger.Logger.Error().Err(err).Msg("failed to start asynq tasks server")
+					logger.Error("failed to start asynq tasks server", "error", err)
 				}
 			}()
 
 			go func() {
-				p.logger.Logger.Info().Msg("asynq schedule server started")
+				logger.Info("asynq schedule server started")
 				if err := _asynqScheduleServer.Start(asynqScheduleMux); err != nil && !errors.Is(err, http.ErrServerClosed) {
-					p.logger.Logger.Error().Err(err).Msg("failed to start asynq schedule server")
+					logger.Error("failed to start asynq schedule server", "error", err)
 				}
 			}()
 
 			go func() {
-				p.logger.Logger.Info().Msg("asynq cron scheduler started")
+				logger.Info("asynq cron scheduler started")
 				if err := p.XAsynq.Scheduler.Run(); err != nil {
-					p.logger.Logger.Error().Err(err).Msg("failed to start asynq cron scheduler")
+					logger.Error("failed to start asynq cron scheduler", "error", err)
 				}
 			}()
 
@@ -142,17 +151,17 @@ func InvokeAsynqServer(p InvokeAsynqServerParam) {
 		}, OnStop: func(ctx context.Context) error {
 
 			go func() {
-				defer p.logger.Logger.Info().Msg("asynq tasks server stopped")
+				defer logger.Info("asynq tasks server stopped")
 				_asynqTaskServer.Shutdown()
 			}()
 
 			go func() {
-				defer p.logger.Logger.Info().Msg("asynq schedule server stopped")
+				defer logger.Info("asynq schedule server stopped")
 				_asynqScheduleServer.Shutdown()
 			}()
 
 			go func() {
-				defer p.logger.Logger.Info().Msg("asynq cron scheduler stopped")
+				defer logger.Info("asynq cron scheduler stopped")
 				p.XAsynq.Scheduler.Shutdown()
 			}()
 

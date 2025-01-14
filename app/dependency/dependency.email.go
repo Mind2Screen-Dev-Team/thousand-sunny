@@ -11,6 +11,7 @@ func ProvideXGmail(c config.Cfg) *xmail.XGmail {
 		xcfg = xmail.Config{
 			SMTPHost:    cfg.Host,
 			SMTPPort:    cfg.Port,
+			FromName:    cfg.Credential.Name,
 			FromAddress: cfg.Credential.Email,
 			Username:    cfg.Credential.Username,
 			Password:    cfg.Credential.Password,

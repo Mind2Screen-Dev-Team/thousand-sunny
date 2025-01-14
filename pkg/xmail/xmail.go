@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/smtp"
+	"strings"
 )
 
 // Config represents the email server configuration.
@@ -13,12 +14,15 @@ type Config struct {
 	SMTPPort    int
 	Username    string
 	Password    string
+	FromName    string
 	FromAddress string
 }
 
 // Email represents the details of an email to be sent.
 type Email struct {
 	To           []string
+	CC           []string
+	BCC          []string
 	Subject      string
 	TemplateFile string
 	Data         any
@@ -44,7 +48,12 @@ func (x XMail) Send(email Email) error {
 
 	// Render the template with the provided data.
 	var body bytes.Buffer
-	headers := fmt.Sprintf("Subject: %s\r\n", email.Subject)
+	headers := fmt.Sprintf("From: %s\r\n", x.config.FromName)
+	headers += fmt.Sprintf("To: %s\r\n", strings.Join(email.To, ","))
+	if len(email.CC) > 0 {
+		headers += fmt.Sprintf("CC: %s\r\n", strings.Join(email.CC, ","))
+	}
+	headers += fmt.Sprintf("Subject: %s\r\n", email.Subject)
 	headers += "MIME-Version: 1.0\r\n"
 	headers += "Content-Type: text/html; charset=\"UTF-8\"\r\n\r\n"
 	body.WriteString(headers)
@@ -53,12 +62,16 @@ func (x XMail) Send(email Email) error {
 		return fmt.Errorf("failed to render template: %w", err)
 	}
 
+	// Combine recipients for the SMTP envelope.
+	recipients := append(email.To, email.CC...)
+	recipients = append(recipients, email.BCC...)
+
 	// Set up authentication.
 	auth := smtp.PlainAuth("", x.config.Username, x.config.Password, x.config.SMTPHost)
 
 	// Send the email.
 	addr := fmt.Sprintf("%s:%d", x.config.SMTPHost, x.config.SMTPPort)
-	if err := smtp.SendMail(addr, auth, x.config.FromAddress, email.To, body.Bytes()); err != nil {
+	if err := smtp.SendMail(addr, auth, x.config.FromAddress, recipients, body.Bytes()); err != nil {
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 
@@ -79,7 +92,9 @@ func (x XMail) Send(email Email) error {
 //
 // 	email := Email{
 // 		To:          []string{"recipient@example.com"},
-// 		Subject:     "Test Email",
+// 		CC:          []string{"cc@example.com"},
+// 		BCC:         []string{"bcc@example.com"},
+// 		Subject:     "Test Email with CC and BCC",
 // 		TemplateFile: "example.tpl",
 // 		Data:        map[string]string{"Name": "John Doe"},
 // 	}

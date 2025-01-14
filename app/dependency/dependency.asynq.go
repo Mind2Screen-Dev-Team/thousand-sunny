@@ -2,6 +2,7 @@ package dependency
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -17,10 +18,11 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
 )
 
-func ProvideAsynqServer(c config.Cfg, logger *xlog.DebugLogger, lc fx.Lifecycle) *echo.Echo {
+func ProvideAsynqServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifecycle) *echo.Echo {
 	var (
-		cfg = c.Server["asynq"]
-		srv = echo.New()
+		cfg    = c.Server["asynq"]
+		srv    = echo.New()
+		logger = xlog.NewLogger(l.Logger)
 	)
 
 	srv.HideBanner = true
@@ -40,7 +42,7 @@ func ProvideAsynqServer(c config.Cfg, logger *xlog.DebugLogger, lc fx.Lifecycle)
 			code = he.Code
 		}
 
-		logger.Logger.Error().Err(err).Msg("catch error from handler")
+		logger.Error("catch error from handler", "error", err)
 		resp.
 			StatusCode(code).
 			Error(err).
@@ -51,16 +53,16 @@ func ProvideAsynqServer(c config.Cfg, logger *xlog.DebugLogger, lc fx.Lifecycle)
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				logger.Logger.Info().Str("address", cfg.Address).Msg("asynq monitoring server started")
+				logger.Info("asynq monitoring server started", "address", cfg.Address)
 				if err := srv.Start(cfg.Address); err != nil && err != http.ErrServerClosed {
-					logger.Logger.Error().Err(err).Msg("failed to start asynq monitoring server")
+					logger.Error("failed to start asynq monitoring server", "error", err)
 				}
 			}()
 
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			defer logger.Logger.Info().Str("address", cfg.Address).Msg("asynq monitoring server stopped")
+			defer logger.Info("asynq monitoring server stopped", "address", cfg.Address)
 			return srv.Shutdown(ctx)
 		},
 	})
@@ -68,17 +70,28 @@ func ProvideAsynqServer(c config.Cfg, logger *xlog.DebugLogger, lc fx.Lifecycle)
 	return srv
 }
 
-func ProvideXAsynq(c config.Cfg, location *time.Location) *xasynq.Asynq {
+func ProvideXAsynq(c config.Cfg, l *xlog.DebugLogger, location *time.Location) *xasynq.Asynq {
 	var (
-		cfg   = c.Cache["redis"]
-		DB, _ = strconv.Atoi(cfg.DBName)
-		opt   = asynq.RedisClientOpt{
-			Addr:     cfg.Address,
+		asynqCfg = c.Server["asynq"]
+		cfg      = c.Cache["redis"]
+		all, _   = asynqCfg.Additional["asynq.log.level"]
+
+		logLevel, _ = strconv.Atoi(all)
+		DB, _       = strconv.Atoi(cfg.DBName)
+		addr        = fmt.Sprintf("%s:%d", cfg.Address, cfg.Port)
+
+		opt = asynq.RedisClientOpt{
+			Addr:     addr,
 			Username: cfg.Credential.Username,
 			Password: cfg.Credential.Password,
 			DB:       DB,
 		}
 	)
 
-	return xasynq.NewAsynq(opt, location)
+	return xasynq.NewAsynq(
+		opt,
+		xasynq.NewAsynqZeroLogger(l.Logger),
+		asynq.LogLevel(logLevel),
+		location,
+	)
 }
