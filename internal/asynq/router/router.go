@@ -8,15 +8,28 @@ import (
 	"go.uber.org/fx"
 )
 
-type AsynqRouter interface {
+type AsynqWorkerRouter interface {
 	Route() xasynq.AsynqRoute
 	Serve(ctx context.Context, task *asynq.Task) error
 }
 
-func RegisterAsynqAs(f any) any {
+func RegisterAsynqWorkerAs(f any) any {
 	return fx.Annotate(
 		f,
-		fx.As(new(AsynqRouter)),
-		fx.ResultTags(`group:"global:asynq:router"`),
+		fx.As(new(AsynqWorkerRouter)),
+		fx.ResultTags(`group:"global:asynq:worker:router"`),
+	)
+}
+
+type AsynqSchedulerRouter interface {
+	Route() xasynq.AsynqRoute
+	Serve(ctx context.Context, task *asynq.Task) error
+}
+
+func RegisterAsynqSchedulerAs(f any) any {
+	return fx.Annotate(
+		f,
+		fx.As(new(AsynqSchedulerRouter)),
+		fx.ResultTags(`group:"global:asynq:scheduler:router"`),
 	)
 }

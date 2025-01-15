@@ -10,7 +10,7 @@ import (
 var (
 	AsynqSchedulerExampleModule = fx.Module("module:asynq:scheduler:example",
 		fx.Provide(
-			asynq_router.RegisterAsynqAs(asynq_scheduler.NewAsynqSchedulerExample),
+			asynq_router.RegisterAsynqSchedulerAs(asynq_scheduler.NewAsynqSchedulerExample),
 		),
 	)
 )

@@ -14,7 +14,7 @@ func NewAsynqWorkerExample() AsynqWorkerExample {
 }
 
 func (s AsynqWorkerExample) Route() xasynq.AsynqRoute {
-	return xasynq.NewWorkerRoute("example", 10)
+	return xasynq.NewRoute("example", 10)
 }
 
 func (s AsynqWorkerExample) Serve(ctx context.Context, task *asynq.Task) error {

@@ -10,6 +10,18 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// # Utilitty
+
+const (
+	ASYNQ_ENV        AsynqCtx = "asynq:env:ctx"
+	ASYNQ_ROUTE_KIND AsynqCtx = "asynq:route:kind:ctx"
+)
+
+const (
+	ASYNQ_ROUTE_KIND_SCHEDULER AsynqRouteKind = "scheduler"
+	ASYNQ_ROUTE_KIND_WORKER    AsynqRouteKind = "worker"
+)
+
 type (
 	AsynqCtx       string
 	AsynqRouteKind string
@@ -19,10 +31,6 @@ func (s AsynqCtx) Str() string {
 	return string(s)
 }
 
-const (
-	ASYNQ_ENV AsynqCtx = "asynq:env:ctx"
-)
-
 func (s AsynqRouteKind) Is(kind AsynqRouteKind) bool {
 	return s.String() == kind.String()
 }
@@ -31,10 +39,7 @@ func (s AsynqRouteKind) String() string {
 	return string(s)
 }
 
-const (
-	ASYNQ_ROUTE_KIND_SCHEDULER AsynqRouteKind = "scheduler"
-	ASYNQ_ROUTE_KIND_WORKER    AsynqRouteKind = "worker"
-)
+// # Asynq Collection Client
 
 type Asynq struct {
 	Client    *asynq.Client
@@ -50,34 +55,32 @@ func NewAsynq(opt asynq.RedisClientOpt, logger asynq.Logger, logLvl asynq.LogLev
 	}
 }
 
-func BuildSchedulerRouteName(ctx context.Context, name string) string {
-	env, _ := ctx.Value(ASYNQ_ENV).(string)
-	return strings.Join([]string{env, ASYNQ_ROUTE_KIND_SCHEDULER.String(), name}, ":")
-}
-
-func BuildWorkerRouteName(ctx context.Context, name string) string {
-	env, _ := ctx.Value(ASYNQ_ENV).(string)
-	return strings.Join([]string{env, ASYNQ_ROUTE_KIND_WORKER.String(), name}, ":")
-}
+// # Builder
 
 type (
 	// Router name is already include env and type of route. ex:
 	//	- development:scheduler:<your_route_name>
 	//	- development:worker:<your_route_name>
 	AsynqRoute struct {
-		Name   string
-		Kind   AsynqRouteKind
-		Worker int
+		Name        string
+		Concurrency int
 	}
 )
 
-func NewSchedulerRoute(name string, worker int) AsynqRoute {
-	return AsynqRoute{Name: name, Kind: ASYNQ_ROUTE_KIND_SCHEDULER, Worker: worker}
+func NewRoute(name string, concurrency int) AsynqRoute {
+	return AsynqRoute{Name: name, Concurrency: concurrency}
 }
 
-func NewWorkerRoute(name string, worker int) AsynqRoute {
-	return AsynqRoute{Name: name, Kind: ASYNQ_ROUTE_KIND_WORKER, Worker: worker}
+func BuildRouteName(ctx context.Context, name string) string {
+	var (
+		env, _  = ctx.Value(ASYNQ_ENV).(string)
+		kind, _ = ctx.Value(ASYNQ_ROUTE_KIND).(string)
+	)
+
+	return strings.Join([]string{env, kind, name}, ":")
 }
+
+// # Logger
 
 type AsynqZeroLogger struct {
 	logger zerolog.Logger

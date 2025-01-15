@@ -14,7 +14,7 @@ func NewAsynqSchedulerExample() AsynqSchedulerExample {
 }
 
 func (s AsynqSchedulerExample) Route() xasynq.AsynqRoute {
-	return xasynq.NewSchedulerRoute("example", 10)
+	return xasynq.NewRoute("example", 10)
 }
 
 func (s AsynqSchedulerExample) Serve(ctx context.Context, task *asynq.Task) error {

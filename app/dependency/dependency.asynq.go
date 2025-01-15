@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/hibiken/asynqmon"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/fx"
 
@@ -18,11 +19,54 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
 )
 
-func ProvideAsynqServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifecycle) *echo.Echo {
+func ProvideAsynqRedisConnOption(c config.Cfg) asynq.RedisClientOpt {
+	var (
+		cfg   = c.Cache["redis"]
+		db, _ = strconv.Atoi(cfg.DBName)
+		addr  = fmt.Sprintf("%s:%d", cfg.Address, cfg.Port)
+		cred  = cfg.Credential
+	)
+
+	return asynq.RedisClientOpt{
+		Addr:     addr,
+		Username: cred.Username,
+		Password: cred.Password,
+		DB:       db,
+	}
+}
+
+func ProvideAsynqmonOption(c config.Cfg, o asynq.RedisClientOpt) asynqmon.Options {
+	var (
+		cfg      = c.Server["asynq"]
+		rpath, _ = cfg.Additional["asynq.route.monitoring"]
+	)
+
+	return asynqmon.Options{
+		RootPath:     rpath,
+		RedisConnOpt: o,
+	}
+}
+
+func ProvideXAsynq(c config.Cfg, opt asynq.RedisClientOpt, log *xlog.DebugLogger, loc *time.Location) *xasynq.Asynq {
+	var (
+		cfg, _ = c.Server["asynq"]
+		all, _ = cfg.Additional["asynq.log.level"]
+	)
+
+	var (
+		_ll, _ = strconv.Atoi(all)
+		loglvl = asynq.LogLevel(_ll)
+		logger = xasynq.NewAsynqZeroLogger(log.Logger)
+	)
+
+	return xasynq.NewAsynq(opt, logger, loglvl, loc)
+}
+
+func ProvideAsynqMonitoringServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifecycle) *echo.Echo {
 	var (
 		cfg    = c.Server["asynq"]
-		srv    = echo.New()
 		logger = xlog.NewLogger(l.Logger)
+		srv    = echo.New()
 	)
 
 	srv.HideBanner = true
@@ -34,15 +78,20 @@ func ProvideAsynqServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifecycle) *ech
 		}
 
 		var (
-			code = http.StatusInternalServerError
-			resp = xresp.NewRestResponse[any, any](c)
+			code   = http.StatusInternalServerError
+			resp   = xresp.NewRestResponse[any, any](c)
+			he, ok = err.(*echo.HTTPError)
 		)
 
-		if he, ok := err.(*echo.HTTPError); ok {
+		if ok {
 			code = he.Code
+			if err = he.Internal; err != nil {
+				logger.Error("catch internal error from handler", "error", err)
+			}
+		} else if err != nil {
+			logger.Error("catch error from handler", "error", err)
 		}
 
-		logger.Error("catch error from handler", "error", err)
 		resp.
 			StatusCode(code).
 			Error(err).
@@ -68,30 +117,4 @@ func ProvideAsynqServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifecycle) *ech
 	})
 
 	return srv
-}
-
-func ProvideXAsynq(c config.Cfg, l *xlog.DebugLogger, location *time.Location) *xasynq.Asynq {
-	var (
-		asynqCfg = c.Server["asynq"]
-		cfg      = c.Cache["redis"]
-		all, _   = asynqCfg.Additional["asynq.log.level"]
-
-		logLevel, _ = strconv.Atoi(all)
-		DB, _       = strconv.Atoi(cfg.DBName)
-		addr        = fmt.Sprintf("%s:%d", cfg.Address, cfg.Port)
-
-		opt = asynq.RedisClientOpt{
-			Addr:     addr,
-			Username: cfg.Credential.Username,
-			Password: cfg.Credential.Password,
-			DB:       DB,
-		}
-	)
-
-	return xasynq.NewAsynq(
-		opt,
-		xasynq.NewAsynqZeroLogger(l.Logger),
-		asynq.LogLevel(logLevel),
-		location,
-	)
 }

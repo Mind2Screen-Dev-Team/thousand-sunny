@@ -10,7 +10,7 @@ import (
 var (
 	AsynqWorkerExampleModule = fx.Module("module:asynq:worker:example",
 		fx.Provide(
-			asynq_router.RegisterAsynqAs(asynq_worker.NewAsynqWorkerExample),
+			asynq_router.RegisterAsynqWorkerAs(asynq_worker.NewAsynqWorkerExample),
 		),
 	)
 )
