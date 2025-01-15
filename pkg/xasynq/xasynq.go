@@ -71,13 +71,40 @@ func NewRoute(name string, concurrency int) AsynqRoute {
 	return AsynqRoute{Name: name, Concurrency: concurrency}
 }
 
+// This will help you build route name:
+//
+// Note:
+//   - The context design for get a value
+//   - The env and kind of route (worker / scheduler) is set on base context
+//
+// Example:
+//   - development:worker:<name>
 func BuildRouteName(ctx context.Context, name string) string {
 	var (
 		env, _  = ctx.Value(ASYNQ_ENV).(string)
 		kind, _ = ctx.Value(ASYNQ_ROUTE_KIND).(string)
 	)
-
 	return strings.Join([]string{env, kind, name}, ":")
+}
+
+// This will help you build route name, ex:
+//   - development:worker:<names>...
+func BuildWorkerRouteName(env string, names ...string) string {
+	var (
+		kind  = ASYNQ_ROUTE_KIND_WORKER.String()
+		slice = []string{env, kind}
+	)
+	return strings.Join(append(slice, names...), ":")
+}
+
+// This will help you build route name, ex:
+//   - development:scheduler:<names>...
+func BuildSchedulerRouteName(env string, names ...string) string {
+	var (
+		kind  = ASYNQ_ROUTE_KIND_SCHEDULER.String()
+		slice = []string{env, kind}
+	)
+	return strings.Join(append(slice, names...), ":")
 }
 
 // # Logger
