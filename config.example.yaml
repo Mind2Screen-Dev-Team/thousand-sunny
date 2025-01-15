@@ -5,12 +5,16 @@ app:
   timezone: "Asia/Jakarta"
 server:
   asynq:
-    address: "127.0.0.1:8081"
+    host: "0.0.0.0"
+    port: 8081
+    address: "0.0.0.0:8081"
     additional:
       asynq.route.monitoring: /monitoring
       asynq.log.level: '2' # Debug: 1 | Info: 2 | Warn: 3 | Error: 4 | Fatal: 5
   http:
-    address: "127.0.0.1:8080"
+    host: "0.0.0.0"
+    port: 8080
+    address: "0.0.0.0:8080"
 smtp:
   gmail:
     host: localhost

@@ -45,6 +45,8 @@ type App struct {
 }
 
 type Server struct {
+	Host       string            `yaml:"host"`
+	Port       int               `yaml:"port"`
 	Address    string            `yaml:"address"`
 	Additional map[string]string `yaml:"additional"`
 }
