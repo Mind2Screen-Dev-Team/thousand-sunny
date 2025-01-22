@@ -3,13 +3,14 @@ package dependency
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/fx"
 )
 
-func ProvidePostgres(c config.Cfg, lc fx.Lifecycle) (*pgx.Conn, error) {
+func ProvidePostgres(c config.Cfg, lc fx.Lifecycle) (*pgxpool.Pool, error) {
 	var (
 		cfg = c.DB["postgres"]
 		ctx = context.Background()
@@ -35,20 +36,32 @@ func ProvidePostgres(c config.Cfg, lc fx.Lifecycle) (*pgx.Conn, error) {
 		)
 	)
 
-	db, err := pgx.Connect(ctx, dsn)
+	// Create a pgxpool.Config from the connection string
+	poolCfg, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	// Customize pool settings
+	poolCfg.MaxConns = int32(cfg.Options.MaxOpenConnection)
+	poolCfg.MinConns = int32(cfg.Options.MaxIdleConnection)
+	poolCfg.MaxConnLifetime = time.Duration(cfg.Options.MaxConnLifetime) * time.Second
+
+	db, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return nil, err
 	}
 
 	hook := fx.Hook{OnStop: func(ctx context.Context) error {
-		return db.Close(ctx)
+		db.Close()
+		return nil
 	}}
 	lc.Append(hook)
 
 	return db, nil
 }
 
-func InvokePostgres(conn *pgx.Conn) error {
+func InvokePostgres(conn *pgxpool.Pool) error {
 	if err := conn.Ping(context.Background()); err != nil {
 		return err
 	}

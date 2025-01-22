@@ -92,6 +92,9 @@ type DBOptions struct {
 	Timezone          string `yaml:"timezone"`
 	Sslmode           string `yaml:"sslmode"`
 	ConnectionTimeout int    `yaml:"connectionTimeout"`
+	MaxConnLifetime   int    `yaml:"maxConnLifetime"`
+	MaxOpenConnection int    `yaml:"maxOpenConnection"`
+	MaxIdleConnection int    `yaml:"maxIdleConnection"`
 }
 
 type DBCredential struct {

@@ -100,3 +100,6 @@ db:
       timezone: "Asia/Jakarta"
       sslmode: "disable"
       connectionTimeout: 30
+      maxConnLifetime: 180
+      maxOpenConnection: 20
+      maxIdleConnection: 10
