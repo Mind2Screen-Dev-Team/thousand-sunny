@@ -39,7 +39,11 @@ func InvokeHttpServer(p InvokeHttpServerParam) {
 		p.Echo.Add(_method, _path, r.Serve)
 	}
 
-	p.Echo.GET("/", func(c echo.Context) error {
+	p.Echo.GET("/ping", func(c echo.Context) error {
 		return c.String(http.StatusOK, ".")
+	})
+
+	p.Echo.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, http.StatusText(http.StatusOK))
 	})
 }
