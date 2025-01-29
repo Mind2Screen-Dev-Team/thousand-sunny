@@ -43,6 +43,14 @@ func InvokeHttpServer(p InvokeHttpServerParam) {
 		return c.String(http.StatusOK, ".")
 	})
 
+	p.Echo.POST("/test", func(c echo.Context) error {
+		err := c.Request().ParseMultipartForm(100 << 20)
+		if err != nil {
+			return err
+		}
+		return c.String(http.StatusOK, ".")
+	})
+
 	p.Echo.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, http.StatusText(http.StatusOK))
 	})
