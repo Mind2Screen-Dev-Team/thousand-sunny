@@ -225,7 +225,7 @@ func (in *IncomingLog) _Notify(ioLogCfg *config.Log, m map[string]any) {
 	var (
 		b, _      = json.Marshal(m)
 		name      = xasynq.BuildWorkerRouteName(in.cfg.App.Env, "notify:incoming:log")
-		task      = asynq.NewTask(name, b, asynq.Queue(name), asynq.Retention(time.Duration(ioLogCfg.Notify.Retention)*time.Hour))
+		task      = asynq.NewTask(name, b, asynq.Queue(name), asynq.Retention(time.Duration(ioLogCfg.Notify.Retention)*time.Second))
 		info, err = in.async.Client.Enqueue(task)
 	)
 	if err != nil {
