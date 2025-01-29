@@ -17,6 +17,7 @@ func main() {
 		registry.GlobalEmail,
 
 		// Cache
+		registry.AsynqPackage,
 		registry.Cache,
 		registry.CacheStartUp,
 

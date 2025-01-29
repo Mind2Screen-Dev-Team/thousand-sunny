@@ -70,6 +70,13 @@ type Cache struct {
 	Port       int             `yaml:"port"`
 	Address    string          `yaml:"address"`
 	Credential CacheCredential `yaml:"credential"`
+	Options    CacheOption     `yaml:"options"`
+}
+
+type CacheOption struct {
+	DialTimeout  int `yaml:"dialTimeout"`
+	ReadTimeout  int `yaml:"readTimeout"`
+	WriteTimeout int `yaml:"writeTimeout"`
 }
 
 type CacheCredential struct {

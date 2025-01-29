@@ -9,10 +9,15 @@ import (
 var (
 	Asynq = fx.Options(
 		fx.Module("asynq:server",
-			fx.Provide(dependency.ProvideAsynqRedisConnOption),
 			fx.Provide(dependency.ProvideAsynqmonOption),
-			fx.Provide(dependency.ProvideXAsynq),
 			fx.Provide(dependency.ProvideAsynqMonitoringServer),
+		),
+	)
+
+	AsynqPackage = fx.Options(
+		fx.Module("asynq:package",
+			fx.Provide(dependency.ProvideAsynqRedisConnOption),
+			fx.Provide(dependency.ProvideXAsynq),
 		),
 	)
 

@@ -25,6 +25,8 @@ RUN go build -o main ./cmd/core
 # Stage 2: Final runtime
 FROM alpine:3.21
 
+RUN apk add --no-cache tzdata
+
 WORKDIR /app
 
 ENV PATH=/app/bin:$PATH
@@ -35,4 +37,4 @@ COPY --from=builder /app/main /app/main
 EXPOSE 8080
 
 # Set the entrypoint
-ENTRYPOINT ["/app/main", "-c=config.yaml"]
+ENTRYPOINT ["/app/main", "-cfg=config.yaml"]

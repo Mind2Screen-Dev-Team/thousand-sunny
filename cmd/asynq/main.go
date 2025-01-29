@@ -28,6 +28,7 @@ func main() {
 		registry.RepoGenerationSqlc,
 
 		// Asynq
+		registry.AsynqPackage,
 		registry.Asynq,
 		registry.AsynqStartUp,
 
