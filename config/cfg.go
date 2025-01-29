@@ -123,8 +123,9 @@ type LogConsole struct {
 }
 
 type LogNotify struct {
-	Enabled bool `yaml:"enabled"`
-	Debug   bool `yaml:"debug"`
+	Enabled   bool `yaml:"enabled"`
+	Debug     bool `yaml:"debug"`
+	Retention int  `yaml:"retention"`
 }
 
 type LogFile struct {

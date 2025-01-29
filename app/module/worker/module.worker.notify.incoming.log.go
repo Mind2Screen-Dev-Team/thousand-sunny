@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	AsynqWorkerNotifyIncomingLogModule = fx.Module("module:asynq:worker:example",
+	AsynqWorkerNotifyIncomingLogModule = fx.Module("module:asynq:worker:notify:incoming:log",
 		fx.Provide(
 			asynq_router.RegisterAsynqWorkerAs(asynq_worker.NewAsynqWorkerNotifyIncomingLog),
 		),

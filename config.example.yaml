@@ -89,9 +89,9 @@ cache:
       username: "default"
       password: ""
     options:
-      dialTimeout: -1 # format number is seconds | default is 5 seconds
-      readTimeout: -1 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetReadDeadline calls completely.
-      writeTimeout: -1 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetWriteDeadline calls completely.
+      dialTimeout: 30 # format number is seconds | default is 5 seconds
+      readTimeout: 30 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetReadDeadline calls completely.
+      writeTimeout: 30 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetWriteDeadline calls completely.
 db:
   postgres:
     disabled: false

@@ -202,10 +202,7 @@ func (in IncomingLog) _IncomingLogging(
 		return
 	}
 
-	var (
-		mBuff bytes.Buffer
-		m     = make(map[string]any)
-	)
+	m := make(map[string]any)
 	for i := 0; i < len(fields); i++ {
 		for i := 0; i < len(fields); i += 2 {
 			if i+1 < len(fields) {
@@ -221,16 +218,14 @@ func (in IncomingLog) _IncomingLogging(
 		}
 	}
 
-	json.NewEncoder(&mBuff).Encode(m)
-	in._Notify(&ioLogCfg, &mBuff)
+	in._Notify(&ioLogCfg, m)
 }
 
-func (in *IncomingLog) _Notify(ioLogCfg *config.Log, buff *bytes.Buffer) {
-	defer buff.Reset()
-
+func (in *IncomingLog) _Notify(ioLogCfg *config.Log, m map[string]any) {
 	var (
+		b, _      = json.Marshal(m)
 		name      = xasynq.BuildWorkerRouteName(in.cfg.App.Env, "notify:incoming:log")
-		task      = asynq.NewTask(name, buff.Bytes(), asynq.Queue(name), asynq.Retention(1*time.Hour))
+		task      = asynq.NewTask(name, b, asynq.Queue(name), asynq.Retention(time.Duration(ioLogCfg.Notify.Retention)*time.Hour))
 		info, err = in.async.Client.Enqueue(task)
 	)
 	if err != nil {

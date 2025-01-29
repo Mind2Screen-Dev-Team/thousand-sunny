@@ -76,10 +76,10 @@ if [[ "$1" != "setup" ]]; then
         docker build -t core-app:latest -f Dockerfile.core . || { echo 'Error: Failed to build Docker core image.'; exit 1; }
 
         # Stop Docker Compose services
-        docker compose -f compose.core.yml down
+        docker compose -p core-app-stack -f compose.core.yml down
 
         # Start Docker Compose services with build
-        docker compose -f compose.core.yml up -d || { echo 'Error: Failed to start Docker Compose core services.'; exit 1; }
+        docker compose -p core-app-stack -f compose.core.yml up -d || { echo 'Error: Failed to start Docker Compose core services.'; exit 1; }
     else
         echo "Skipping Docker Compose commands as Docker is not running."
     fi

@@ -2,6 +2,7 @@ package asynq_worker
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xasynq"
 	"github.com/hibiken/asynq"
@@ -21,10 +22,21 @@ func (s AsynqWorkerNotifyIncomingLog) Serve(ctx context.Context, task *asynq.Tas
 	var (
 		w = task.ResultWriter()
 		d = task.Payload()
+		m = make(map[string]any)
 	)
+
+	err := json.Unmarshal(d, &m)
+	if err != nil {
+		return err
+	}
+
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
 
 	// Change this as you want
 
-	w.Write(d)
+	w.Write(b)
 	return nil
 }
