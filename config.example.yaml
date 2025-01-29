@@ -48,6 +48,7 @@ log:
     notify:
       enabled: false # Notify State for Send Notify
       debug: true # Notify Status Success / Error into Log Debug
+      retention: 7200 # format number is seconds, this for asynq worker retention log will be disappear
     console:
       disabled: false
       level: -1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
