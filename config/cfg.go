@@ -105,6 +105,7 @@ type DBCredential struct {
 
 type Log struct {
 	Disabled bool       `yaml:"disabled"`
+	Notify   LogNotify  `yaml:"notify"`
 	Console  LogConsole `yaml:"console"`
 	File     LogFile    `yaml:"file"`
 }
@@ -112,6 +113,11 @@ type Log struct {
 type LogConsole struct {
 	Disabled bool `yaml:"disabled"`
 	Level    int  `yaml:"level"`
+}
+
+type LogNotify struct {
+	Enabled bool `yaml:"enabled"`
+	Debug   bool `yaml:"debug"`
 }
 
 type LogFile struct {

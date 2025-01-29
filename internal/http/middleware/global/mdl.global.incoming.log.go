@@ -8,14 +8,18 @@ import (
 	"io"
 	"net/http"
 	"runtime/debug"
+	"slices"
 	"strings"
 	"time"
 
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xasynq"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhttp"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xpanic"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
 
 	chi_middleware "github.com/go-chi/chi/v5/middleware"
@@ -25,14 +29,20 @@ import (
 
 // const DefaultMultipartMaxMemory = 100 << 20
 
-func ProvideIncomingLog(iolog *xlog.IOLogger) IncomingLog {
+func ProvideIncomingLog(cfg config.Cfg, iolog *xlog.IOLogger, debuglog *xlog.DebugLogger, async *xasynq.Asynq) IncomingLog {
 	return IncomingLog{
-		iolog: xlog.NewLogger(iolog.Logger),
+		cfg:      cfg,
+		async:    async,
+		iolog:    xlog.NewLogger(iolog.Logger),
+		debuglog: xlog.NewLogger(debuglog.Logger),
 	}
 }
 
 type IncomingLog struct {
-	iolog xlog.Logger
+	cfg      config.Cfg
+	async    *xasynq.Asynq
+	iolog    xlog.Logger
+	debuglog xlog.Logger
 }
 
 func (IncomingLog) Name() string {
@@ -185,6 +195,54 @@ func (in IncomingLog) _IncomingLogging(
 	}
 
 	in.iolog.Info("incoming request", fields...)
+
+	// # Notify Process Incoming Log
+	ioLogCfg, ok := in.cfg.Log["io"]
+	if !ok || !ioLogCfg.Notify.Enabled {
+		return
+	}
+
+	var (
+		mBuff bytes.Buffer
+		m     = make(map[string]any)
+	)
+	for i := 0; i < len(fields); i++ {
+		for i := 0; i < len(fields); i += 2 {
+			if i+1 < len(fields) {
+				key, ok := fields[i].(string)
+				if ok {
+					if slices.Contains([]string{"err", "error"}, key) {
+						m[key] = fmt.Sprintf("%+v", fields[i+1])
+						continue
+					}
+					m[key] = fields[i+1]
+				}
+			}
+		}
+	}
+
+	json.NewEncoder(&mBuff).Encode(m)
+	in._Notify(&ioLogCfg, &mBuff)
+}
+
+func (in *IncomingLog) _Notify(ioLogCfg *config.Log, buff *bytes.Buffer) {
+	defer buff.Reset()
+
+	var (
+		name      = xasynq.BuildWorkerRouteName(in.cfg.App.Env, "notify:incoming:log")
+		task      = asynq.NewTask(name, buff.Bytes(), asynq.Queue(name), asynq.Retention(1*time.Hour))
+		info, err = in.async.Client.Enqueue(task)
+	)
+	if err != nil {
+		if ioLogCfg.Notify.Debug {
+			in.debuglog.Error("error send notification incoming log into asynq", "info", info, "error", err)
+		}
+		return
+	}
+
+	if ioLogCfg.Notify.Debug {
+		in.debuglog.Debug("send notification incoming log into asynq", "info", info)
+	}
 }
 
 func (IncomingLog) _GetFilenameFromHeader(d string) string {

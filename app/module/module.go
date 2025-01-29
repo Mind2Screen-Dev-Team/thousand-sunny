@@ -16,5 +16,6 @@ var (
 	ProvideAsynqModules = fx.Options(
 		module_scheduler.AsynqSchedulerExampleModule,
 		module_worker.AsynqWorkerExampleModule,
+		module_worker.AsynqWorkerNotifyIncomingLogModule,
 	)
 )

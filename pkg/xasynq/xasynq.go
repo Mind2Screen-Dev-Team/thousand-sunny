@@ -67,6 +67,9 @@ type (
 	}
 )
 
+// Router name is already include env and type of route. ex:
+//   - development:scheduler:<your_route_name>
+//   - development:worker:<your_route_name>
 func NewRoute(name string, concurrency int) AsynqRoute {
 	return AsynqRoute{Name: name, Concurrency: concurrency}
 }
