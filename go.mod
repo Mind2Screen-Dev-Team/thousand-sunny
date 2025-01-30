@@ -3,6 +3,7 @@ module github.com/Mind2Screen-Dev-Team/thousand-sunny
 go 1.23.3
 
 require (
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/rs/zerolog v1.33.0
