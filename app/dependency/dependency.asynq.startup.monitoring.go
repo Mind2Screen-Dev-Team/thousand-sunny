@@ -1,6 +1,7 @@
 package dependency
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -14,12 +15,20 @@ type InvokeAsynqMonitoringServerParam struct {
 	fx.In
 
 	Echo *echo.Echo
-	Opt  asynqmon.Options
+	Opt  *asynqmon.Options
 }
 
-func InvokeAsynqMonitoringServer(p InvokeAsynqMonitoringServerParam) {
+func InvokeAsynqMonitoringServer(p InvokeAsynqMonitoringServerParam) error {
+	if p.Echo == nil {
+		return errors.New("field 'Echo' with type '*echo.Echo' is not provided")
+	}
+
+	if p.Opt == nil {
+		return errors.New("field 'Opt' with type '*asynqmon.Options' is not provided")
+	}
+
 	var (
-		_asynqmon = asynqmon.New(p.Opt)
+		_asynqmon = asynqmon.New(*p.Opt)
 		_rootpath = fmt.Sprintf("%s/*", p.Opt.RootPath)
 	)
 
@@ -34,4 +43,5 @@ func InvokeAsynqMonitoringServer(p InvokeAsynqMonitoringServerParam) {
 	p.Echo.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, http.StatusText(http.StatusOK))
 	})
+	return nil
 }

@@ -23,11 +23,19 @@ type InvokeAsynqWorkerServerParam struct {
 	Cfg          config.Cfg
 	Lfc          fx.Lifecycle
 	Log          *xlog.DebugLogger
-	RedisConnOpt asynq.RedisClientOpt
+	RedisConnOpt *asynq.RedisClientOpt
 	Router       []asynq_router.AsynqWorkerRouter `group:"global:asynq:worker:router"`
 }
 
-func InvokeAsynqWorkerServer(p InvokeAsynqWorkerServerParam) {
+func InvokeAsynqWorkerServer(p InvokeAsynqWorkerServerParam) error {
+	if p.Log == nil {
+		return errors.New("field 'Log' with type '*xlog.DebugLogger' is not provided")
+	}
+
+	if p.RedisConnOpt == nil {
+		return errors.New("field 'RedisConnOpt' with type '*asynq.RedisClientOpt' is not provided")
+	}
+
 	var (
 		env     = p.Cfg.App.Env
 		acfg, _ = p.Cfg.Server["asynq"]
@@ -68,7 +76,7 @@ func InvokeAsynqWorkerServer(p InvokeAsynqWorkerServerParam) {
 	}
 
 	var (
-		server = asynq.NewServer(p.RedisConnOpt, cfg)
+		server = asynq.NewServer(*p.RedisConnOpt, cfg)
 	)
 
 	p.Lfc.Append(fx.Hook{
@@ -91,4 +99,5 @@ func InvokeAsynqWorkerServer(p InvokeAsynqWorkerServerParam) {
 	})
 
 	logger.Info("asynq information of concurrency and queue", "kind", "worker", "concurrency", cfg.Concurrency, "queue", cfg.Queues)
+	return nil
 }

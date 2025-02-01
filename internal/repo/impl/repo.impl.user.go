@@ -3,6 +3,7 @@ package repo_impl
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -25,8 +26,12 @@ type (
 	}
 )
 
-func NewUserCURDRepo(p UserRepoParamFx) repo_api.UserRepoAPI {
-	return &UserImplRepoFx{p}
+func NewUserCURDRepo(p UserRepoParamFx) (repo_api.UserRepoAPI, error) {
+	if p.RDB == nil {
+		return nil, errors.New("field 'RDB' with type '*redis.Client' is not provided")
+	}
+
+	return &UserImplRepoFx{p}, nil
 }
 
 func (r *UserImplRepoFx) Create(ctx context.Context, user repo_attr.User) error {

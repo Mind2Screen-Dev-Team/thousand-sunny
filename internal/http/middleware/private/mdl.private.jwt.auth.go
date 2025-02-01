@@ -1,6 +1,7 @@
 package http_middleware_private
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -24,11 +25,12 @@ type (
 	}
 )
 
-func NewAuthJWT(p AuthJWTParams) *AuthJWT {
-	return &AuthJWT{
-		cfg:   p.Cfg,
-		debug: xlog.NewLogger(p.Debug.Logger),
+func NewAuthJWT(p AuthJWTParams) (*AuthJWT, error) {
+	if p.Debug == nil {
+		return nil, errors.New("field 'Debug' with type '*xlog.DebugLogger' is not provided")
 	}
+
+	return &AuthJWT{cfg: p.Cfg, debug: xlog.NewLogger(p.Debug.Logger)}, nil
 }
 
 func (a AuthJWT) Serve(next echo.HandlerFunc) echo.HandlerFunc {

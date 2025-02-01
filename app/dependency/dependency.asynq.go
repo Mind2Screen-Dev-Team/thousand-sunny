@@ -19,7 +19,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
 )
 
-func ProvideAsynqRedisConnOption(c config.Cfg) asynq.RedisClientOpt {
+func ProvideAsynqRedisConnOption(c config.Cfg) *asynq.RedisClientOpt {
 	var (
 		cfg   = c.Cache["redis"]
 		db, _ = strconv.Atoi(cfg.DBName)
@@ -27,7 +27,7 @@ func ProvideAsynqRedisConnOption(c config.Cfg) asynq.RedisClientOpt {
 		cred  = cfg.Credential
 	)
 
-	return asynq.RedisClientOpt{
+	return &asynq.RedisClientOpt{
 		Addr:     addr,
 		Username: cred.Username,
 		Password: cred.Password,
@@ -35,19 +35,19 @@ func ProvideAsynqRedisConnOption(c config.Cfg) asynq.RedisClientOpt {
 	}
 }
 
-func ProvideAsynqmonOption(c config.Cfg, o asynq.RedisClientOpt) asynqmon.Options {
+func ProvideAsynqmonOption(c config.Cfg, o *asynq.RedisClientOpt) *asynqmon.Options {
 	var (
 		cfg      = c.Server["asynq"]
 		rpath, _ = cfg.Additional["asynq.route.monitoring"]
 	)
 
-	return asynqmon.Options{
+	return &asynqmon.Options{
 		RootPath:     rpath,
-		RedisConnOpt: o,
+		RedisConnOpt: *o,
 	}
 }
 
-func ProvideXAsynq(c config.Cfg, opt asynq.RedisClientOpt, log *xlog.DebugLogger, loc *time.Location) *xasynq.Asynq {
+func ProvideXAsynq(c config.Cfg, opt *asynq.RedisClientOpt, log *xlog.DebugLogger, loc *time.Location) *xasynq.Asynq {
 	var (
 		cfg, _ = c.Server["asynq"]
 		all, _ = cfg.Additional["asynq.log.level"]
@@ -59,7 +59,7 @@ func ProvideXAsynq(c config.Cfg, opt asynq.RedisClientOpt, log *xlog.DebugLogger
 		logger = xasynq.NewAsynqZeroLogger(log.Logger)
 	)
 
-	return xasynq.NewAsynq(opt, logger, loglvl, loc)
+	return xasynq.NewAsynq(*opt, logger, loglvl, loc)
 }
 
 func ProvideAsynqMonitoringServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifecycle) *echo.Echo {

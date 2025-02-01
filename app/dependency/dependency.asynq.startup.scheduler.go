@@ -24,11 +24,23 @@ type InvokeAsynqSchedulerServerParam struct {
 	Lfc          fx.Lifecycle
 	Log          *xlog.DebugLogger
 	Asynq        *xasynq.Asynq
-	RedisConnOpt asynq.RedisClientOpt
+	RedisConnOpt *asynq.RedisClientOpt
 	Router       []asynq_router.AsynqSchedulerRouter `group:"global:asynq:scheduler:router"`
 }
 
-func InvokeAsynqSchedulerServer(p InvokeAsynqSchedulerServerParam) {
+func InvokeAsynqSchedulerServer(p InvokeAsynqSchedulerServerParam) error {
+	if p.Log == nil {
+		return errors.New("field 'Log' with type '*xlog.DebugLogger' is not provided")
+	}
+
+	if p.Asynq == nil {
+		return errors.New("field 'Asynq' with type '*xasynq.Asynq' is not provided")
+	}
+
+	if p.RedisConnOpt == nil {
+		return errors.New("field 'RedisConnOpt' with type '*asynq.RedisClientOpt' is not provided")
+	}
+
 	var (
 		env     = p.Cfg.App.Env
 		acfg, _ = p.Cfg.Server["asynq"]
@@ -69,7 +81,7 @@ func InvokeAsynqSchedulerServer(p InvokeAsynqSchedulerServerParam) {
 	}
 
 	var (
-		server = asynq.NewServer(p.RedisConnOpt, cfg)
+		server = asynq.NewServer(*p.RedisConnOpt, cfg)
 	)
 
 	p.Lfc.Append(fx.Hook{
@@ -104,4 +116,5 @@ func InvokeAsynqSchedulerServer(p InvokeAsynqSchedulerServerParam) {
 	})
 
 	logger.Info("asynq information of concurrency and queue", "kind", "scheduler", "concurrency", cfg.Concurrency, "queue", cfg.Queues)
+	return nil
 }
