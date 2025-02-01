@@ -44,6 +44,16 @@ func ProvideHTTPServer(c config.Cfg, logger *xlog.DebugLogger, lc fx.Lifecycle) 
 			JSON()
 	}
 
+	srv.RouteNotFound("/*", func(c echo.Context) error {
+		resp := xresp.NewRestResponse[any, any](c)
+		return resp.
+			StatusCode(http.StatusNotFound).
+			Code(http.StatusNotFound).
+			Error("route not found").
+			Msg(http.StatusText(http.StatusNotFound)).
+			JSON()
+	})
+
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
