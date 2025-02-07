@@ -38,15 +38,12 @@ go.work.sum
 bin/*
 !bin/README.md
 
-# Need Ignore Configuration FIle
-*.yml
-*.yaml
+# Ignore configuration files
 config.yaml
 config.asynq.yaml
 config.core.yaml
 
-# Ignore needed yaml files
+# Not Ignore some configuration yaml files
 !compose.asynq.yml
 !compose.core.yml
 !config.example.yaml
-sqlc.yaml
