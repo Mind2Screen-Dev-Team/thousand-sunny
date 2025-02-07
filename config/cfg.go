@@ -28,13 +28,14 @@ func ProvideConfig() (Cfg, error) {
 }
 
 type Cfg struct {
-	App      App               `yaml:"app"`
-	Server   map[string]Server `yaml:"server"`
-	SMTP     map[string]SMTP   `yaml:"smtp"`
-	Template map[string]string `yaml:"template"`
-	DB       map[string]DB     `yaml:"db"`
-	Cache    map[string]Cache  `yaml:"cache"`
-	Log      map[string]Log    `yaml:"log"`
+	App      App                 `yaml:"app"`
+	Server   map[string]Server   `yaml:"server"`
+	SMTP     map[string]SMTP     `yaml:"smtp"`
+	Template map[string]string   `yaml:"template"`
+	DB       map[string]DB       `yaml:"db"`
+	Cache    map[string]Cache    `yaml:"cache"`
+	Log      map[string]Log      `yaml:"log"`
+	Provider map[string]Provider `yaml:"provider"`
 }
 
 type App struct {
@@ -142,4 +143,8 @@ type LogRotation struct {
 	MaxAge    int    `yaml:"maxAge"`
 	LocalTime bool   `yaml:"localTime"`
 	Compress  bool   `yaml:"compress"`
+}
+type Provider struct {
+	BaseURL    string            `yaml:"baseUrl"`
+	Additional map[string]string `yaml:"additional"`
 }

@@ -111,3 +111,9 @@ db:
       maxConnLifetime: 180
       maxOpenConnection: 20
       maxIdleConnection: 10
+provider:
+  example.one:
+    baseUrl: "https://api.example.com/api/v1"
+    additional:
+      client.id: "example.one.id"
+      client.secret: "example.one.secret"

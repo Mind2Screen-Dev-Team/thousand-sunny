@@ -3,18 +3,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.core
-    image: core-app:latest
-    container_name: core-app
+    image: core-${APP_ENV:-dev}-app:${SERVICE_CORE_VERSION:-latest}
+    container_name: core-${APP_ENV:-dev}-app
+    environment:
+      - TZ=${TZ:-UTC}
     ports:
-      - 8080:8080
+      - ${SERVICE_CORE_PORT:-8080}:8080
     volumes:
       - ./storage:/app/storage
-      - ./config.core.yaml:/app/config.yaml
+      - ./config.core.yaml:/app/config.yaml:ro
     restart: unless-stopped
     networks:
-      - core_app_net
+      - core_app
 
 networks:
-  core_app_net:
-    name: core_app_net
+  core_app:
+    name: core_${APP_ENV:-dev}_app_net
     external: true

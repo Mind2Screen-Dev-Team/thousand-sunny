@@ -3,18 +3,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.asynq
-    image: asynq-app:latest
-    container_name: asynq-app
+    image: asynq-${APP_ENV:-dev}-app:${SERVICE_ASYNQ_VERSION:-latest}
+    container_name: asynq-${APP_ENV:-dev}-app
+    environment:
+      - TZ=${TZ:-UTC}
     ports:
-      - 8081:8081
+      - ${SERVICE_ASYNQ_PORT:-8081}:8081
     volumes:
       - ./storage:/app/storage
-      - ./config.asynq.yaml:/app/config.yaml
+      - ./config.asynq.yaml:/app/config.yaml:ro
     restart: unless-stopped
     networks:
-      - asynq_app_net
+      - asynq_app
 
 networks:
-  asynq_app_net:
-    name: asynq_app_net
+  asynq_app:
+    name: asynq_${APP_ENV:-dev}_app_net
     external: true

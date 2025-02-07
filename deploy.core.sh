@@ -48,22 +48,134 @@ fi
 # Check if Docker is running
 check_docker_running
 
-# Docker-related operations (only execute if Docker is running)
-if [ "$DOCKER_RUNNING" = true ]; then
-    # Check if the Docker network exists
-    NETWORK_NAME="core_app_net"
-    if ! docker network inspect $NETWORK_NAME >/dev/null 2>&1; then
-        echo "Network $NETWORK_NAME not found, creating it..."
-        docker network create --driver bridge $NETWORK_NAME
-    else
-        echo "Network $NETWORK_NAME already exists, skipping creation."
+# Check and create if the Docker network exists
+create_docker_network() {
+  local network_name="$1"
+
+  # Check if Docker is running before proceeding
+  if [ "$DOCKER_RUNNING" = true ]; then
+    # Validate that a network name has been provided
+    if [ -z "$network_name" ]; then
+      echo "Error: Network name parameter missing."
+      return 1
     fi
-else
+
+    # Check if the Docker network exists
+    if ! docker network inspect "$network_name" >/dev/null 2>&1; then
+      echo "Network $network_name not found, creating it..."
+      docker network create --driver bridge "$network_name"
+    else
+      echo "Network $network_name already exists, skipping creation."
+    fi
+  else
     echo "Skipping Docker network creation as Docker is not running."
-fi
+  fi
+}
+
+# Function to get APP_ENV value from the .env file
+get_env_value() {
+  local env_file="$1"
+  local key="$2"
+  local default_value="$3"
+
+  if [ ! -f "$env_file" ]; then
+    echo "Warning: $env_file file not found. Defaulting to '$default_value'."
+    echo "$default_value"
+    return 0
+  fi
+
+  local value
+  value=$(grep "^$key=" "$env_file" | cut -d '=' -f2- | tr -d '"' | tr -d "'")
+
+  if [ -n "$value" ]; then
+    echo "$value"
+  else
+    echo "Warning: $key not set in $env_file. Defaulting to '$default_value'."
+    echo "$default_value"
+  fi
+}
+
+PARAM="$1"
+REBUILD_PARAM="$2"
+ENV_FILE=".env"
+DOCKER_FILE="Dockerfile.core"
+COMPOSE_FILE="compose.core.yml"
+
+APP_NAME="core"
+APP_ENV=$(get_env_value "$ENV_FILE" "APP_ENV" "dev")
+SERVICE_NAME="$APP_NAME-$APP_ENV-app"
+APP_STACK_NAME="$SERVICE_NAME-stack"
+IMAGE_NAME="$SERVICE_NAME:$PARAM"
+
+NETWORK_NAME="${APP_NAME}_${APP_ENV}_app_net"
+
+# Check and create if the Docker network exists
+create_docker_network "$NETWORK_NAME"
+
+# Ensure the input version follows the vX.Y.Z sematic versioning format, (X.Y.Z) is sematic versioning and prefix "v" is just for information mean "version"
+validate_version() {
+    if ! [[ "$1" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "Error: Version must follow the sematic versioning format 'vX.Y.Z' (e.g., v1.0.0). Please refer on this docs: https://semver.org/"
+        exit 1
+    fi
+}
+
+# Function to rebuild the image
+rebuild_image() {
+    echo "Force rebuild image."
+
+    # Remove the image with tag param version
+    docker rmi -f "$IMAGE_NAME" || { echo "Error: Failed to remove image $IMAGE_NAME."; exit 1; }
+
+    # Rebuild image with tag param version
+    docker build -t "$IMAGE_NAME" -f "$DOCKER_FILE" . || { echo "Error: Failed to build Docker image."; exit 1; }
+}
+
+# Function to strip the 'v' prefix and compare two semantic versions
+version_lt() {
+    local ver1="${1#v}"
+    local ver2="${2#v}"
+    [ "$(printf '%s\n' "$ver1" "$ver2" | sort -V | head -n 1)" = "$ver1" ] && [ "$ver1" != "$ver2" ]
+}
+
+# Function to update SERVICE_CORE_VERSION in .env file based on OS
+update_service_version_in_env() {
+  local SERVICE_VERSION="$1"
+  local ENV_FILE="$2"
+
+  # Detect the operating system type
+  local OS=$(uname)
+
+  # Replace SERVICE_CORE_VERSION value in .env file based on OS
+  if [[ "$OS" == "Darwin" ]]; then
+      # macOS (BSD sed requires -i with empty string)
+      sed -i '' "s/^SERVICE_CORE_VERSION=\"[^\"']*\"/SERVICE_CORE_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update Core Service Version in .env file."; exit 1; }
+      echo "Core Service Version updated to $SERVICE_VERSION in .env file (macOS)."
+
+  elif [[ "$OS" == "Linux" ]]; then
+      # Linux (GNU sed allows -i without empty string)
+      sed -i "s/^SERVICE_CORE_VERSION=\"[^\"']*\"/SERVICE_CORE_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update Core Service Version in .env file."; exit 1; }
+      echo "Core Service Version updated to $SERVICE_VERSION in .env file (Linux)."
+
+  elif [[ "$OS" == *"MINGW"* || "$OS" == *"MSYS"* ]]; then
+      # Windows (Git Bash or MSYS environments)
+      sed -i "s/^SERVICE_CORE_VERSION=\"[^\"']*\"/SERVICE_CORE_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update Core Service Version in .env file."; exit 1; }
+      echo "Core Service Version updated to $SERVICE_VERSION in .env file (Windows)."
+
+  else
+      echo "Unsupported OS: $OS"
+      exit 1
+  fi
+}
 
 # Check if 'setup' parameter is passed
-if [[ "$1" != "setup" ]]; then
+if [[ "$PARAM" != "setup" ]]; then
+    # Skip version checker if using 'latest'
+    if [ "$PARAM" != "latest" ]; then
+        # Validate the input version
+        validate_version "$PARAM"
+    fi
+
     # Migrate DB Up
     make migrate-up || { echo 'Error: Failed to migrate DB up.'; exit 1; }
 
@@ -72,14 +184,45 @@ if [[ "$1" != "setup" ]]; then
 
     # Docker-related commands (only if Docker is running)
     if [ "$DOCKER_RUNNING" = true ]; then
-        # Docker Build Image services
-        docker build -t core-app:latest -f Dockerfile.core . || { echo 'Error: Failed to build Docker core image.'; exit 1; }
+        # Check existing image version
+        EXISTING_IMAGE_VERSION=$(docker images --format "{{.Tag}}" $SERVICE_NAME | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+
+        # Skip version comparison if using 'latest'
+        if [ "$PARAM" != "latest" ]; then
+            if [ -n "$EXISTING_IMAGE_VERSION" ]; then
+                echo "Existing $SERVICE_NAME image version: $EXISTING_IMAGE_VERSION"
+                if version_lt "$PARAM" "$EXISTING_IMAGE_VERSION"; then
+                    echo "Warning: Provided version ($PARAM) is lower than existing version ($EXISTING_IMAGE_VERSION). Aborting build."
+                    exit 1
+                fi
+            else
+                echo "No existing $SERVICE_NAME image found."
+            fi
+        else
+            echo "Using 'latest' tag, skipping version comparison."
+        fi
+
+        # Build docker images
+        if [ -z "$EXISTING_IMAGE_VERSION" ]; then
+            # If image doesn't exist, build it
+            echo "No existing $SERVICE_NAME image found. Building the image."
+            docker build -t "$IMAGE_NAME" -f "$DOCKER_FILE" . || { echo "Error: Failed to build Docker image."; exit 1; }
+        elif [[ "$REBUILD_PARAM" == "rebuild" ]]; then
+            # If 'rebuild' param is passed, remove and rebuild the image
+            rebuild_image
+        else
+            # Skip rebuilding if the image exists and no 'rebuild' is passed
+            echo "Image $IMAGE_NAME already exists. Skipping rebuild."
+        fi
 
         # Stop Docker Compose services
-        docker compose -p core-app-stack -f compose.core.yml down
+        docker compose -p "$APP_STACK_NAME" -f "$COMPOSE_FILE" down
+
+        # Call the function with the parameter
+        update_service_version_in_env "$PARAM" "$ENV_FILE"
 
         # Start Docker Compose services with build
-        docker compose -p core-app-stack -f compose.core.yml up -d || { echo 'Error: Failed to start Docker Compose core services.'; exit 1; }
+        docker compose --env-file "$ENV_FILE" -p "$APP_STACK_NAME" -f "$COMPOSE_FILE" up -d || { echo "Error: Failed to start Docker Compose $SERVICE_NAME services."; exit 1; }
     else
         echo "Skipping Docker Compose commands as Docker is not running."
     fi

@@ -1,6 +1,6 @@
 module github.com/Mind2Screen-Dev-Team/thousand-sunny
 
-go 1.23.3
+go 1.23.6
 
 require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0

@@ -48,6 +48,13 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │   │   │   └── private # Middleware for restricted/private routes.
 │   │   │       └── ... # Other Private Middleware.
 │   │   └── router      # Base HTTP routing configuration (No need to add Something here).
+│   ├── provider     # External Provider Data access layer.
+│   │   ├── api      # External Provider interfaces for APIs.
+│   │   │   └── ...  # Other API External Provider.
+│   │   ├── attr     # External Providers for handling attributes.
+│   │   │   └── ...  # Other Attribute External Provider.
+│   │   └── impl     # Implementation of repository interfaces.
+│   │       └── ...  # Other Implementaion External Provider.
 │   ├── repo         # Data access layer.
 │   │   ├── api      # Repository interfaces for APIs.
 │   │   │   └── ...  # Other API Repository.
@@ -120,13 +127,33 @@ cd thousand-sunny
 # Install dependencies and set up the project
 make setup
 
+# Copy example config and fill the value of configuration
+# The `.env` file for deployment time and sql db migrations:
+#   + NOTE: There is a some key no need to fill a value, that is:
+#     - SERVICE_CORE_VERSION
+#     - SERVICE_ASYNQ_VERSION
+cp .example.env .env
+
+# The `config.yaml` file for application configuration.
+#   - config.yaml: this is for running local or for (make go-run a=core)
+cp config.example.yaml config.yaml
+
+# Run LOCAL for simplify step
+
 # Run the application
 make go-run a=core
+
+# Run On PROD / LOCAL and deploy into Docker
+
+# The `config.[core|asynq].yaml` file for application configuration.
+#   - config.[core|asynq].yaml: this is for running local or for (./deploy.[core|asynq].yaml <version> [rebuild])
+cp config.example.yaml config.asynq.yaml
+cp config.example.yaml config.core.yaml
 
 # Make it script deployment executeable
 chmod +x ./deploy.*.sh
 
-# IMPORTANT!:
+# IMPORTANT:
 #   1. Run your docker apps before run this deploy scripts
 #   2. Run the deploy setup first
 #   3. Run the deploy script
@@ -137,16 +164,29 @@ chmod +x ./deploy.*.sh
 # For setup asynq app
 ./deploy.asynq.sh setup
 
-# For deploy core app
-./deploy.core.sh
+# NOTE:
+# Version must follow the sematic versioning format 'vX.Y.Z' (e.g., v1.0.0).
+# Please refer on this docs: https://semver.org/
 
-# For deploy asynq app
-./deploy.asynq.sh
+# For deploy core app, ex: v0.0.1
+./deploy.core.sh <version>
+
+# For deploy asynq app, ex: v0.0.1
+./deploy.asynq.sh <version>
+
+# For force re-build docker image to deploy core app, ex: v0.0.1
+./deploy.core.sh <version> rebuild
+
+# For force re-build docker image to deploy asynq app, ex: v0.0.1
+./deploy.asynq.sh <version> rebuild
 ```
 
 ## ⚙️ Makefile Commands
 
 The Makefile provides a set of commands to help you manage and interact with your Go project efficiently. Below is a list of the available commands:
+
+### Note:
+- Please escape strings in environment variables in file .env when handling errors, especially when using migrations.
 
 ### Setup Commands
 
