@@ -9,6 +9,7 @@ import (
 var (
 	Asynq = fx.Options(
 		fx.Module("asynq:server",
+			fx.Provide(dependency.ProvideAsynqServerName),
 			fx.Provide(dependency.ProvideAsynqmonOption),
 			fx.Provide(dependency.ProvideAsynqMonitoringServer),
 		),

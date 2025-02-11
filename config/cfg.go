@@ -34,7 +34,7 @@ type Cfg struct {
 	Template map[string]string   `yaml:"template"`
 	DB       map[string]DB       `yaml:"db"`
 	Cache    map[string]Cache    `yaml:"cache"`
-	Log      map[string]Log      `yaml:"log"`
+	Log      Log                 `yaml:"log"`
 	Provider map[string]Provider `yaml:"provider"`
 }
 
@@ -46,6 +46,7 @@ type App struct {
 }
 
 type Server struct {
+	Name       string            `yaml:"name"`
 	Host       string            `yaml:"host"`
 	Port       int               `yaml:"port"`
 	Address    string            `yaml:"address"`
@@ -112,6 +113,12 @@ type DBCredential struct {
 }
 
 type Log struct {
+	BasePath string             `yaml:"basePath"`
+	Client   []string           `yaml:"client"`
+	LogType  map[string]LogType `yaml:"logType"`
+}
+
+type LogType struct {
 	Disabled bool       `yaml:"disabled"`
 	Notify   LogNotify  `yaml:"notify"`
 	Console  LogConsole `yaml:"console"`
@@ -136,7 +143,6 @@ type LogFile struct {
 }
 
 type LogRotation struct {
-	BasePath  string `yaml:"basePath"`
 	Filename  string `yaml:"filename"`
 	MaxBackup int    `yaml:"maxBackup"`
 	MaxSize   int    `yaml:"maxSize"`

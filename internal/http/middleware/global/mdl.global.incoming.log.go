@@ -197,7 +197,7 @@ func (in IncomingLog) _IncomingLogging(
 	in.iolog.Info("incoming request", fields...)
 
 	// # Notify Process Incoming Log
-	ioLogCfg, ok := in.cfg.Log["io"]
+	ioLogCfg, ok := in.cfg.Log.LogType["io"]
 	if !ok || !ioLogCfg.Notify.Enabled {
 		return
 	}
@@ -221,7 +221,7 @@ func (in IncomingLog) _IncomingLogging(
 	in._Notify(&ioLogCfg, m)
 }
 
-func (in *IncomingLog) _Notify(ioLogCfg *config.Log, m map[string]any) {
+func (in *IncomingLog) _Notify(ioLogCfg *config.LogType, m map[string]any) {
 	var (
 		b, _      = json.Marshal(m)
 		name      = xasynq.BuildWorkerRouteName(in.cfg.App.Env, "notify:incoming:log")

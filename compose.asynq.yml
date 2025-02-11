@@ -11,7 +11,7 @@ services:
       - ${SERVICE_ASYNQ_PORT:-8081}:8081
     volumes:
       - ./storage:/app/storage
-      - ./config.asynq.yaml:/app/config.yaml:ro
+      - ./config.yaml:/app/config.yaml:ro
     restart: unless-stopped
     networks:
       - asynq_app

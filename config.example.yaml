@@ -5,6 +5,7 @@ app:
   timezone: "Asia/Jakarta"
 server:
   asynq:
+    name: "asynq-svc"
     host: "0.0.0.0"
     port: 8081
     address: "0.0.0.0:8081"
@@ -12,6 +13,7 @@ server:
       asynq.route.monitoring: /asynqmon
       asynq.log.level: '2' # Debug: 1 | Info: 2 | Warn: 3 | Error: 4 | Fatal: 5
   http:
+    name: "core-svc"
     host: "0.0.0.0"
     port: 8080
     address: "0.0.0.0:8080"
@@ -27,58 +29,63 @@ smtp:
 template:
   example.email.template: "./storage/template/my_template.tpl" 
 log:
-  debug: # For logging debug app
-    disabled: false
-    console:
+  # Where you need store to store log and what a log name
+  basePath: "./storage/logs/{server_name}/{log_type}"
+  client:
+    # The sparator ':' mean 'merchant/x' it will be directory. I suggest you to use easy and exact naming with no-space for removing complexity.
+    - "client:x"
+    - "merchant:y"
+    - "supplier:z"
+  logType:
+    debug: # For logging debug app
       disabled: false
-      level: -1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-    file:
+      console:
+        disabled: false
+        level: -1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+      file:
+        disabled: false
+        level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+        rotation:
+          filename: "app_debug_process.log" # what a log name
+          maxBackup: 10 # how much backup files
+          maxSize: 100 # how much maximum megabytes
+          maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
+          localTime: false # default UTC | false
+          compress: false # default false
+    io: # For logging api input-output / IO proccess
       disabled: false
-      level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-      rotation:
-        basePath: "./storage/logs/core/debug" # where you need store to store log and what a log name
-        filename: "app_core_debug_process.log" # what a log name
-        maxBackup: 10 # how much backup files
-        maxSize: 100 # how much maximum megabytes
-        maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
-        localTime: false # default UTC | false
-        compress: false # default false
-  io: # For logging api input-output / IO proccess
-    disabled: false
-    notify:
-      enabled: false # Notify State for Send Notify
-      debug: true # Notify Status Success / Error into Log Debug
-      retention: 7200 # format number is seconds, this for asynq worker retention log will be disappear
-    console:
+      notify:
+        enabled: false # Notify State for Send Notify
+        debug: true # Notify Status Success / Error into Log Debug
+        retention: 7200 # format number is seconds, this for asynq worker retention log will be disappear
+      console:
+        disabled: false
+        level: -1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+      file:
+        disabled: false
+        level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+        rotation:
+          filename: "app_io_process.log" #  what a log name
+          maxBackup: 10 # how much backup files
+          maxSize: 100 # how much maximum megabytes
+          maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
+          localTime: false # default UTC | false
+          compress: false # default false
+    trx: # For logging Transaction process your client
       disabled: false
-      level: -1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-    file:
-      disabled: false
-      level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-      rotation:
-        basePath: "./storage/logs/core/io" # where you need store to store log and what a log name
-        filename: "app_core_api_io_process.log" #  what a log name
-        maxBackup: 10 # how much backup files
-        maxSize: 100 # how much maximum megabytes
-        maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
-        localTime: false # default UTC | false
-        compress: false # default false
-  trx: # For logging Transaction process your client
-    disabled: false
-    console:
-      disabled: false
-      level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-    file:
-      disabled: false
-      level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-      rotation:
-        basePath: "./storage/logs/core/trx/{CLIENT}" # where you need store to store log and what a log name and {CLIENT} will be replaced by client key
-        filename: "app_core_api_for_{CLIENT}_trx_process.log" # what a log name and {CLIENT} will be replaced by client key
-        maxBackup: 10 # how much backup files
-        maxSize: 100 # how much maximum megabytes
-        maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
-        localTime: false # default UTC | false
-        compress: false # default false
+      console:
+        disabled: false
+        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+      file:
+        disabled: false
+        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+        rotation:
+          filename: "app_trx_process.log" # what a log name and {CLIENT} will be replaced by client key
+          maxBackup: 10 # how much backup files
+          maxSize: 100 # how much maximum megabytes
+          maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
+          localTime: false # default UTC | false
+          compress: false # default false
 cache:
   redis:
     disabled: false

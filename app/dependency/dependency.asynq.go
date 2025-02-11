@@ -19,6 +19,10 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
 )
 
+func ProvideAsynqServerName(c config.Cfg) Server {
+	return Server(c.Server["asynq"].Name)
+}
+
 func ProvideAsynqRedisConnOption(c config.Cfg) *asynq.RedisClientOpt {
 	var (
 		cfg   = c.Cache["redis"]

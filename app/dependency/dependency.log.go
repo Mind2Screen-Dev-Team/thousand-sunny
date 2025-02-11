@@ -12,6 +12,12 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
+type Server string
+
+func (s Server) String() string {
+	return string(s)
+}
+
 var (
 	_DebugLogger *xlog.DebugLogger
 	_IOLogger    *xlog.IOLogger
@@ -41,10 +47,14 @@ func RotateLog() {
 	}
 }
 
-func ProvideDebugLogger(c config.Cfg) *xlog.DebugLogger {
+func ProvideDebugLogger(c config.Cfg, s Server) *xlog.DebugLogger {
+
+	basePath := strings.ReplaceAll(c.Log.BasePath, "{server_name}", s.String())
+	basePath = strings.ReplaceAll(basePath, "{log_type}", "debug")
+
 	var (
-		cfg       = c.Log["debug"]
-		xfilename = path.Join(cfg.File.Rotation.BasePath, cfg.File.Rotation.Filename)
+		cfg       = c.Log.LogType["debug"]
+		xfilename = path.Join(basePath, cfg.File.Rotation.Filename)
 		debugLog  = xlog.DebugLogger{
 			SingleLogger: xlog.SingleLogger{
 				LogRotation: lumberjack.Logger{
@@ -72,6 +82,7 @@ func ProvideDebugLogger(c config.Cfg) *xlog.DebugLogger {
 		// # Options Fields
 		xlog.SetField("appName", c.App.Name),
 		xlog.SetField("appEnv", c.App.Env),
+		xlog.SetField("appServer", s.String()),
 		xlog.SetField("appLog", "debug:logger"),
 	)
 
@@ -80,10 +91,14 @@ func ProvideDebugLogger(c config.Cfg) *xlog.DebugLogger {
 	return &debugLog
 }
 
-func ProvideIoLogger(c config.Cfg) *xlog.IOLogger {
+func ProvideIoLogger(c config.Cfg, s Server) *xlog.IOLogger {
+
+	basePath := strings.ReplaceAll(c.Log.BasePath, "{server_name}", s.String())
+	basePath = strings.ReplaceAll(basePath, "{log_type}", "io")
+
 	var (
-		cfg       = c.Log["io"]
-		xfilename = path.Join(cfg.File.Rotation.BasePath, cfg.File.Rotation.Filename)
+		cfg       = c.Log.LogType["io"]
+		xfilename = path.Join(basePath, cfg.File.Rotation.Filename)
 		ioLog     = xlog.IOLogger{
 			SingleLogger: xlog.SingleLogger{
 				LogRotation: lumberjack.Logger{
@@ -111,6 +126,7 @@ func ProvideIoLogger(c config.Cfg) *xlog.IOLogger {
 		// # fields
 		xlog.SetField("appName", c.App.Name),
 		xlog.SetField("appEnv", c.App.Env),
+		xlog.SetField("appServer", s.String()),
 		xlog.SetField("appLog", "io:logger"),
 	)
 	_IOLogger = &ioLog
@@ -118,38 +134,22 @@ func ProvideIoLogger(c config.Cfg) *xlog.IOLogger {
 	return &ioLog
 }
 
-func ProvideTrxLogger(c config.Cfg) *xlog.TrxLogger {
-	var (
-		// TODO: you can setup this from db or configs
-		clientKey = []string{}
-	)
+func ProvideTrxLogger(c config.Cfg, s Server) *xlog.TrxLogger {
+	basePath := strings.ReplaceAll(c.Log.BasePath, "{server_name}", s.String())
+	basePath = strings.ReplaceAll(basePath, "{log_type}", "trx")
+	basePath = strings.Join([]string{basePath, "{client}"}, "/")
 
 	var (
-		cfg     = c.Log["trx"]
-		l       xlog.TrxLogger
+		l       = xlog.TrxLogger{}
+		cfg     = c.Log.LogType["trx"]
 		entries = make([]xlog.Entry, 0)
 	)
 
-	for i, key := range clientKey {
+	for i, key := range c.Log.Client {
 		var (
-			basePath = strings.ReplaceAll(
-				cfg.File.Rotation.BasePath,
-				"{CLIENT}",
-				strings.ToLower(
-					strings.TrimSpace(key),
-				),
-			)
-
-			filename = strings.ReplaceAll(
-				cfg.File.Rotation.Filename,
-				"{CLIENT}",
-				strings.ToLower(
-					strings.TrimSpace(key),
-				),
-			)
-
-			xfilename = path.Join(basePath, filename)
-
+			k               = strings.Split(strings.ToLower(strings.TrimSpace(key)), ":")
+			basePath        = strings.ReplaceAll(basePath, "{client}", strings.Join(k, "/"))
+			xfilename       = path.Join(basePath, cfg.File.Rotation.Filename)
 			logFileRotation = lumberjack.Logger{
 				Filename:   xfilename,                   // where you need store to store log and what a log name
 				MaxBackups: cfg.File.Rotation.MaxBackup, // how much backup files
@@ -176,6 +176,7 @@ func ProvideTrxLogger(c config.Cfg) *xlog.TrxLogger {
 			// # fields
 			xlog.SetField("appName", c.App.Name),
 			xlog.SetField("appEnv", c.App.Env),
+			xlog.SetField("appServer", s.String()),
 			xlog.SetField("appLog", fmt.Sprintf("trx:logger:%s", key)),
 		)
 	}

@@ -13,6 +13,10 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
 )
 
+func ProvideHTTPServerName(c config.Cfg) Server {
+	return Server(c.Server["http"].Name)
+}
+
 func ProvideHTTPServer(c config.Cfg, logger *xlog.DebugLogger, lc fx.Lifecycle) *echo.Echo {
 	var (
 		cfg = c.Server["http"]

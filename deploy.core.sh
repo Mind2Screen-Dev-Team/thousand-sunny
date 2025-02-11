@@ -31,7 +31,7 @@ source_profile "$HOME/.bashrc"
 
 # Define source and destination files
 SOURCE_FILE="config.example.yaml"
-DESTINATION_FILE="config.core.yaml"
+DESTINATION_FILE="config.yaml"
 
 # Check and copy the config file if needed
 if [ -f "$DESTINATION_FILE" ]; then
