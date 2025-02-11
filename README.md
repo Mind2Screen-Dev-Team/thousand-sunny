@@ -135,7 +135,6 @@ make setup
 cp .example.env .env
 
 # The `config.yaml` file for application configuration.
-#   - config.yaml: this is for running local or for (make go-run a=core)
 cp config.example.yaml config.yaml
 
 # Run LOCAL for simplify step
@@ -145,10 +144,8 @@ make go-run a=core
 
 # Run On PROD / LOCAL and deploy into Docker
 
-# The `config.[core|asynq].yaml` file for application configuration.
-#   - config.[core|asynq].yaml: this is for running local or for (./deploy.[core|asynq].yaml <version> [rebuild])
-cp config.example.yaml config.asynq.yaml
-cp config.example.yaml config.core.yaml
+# The `config.yaml` file for application configuration.
+cp config.example.yaml config.yaml
 
 # Make it script deployment executeable
 chmod +x ./deploy.*.sh
