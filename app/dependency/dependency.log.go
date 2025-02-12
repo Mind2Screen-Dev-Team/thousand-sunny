@@ -142,7 +142,7 @@ func ProvideTrxLogger(c config.Cfg, s Server) *xlog.TrxLogger {
 	var (
 		l       = xlog.TrxLogger{}
 		cfg     = c.Log.LogType["trx"]
-		entries = make([]xlog.Entry, 0)
+		entries = make([]xlog.Entry, len(c.Log.Client))
 	)
 
 	for i, key := range c.Log.Client {

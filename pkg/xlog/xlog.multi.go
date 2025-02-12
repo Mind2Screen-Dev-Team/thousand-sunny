@@ -20,6 +20,9 @@ func NewEntry(key string, rotation *lumberjack.Logger, opts ...LogOptionFn) Entr
 	e := Entry{
 		key:      key,
 		rotation: rotation,
+		Options: LogOptions{
+			LogFields: make(map[string]any),
+		},
 	}
 
 	for _, fn := range opts {
