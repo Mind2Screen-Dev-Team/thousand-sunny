@@ -45,7 +45,7 @@ func ProvidePostgres(c config.Cfg, lc fx.Lifecycle) (*pgxpool.Pool, error) {
 	// Customize pool settings
 	poolCfg.MaxConns = int32(cfg.Options.MaxOpenConnection)
 	poolCfg.MinConns = int32(cfg.Options.MaxIdleConnection)
-	poolCfg.MaxConnLifetime = time.Duration(cfg.Options.MaxConnLifetime) * time.Second
+	poolCfg.MaxConnLifetime = time.Duration(cfg.Options.MaxConnectionLifetime) * time.Second
 
 	db, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {

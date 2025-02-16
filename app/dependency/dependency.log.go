@@ -12,12 +12,6 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-type Server string
-
-func (s Server) String() string {
-	return string(s)
-}
-
 var (
 	_DebugLogger *xlog.DebugLogger
 	_IOLogger    *xlog.IOLogger
@@ -47,10 +41,10 @@ func RotateLog() {
 	}
 }
 
-func ProvideDebugLogger(c config.Cfg, s Server) *xlog.DebugLogger {
+func ProvideDebugLogger(c config.Cfg, s config.ServerName) *xlog.DebugLogger {
 
-	basePath := strings.ReplaceAll(c.Log.BasePath, "{server_name}", s.String())
-	basePath = strings.ReplaceAll(basePath, "{log_type}", "debug")
+	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.String())
+	basePath = strings.ReplaceAll(basePath, "{log.type}", "debug")
 
 	var (
 		cfg       = c.Log.LogType["debug"]
@@ -91,10 +85,10 @@ func ProvideDebugLogger(c config.Cfg, s Server) *xlog.DebugLogger {
 	return &debugLog
 }
 
-func ProvideIoLogger(c config.Cfg, s Server) *xlog.IOLogger {
+func ProvideIoLogger(c config.Cfg, s config.ServerName) *xlog.IOLogger {
 
-	basePath := strings.ReplaceAll(c.Log.BasePath, "{server_name}", s.String())
-	basePath = strings.ReplaceAll(basePath, "{log_type}", "io")
+	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.String())
+	basePath = strings.ReplaceAll(basePath, "{log.type}", "io")
 
 	var (
 		cfg       = c.Log.LogType["io"]
@@ -134,21 +128,21 @@ func ProvideIoLogger(c config.Cfg, s Server) *xlog.IOLogger {
 	return &ioLog
 }
 
-func ProvideTrxLogger(c config.Cfg, s Server) *xlog.TrxLogger {
-	basePath := strings.ReplaceAll(c.Log.BasePath, "{server_name}", s.String())
-	basePath = strings.ReplaceAll(basePath, "{log_type}", "trx")
-	basePath = strings.Join([]string{basePath, "{client}"}, "/")
+func ProvideTrxLogger(c config.Cfg, s config.ServerName) *xlog.TrxLogger {
+	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.String())
+	basePath = strings.ReplaceAll(basePath, "{log.type}", "trx")
+	basePath = strings.Join([]string{basePath, "{trx.client}"}, "/")
 
 	var (
 		l       = xlog.TrxLogger{}
 		cfg     = c.Log.LogType["trx"]
-		entries = make([]xlog.Entry, len(c.Log.Client))
+		entries = make([]xlog.Entry, len(c.Log.TrxClient))
 	)
 
-	for i, key := range c.Log.Client {
+	for i, key := range c.Log.TrxClient {
 		var (
-			k               = strings.Split(strings.ToLower(strings.TrimSpace(key)), ":")
-			basePath        = strings.ReplaceAll(basePath, "{client}", strings.Join(k, "/"))
+			keys            = strings.Split(strings.ToLower(strings.TrimSpace(key)), ":")
+			basePath        = strings.ReplaceAll(basePath, "{trx.client}", strings.Join(keys, "/"))
 			xfilename       = path.Join(basePath, cfg.File.Rotation.Filename)
 			logFileRotation = lumberjack.Logger{
 				Filename:   xfilename,                   // where you need store to store log and what a log name

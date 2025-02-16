@@ -41,7 +41,6 @@ type Cfg struct {
 type App struct {
 	Env      string `yaml:"env"`
 	Name     string `yaml:"name"`
-	Domain   string `yaml:"domain"`
 	Timezone string `yaml:"timezone"`
 }
 
@@ -50,6 +49,7 @@ type Server struct {
 	Host       string            `yaml:"host"`
 	Port       int               `yaml:"port"`
 	Address    string            `yaml:"address"`
+	Domain     string            `yaml:"domain"`
 	Additional map[string]string `yaml:"additional"`
 }
 
@@ -76,9 +76,9 @@ type Cache struct {
 }
 
 type CacheOption struct {
-	DialTimeout  int `yaml:"dialTimeout"`
-	ReadTimeout  int `yaml:"readTimeout"`
-	WriteTimeout int `yaml:"writeTimeout"`
+	DialTimeout  int `yaml:"dial.timeout"`
+	ReadTimeout  int `yaml:"read.timeout"`
+	WriteTimeout int `yaml:"write.timeout"`
 }
 
 type CacheCredential struct {
@@ -98,12 +98,12 @@ type DB struct {
 }
 
 type DBOptions struct {
-	Timezone          string `yaml:"timezone"`
-	Sslmode           string `yaml:"sslmode"`
-	ConnectionTimeout int    `yaml:"connectionTimeout"`
-	MaxConnLifetime   int    `yaml:"maxConnLifetime"`
-	MaxOpenConnection int    `yaml:"maxOpenConnection"`
-	MaxIdleConnection int    `yaml:"maxIdleConnection"`
+	Timezone              string `yaml:"timezone"`
+	Sslmode               string `yaml:"sslmode"`
+	ConnectionTimeout     int    `yaml:"connection.timeout"`
+	MaxConnectionLifetime int    `yaml:"max.connection.lifetime"`
+	MaxOpenConnection     int    `yaml:"max.open.connection"`
+	MaxIdleConnection     int    `yaml:"max.idle.connection"`
 }
 
 type DBCredential struct {
@@ -113,9 +113,9 @@ type DBCredential struct {
 }
 
 type Log struct {
-	BasePath string             `yaml:"basePath"`
-	Client   []string           `yaml:"client"`
-	LogType  map[string]LogType `yaml:"logType"`
+	BasePath  string             `yaml:"base.path"`
+	TrxClient []string           `yaml:"trx.client"`
+	LogType   map[string]LogType `yaml:"log.type"`
 }
 
 type LogType struct {
@@ -144,13 +144,21 @@ type LogFile struct {
 
 type LogRotation struct {
 	Filename  string `yaml:"filename"`
-	MaxBackup int    `yaml:"maxBackup"`
-	MaxSize   int    `yaml:"maxSize"`
-	MaxAge    int    `yaml:"maxAge"`
-	LocalTime bool   `yaml:"localTime"`
+	MaxBackup int    `yaml:"max.backup"`
+	MaxSize   int    `yaml:"max.size"`
+	MaxAge    int    `yaml:"max.age"`
+	LocalTime bool   `yaml:"local.time"`
 	Compress  bool   `yaml:"compress"`
 }
 type Provider struct {
-	BaseURL    string            `yaml:"baseUrl"`
+	BaseURL    string            `yaml:"base.url"`
 	Additional map[string]string `yaml:"additional"`
+}
+
+// # Additional
+
+type ServerName string
+
+func (s ServerName) String() string {
+	return string(s)
 }

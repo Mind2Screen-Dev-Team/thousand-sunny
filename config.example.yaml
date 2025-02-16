@@ -1,7 +1,6 @@
 app:
   env: "dev"
   name: "example-app"
-  domain: "http://localhost"
   timezone: "Asia/Jakarta"
 server:
   asynq:
@@ -9,14 +8,16 @@ server:
     host: "0.0.0.0"
     port: 8081
     address: "0.0.0.0:8081"
+    domain: "http://localhost"
     additional:
       asynq.route.monitoring: /asynqmon
-      asynq.log.level: '2' # Debug: 1 | Info: 2 | Warn: 3 | Error: 4 | Fatal: 5
+      asynq.log.level: '2' # Debug: 1 | Info: 2 | Warn: 3 | Error: 4 | Fatal: 5 , Note: the format using string not numeric 
   http:
     name: "core-svc"
     host: "0.0.0.0"
     port: 8080
     address: "0.0.0.0:8080"
+    domain: "http://localhost"
 smtp:
   gmail:
     host: localhost
@@ -30,29 +31,29 @@ template:
   example.email.template: "./storage/template/my_template.tpl" 
 log:
   # Where you need store to store log and what a log name
-  basePath: "./storage/logs/{server_name}/{log_type}"
-  client:
+  base.path: "./storage/logs/{server.name}/{log.type}"
+  trx.client:
     # The sparator ':' mean 'merchant/x' it will be directory. I suggest you to use easy and exact naming with no-space for removing complexity.
     - "client:x"
     - "merchant:y"
     - "supplier:z"
-  logType:
-    debug: # For logging debug app
+  log.type:
+    debug: # For logging debug app, for feed `:log.type`
       disabled: false
       console:
         disabled: false
-        level: -1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
       file:
         disabled: false
         level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
         rotation:
           filename: "app_debug_process.log" # what a log name
-          maxBackup: 10 # how much backup files
-          maxSize: 100 # how much maximum megabytes
-          maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
-          localTime: false # default UTC | false
+          max.backup: 10 # how much backup files
+          max.size: 100 # how much maximum megabytes
+          max.age: 0 # how much maximum days, default is 0 that means not deleted old logs
+          local.time: false # default UTC | false
           compress: false # default false
-    io: # For logging api input-output / IO proccess
+    io: # For logging api input-output / IO proccess, for feed `:log.type`
       disabled: false
       notify:
         enabled: false # Notify State for Send Notify
@@ -60,31 +61,31 @@ log:
         retention: 7200 # format number is seconds, this for asynq worker retention log will be disappear
       console:
         disabled: false
-        level: -1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
       file:
         disabled: false
         level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
         rotation:
           filename: "app_io_process.log" #  what a log name
-          maxBackup: 10 # how much backup files
-          maxSize: 100 # how much maximum megabytes
-          maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
-          localTime: false # default UTC | false
+          max.backup: 10 # how much backup files
+          max.size: 100 # how much maximum megabytes
+          max.age: 0 # how much maximum days, default is 0 that means not deleted old logs
+          local.time: false # default UTC | false
           compress: false # default false
-    trx: # For logging Transaction process your client
+    trx: # For logging Transaction process your client, for feed `:log.type`
       disabled: false
       console:
         disabled: false
         level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
       file:
         disabled: false
-        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+        level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
         rotation:
           filename: "app_trx_process.log" # what a log name and {CLIENT} will be replaced by client key
-          maxBackup: 10 # how much backup files
-          maxSize: 100 # how much maximum megabytes
-          maxAge: 0 # how much maximum days, default is 0 that means not deleted old logs
-          localTime: false # default UTC | false
+          max.backup: 10 # how much backup files
+          max.size: 100 # how much maximum megabytes
+          max.age: 0 # how much maximum days, default is 0 that means not deleted old logs
+          local.time: false # default UTC | false
           compress: false # default false
 cache:
   redis:
@@ -97,9 +98,9 @@ cache:
       username: "default"
       password: ""
     options:
-      dialTimeout: 30 # format number is seconds | default is 5 seconds
-      readTimeout: 30 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetReadDeadline calls completely.
-      writeTimeout: 30 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetWriteDeadline calls completely.
+      dial.timeout: 30 # format number is seconds | default is 5 seconds
+      read.timeout: 30 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetReadDeadline calls completely.
+      write.timeout: 30 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetWriteDeadline calls completely.
 db:
   postgres:
     disabled: false
@@ -110,17 +111,17 @@ db:
     credential:
       enabled: true
       username: "postgres"
-      password: "example"
+      password: "secret"
     options:
       timezone: "Asia/Jakarta"
       sslmode: "disable"
-      connectionTimeout: 30
-      maxConnLifetime: 180
-      maxOpenConnection: 20
-      maxIdleConnection: 10
+      connection.timeout: 30
+      max.connection.lifetime: 180
+      max.open.connection: 20
+      max.idle.connection: 10
 provider:
   example.one:
-    baseUrl: "https://api.example.com/api/v1"
+    base.url: "https://api.example.com/api/v1"
     additional:
       client.id: "example.one.id"
       client.secret: "example.one.secret"
