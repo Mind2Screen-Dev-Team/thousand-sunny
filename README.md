@@ -113,7 +113,7 @@ Here's a quick look at what's done and what's still in progress:
 - 📑 **Makefile Runner**: Simple command runners for building and testing.
 - 🐳 **Docker Integration**: Containerize the application.
 
-## TODO 📋
+## Todo 📋
 - 🌐 **Open-Telemetry**: Add Tracer and Metric Configuration.
 
 ## 📦 Installation and Setup
