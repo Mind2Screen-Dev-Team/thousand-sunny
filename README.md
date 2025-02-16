@@ -3,7 +3,7 @@
 
 Embark on your next adventure with the Thousand Sunny! Inspired by the legendary ship from One Piece, this Go project skeleton is designed for speed, flexibility, and scalability. Whether you’re building small tools or large applications, the Thousand Sunny will guide your journey to success.
 
-![Thousand-Sunny-Image](./storage/assets/thousand-sunny.webp "Thousand Sunny")
+![Thousand-Sunny-Image](./storage/assets/thousand-sunny.png "Thousand Sunny")
 
 ## 🗂 Project Structure
 
@@ -112,6 +112,9 @@ Here's a quick look at what's done and what's still in progress:
 - 📄 **Logging**: Integrated logging for better observability.
 - 📑 **Makefile Runner**: Simple command runners for building and testing.
 - 🐳 **Docker Integration**: Containerize the application.
+
+## TODO 📋
+- 🌐 **Open-Telemetry**: Add Tracer and Metric Configuration.
 
 ## 📦 Installation and Setup
 
