@@ -18,8 +18,8 @@ APP_STACK_NAME="$APP_SERVICE_NAME-stack"
 APP_IMAGE_NAME="$APP_SERVICE_NAME:$PARAM"
 APP_NETWORK_NAME="${APP_NAME}_${APP_ENV}_app_net"
 
-DOCKER_FILE="Dockerfile.${APP_NAME}"
-COMPOSE_FILE="compose.${APP_NAME}.yml"
+DOCKER_FILE="Dockerfile.$APP_NAME"
+COMPOSE_FILE="compose.$APP_NAME.yml"
 
 # Check if Docker is running
 check_docker_running
@@ -36,9 +36,55 @@ create_docker_network "$APP_NETWORK_NAME"
 if [[ "$PARAM" != "setup" ]]; then
     # Skip version checker if using 'latest'
     if [ "$PARAM" != "latest" ]; then
-        # Validate the input version
-        validate_version "$PARAM"
+        # Validate the input version only if it's not a keyword
+        if [[ "$PARAM" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            validate_version "$PARAM"
+        elif [[ "$PARAM" != "major" && "$PARAM" != "minor" && "$PARAM" != "patch" ]]; then
+            echo "Error: Invalid parameter '$PARAM'. Version should be in the form vX.Y.Z or one of 'major', 'minor', 'patch'."
+            exit 1
+        fi
     fi
+
+    # Default version handling if it's 'major', 'minor', or 'patch'
+    if [[ "$PARAM" == "minor" || "$PARAM" == "major" || "$PARAM" == "patch" ]]; then
+        EXISTING_IMAGE_VERSION=$(docker images --format "{{.Tag}}" $APP_SERVICE_NAME | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+
+        if [ -n "$EXISTING_IMAGE_VERSION" ]; then
+            echo "Existing $APP_SERVICE_NAME image version: $EXISTING_IMAGE_VERSION"
+
+            # Extract major, minor, and patch from existing version
+            IFS='.' read -r EXISTING_MAJOR EXISTING_MINOR EXISTING_PATCH <<< "${EXISTING_IMAGE_VERSION#v}"
+
+            # Increment version based on input
+            if [[ "$PARAM" == "minor" ]]; then
+                MAJOR=$EXISTING_MAJOR
+                MINOR=$((EXISTING_MINOR + 1))
+                PATCH=0
+            elif [[ "$PARAM" == "major" ]]; then
+                MAJOR=$((EXISTING_MAJOR + 1))
+                MINOR=0
+                PATCH=0
+            elif [[ "$PARAM" == "patch" ]]; then
+                MAJOR=$EXISTING_MAJOR
+                MINOR=$EXISTING_MINOR
+                PATCH=$((EXISTING_PATCH + 1))
+            fi
+
+            NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+        else
+            echo "No existing $APP_SERVICE_NAME image found. Using version v0.0.1 as base."
+            NEW_VERSION="v0.0.1"
+        fi
+    elif [ "$PARAM" != "latest" ]; then
+        # Set version when provided directly (e.g., v1.2.3)
+        IFS='.' read -r MAJOR MINOR PATCH <<< "${PARAM#v}"
+        NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+    else
+        NEW_VERSION="$PARAM"
+    fi
+
+    # Change Image Tag Name
+    APP_IMAGE_NAME="$APP_SERVICE_NAME:$NEW_VERSION"
 
     # Migrate DB Up
     make migrate-up || { echo 'Error: Failed to migrate DB up.'; exit 1; }
@@ -52,11 +98,11 @@ if [[ "$PARAM" != "setup" ]]; then
         EXISTING_IMAGE_VERSION=$(docker images --format "{{.Tag}}" $APP_SERVICE_NAME | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
 
         # Skip version comparison if using 'latest'
-        if [ "$PARAM" != "latest" ]; then
+        if [ "$NEW_VERSION" != "latest" ]; then
             if [ -n "$EXISTING_IMAGE_VERSION" ]; then
                 echo "Existing $APP_SERVICE_NAME image version: $EXISTING_IMAGE_VERSION"
-                if version_lt "$PARAM" "$EXISTING_IMAGE_VERSION"; then
-                    echo "Warning: Provided version ($PARAM) is lower than existing version ($EXISTING_IMAGE_VERSION). Aborting build."
+                if version_lt "$NEW_VERSION" "$EXISTING_IMAGE_VERSION"; then
+                    echo "Warning: Provided version ($NEW_VERSION) is lower than existing version ($EXISTING_IMAGE_VERSION). Aborting build."
                     exit 1
                 fi
             else
@@ -82,8 +128,11 @@ if [[ "$PARAM" != "setup" ]]; then
         # Stop Docker Compose services
         docker compose -p "$APP_STACK_NAME" -f "$COMPOSE_FILE" down
 
-        # Call the function with the parameter
-        update_service_version_in_env "$PARAM" "$ENV_FILE"
+        # Call the function with the new version
+        update_service_version_in_env "$NEW_VERSION" "$ENV_FILE"
+
+        # Update the SERVICE_CORE_VERSION in .env file
+        echo "Updating version in $ENV_FILE to $NEW_VERSION"
 
         # Start Docker Compose services with build
         docker compose --env-file "$ENV_FILE" -p "$APP_STACK_NAME" -f "$COMPOSE_FILE" up -d || { echo "Error: Failed to start Docker Compose $APP_SERVICE_NAME services."; exit 1; }

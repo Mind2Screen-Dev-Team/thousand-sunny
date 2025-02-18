@@ -164,7 +164,23 @@ chmod +x ./deploy.*.sh
 # For setup asynq app
 ./deploy.asynq.sh setup
 
-# NOTE:
+# Note For (AUTOMATICALLY) Set Version:
+# Please refer on this docs: https://semver.org/
+#   - [major]: increment by 1 major version (major reset existing minor and patch version)). [ex. before -> v1.1.1 -> after -> v2.0.0]
+#   - [minor]: increment by 1 minor version (minor reset existing patch version, and do not reset existing major version). [ex. before -> v1.1.91 -> after -> v1.2.0]
+#   - [patch]: increment by 1 patch version (patch do not reset existing major and minor version). [ex. before -> v0.1.24 -> after -> v0.1.25]
+
+# For deploy core app
+./deploy.core.sh major
+./deploy.core.sh minor
+./deploy.core.sh patch
+
+# For deploy asynq app
+./deploy.asynq.sh major
+./deploy.asynq.sh minor
+./deploy.asynq.sh patch
+
+# Note For (MANUAL) Set Version:
 # Version must follow the sematic versioning format 'vX.Y.Z' (e.g., v1.0.0).
 # Please refer on this docs: https://semver.org/
 
