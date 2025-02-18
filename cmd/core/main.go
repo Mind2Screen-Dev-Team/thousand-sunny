@@ -15,6 +15,7 @@ func main() {
 		registry.GlobalConfig,
 		registry.GlobalLogger,
 		registry.GlobalEmail,
+		registry.OtelSetup,
 
 		// Cache
 		registry.AsynqPackage,

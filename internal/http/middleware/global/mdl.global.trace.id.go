@@ -1,6 +1,8 @@
 package http_middleware_global
 
 import (
+	"context"
+
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/rs/xid"
 
@@ -19,7 +21,19 @@ func (TraceID) Name() string {
 
 func (TraceID) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		c.Set(xlog.XLOG_TRACE_ID_KEY, xid.New())
+		var (
+			r   = c.Request()
+			ctx = r.Context()
+			id  = xid.New()
+		)
+
+		c.Set(xlog.XLOG_TRACE_ID_KEY, id)
+		c.SetRequest(
+			r.WithContext(
+				context.WithValue(ctx, xlog.XLOG_TRACE_ID_CTX_KEY, id),
+			),
+		)
+
 		return next(c)
 	}
 }

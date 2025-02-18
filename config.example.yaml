@@ -1,7 +1,13 @@
 app:
   env: "dev"
-  name: "example-app"
+  project: "example-project"
   timezone: "Asia/Jakarta"
+otel:
+  tracer: true
+  metric: true
+  server:
+    grpc.host: "localhost"
+    grpc.port: 4317
 server:
   asynq:
     name: "asynq-svc"

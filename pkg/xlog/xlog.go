@@ -8,6 +8,16 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type CtxKey string
+
+func (s CtxKey) String() string {
+	return string(s)
+}
+
+const (
+	XLOG_TRACE_ID_CTX_KEY CtxKey = "XLOG_TRACE_ID_CTX_KEY"
+)
+
 const (
 	XLOG_TRACE_ID_KEY = "XLOG_TRACE_ID_KEY"
 	XLOG_KEY          = "XLOG_KEY"

@@ -41,9 +41,9 @@ func RotateLog() {
 	}
 }
 
-func ProvideDebugLogger(c config.Cfg, s config.ServerName) *xlog.DebugLogger {
+func ProvideDebugLogger(c config.Cfg, s config.Server) *xlog.DebugLogger {
 
-	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.String())
+	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "debug")
 
 	var (
@@ -74,9 +74,9 @@ func ProvideDebugLogger(c config.Cfg, s config.ServerName) *xlog.DebugLogger {
 		xlog.SetLogFileOutput(&debugLog.LogRotation),
 
 		// # Options Fields
-		xlog.SetField("appName", c.App.Name),
+		xlog.SetField("appName", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
 		xlog.SetField("appEnv", c.App.Env),
-		xlog.SetField("appServer", s.String()),
+		xlog.SetField("appServer", s.Name),
 		xlog.SetField("appLog", "debug:logger"),
 	)
 
@@ -85,9 +85,9 @@ func ProvideDebugLogger(c config.Cfg, s config.ServerName) *xlog.DebugLogger {
 	return &debugLog
 }
 
-func ProvideIoLogger(c config.Cfg, s config.ServerName) *xlog.IOLogger {
+func ProvideIoLogger(c config.Cfg, s config.Server) *xlog.IOLogger {
 
-	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.String())
+	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "io")
 
 	var (
@@ -118,9 +118,9 @@ func ProvideIoLogger(c config.Cfg, s config.ServerName) *xlog.IOLogger {
 		xlog.SetLogFileOutput(&ioLog.LogRotation),
 
 		// # fields
-		xlog.SetField("appName", c.App.Name),
+		xlog.SetField("appName", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
 		xlog.SetField("appEnv", c.App.Env),
-		xlog.SetField("appServer", s.String()),
+		xlog.SetField("appServer", s.Name),
 		xlog.SetField("appLog", "io:logger"),
 	)
 	_IOLogger = &ioLog
@@ -128,8 +128,8 @@ func ProvideIoLogger(c config.Cfg, s config.ServerName) *xlog.IOLogger {
 	return &ioLog
 }
 
-func ProvideTrxLogger(c config.Cfg, s config.ServerName) *xlog.TrxLogger {
-	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.String())
+func ProvideTrxLogger(c config.Cfg, s config.Server) *xlog.TrxLogger {
+	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "trx")
 	basePath = strings.Join([]string{basePath, "{trx.client}"}, "/")
 
@@ -168,9 +168,9 @@ func ProvideTrxLogger(c config.Cfg, s config.ServerName) *xlog.TrxLogger {
 			xlog.SetLogFileOutput(&logFileRotation),
 
 			// # fields
-			xlog.SetField("appName", c.App.Name),
+			xlog.SetField("appName", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
 			xlog.SetField("appEnv", c.App.Env),
-			xlog.SetField("appServer", s.String()),
+			xlog.SetField("appServer", s.Name),
 			xlog.SetField("appLog", fmt.Sprintf("trx:logger:%s", key)),
 		)
 	}

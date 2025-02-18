@@ -10,7 +10,7 @@ import (
 	"go.uber.org/fx"
 )
 
-func ProvidePostgres(c config.Cfg, lc fx.Lifecycle) (*pgxpool.Pool, error) {
+func ProvidePostgres(c config.Cfg, s config.Server, lc fx.Lifecycle) (*pgxpool.Pool, error) {
 	var (
 		cfg = c.DB["postgres"]
 		ctx = context.Background()
@@ -18,7 +18,7 @@ func ProvidePostgres(c config.Cfg, lc fx.Lifecycle) (*pgxpool.Pool, error) {
 			"application_name=%s host=%s port=%d dbname=%s user=%s password=%s TimeZone=%s sslmode=%s connect_timeout=%d",
 
 			// # APP ID
-			c.App.Name,
+			fmt.Sprintf("%s/%s", c.App.Project, s.Name),
 
 			// # Connection
 			cfg.Address,

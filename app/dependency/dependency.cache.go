@@ -11,7 +11,7 @@ import (
 	"go.uber.org/fx"
 )
 
-func ProvideRedis(c config.Cfg, lc fx.Lifecycle) *redis.Client {
+func ProvideRedis(c config.Cfg, s config.Server, lc fx.Lifecycle) *redis.Client {
 
 	durationFn := func(v int) time.Duration {
 		if v > 0 {
@@ -30,7 +30,7 @@ func ProvideRedis(c config.Cfg, lc fx.Lifecycle) *redis.Client {
 		dbIdx, _ = strconv.Atoi(cfg.DBName)
 		rdb      = redis.NewClient(
 			&redis.Options{
-				ClientName:   c.App.Name,
+				ClientName:   fmt.Sprintf("%s/%s", c.App.Project, s.Name),
 				Addr:         fmt.Sprintf("%s:%d", cfg.Address, cfg.Port),
 				DB:           dbIdx,
 				Username:     cfg.Credential.Username,

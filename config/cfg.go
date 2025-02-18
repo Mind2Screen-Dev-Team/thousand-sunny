@@ -29,6 +29,7 @@ func ProvideConfig() (Cfg, error) {
 
 type Cfg struct {
 	App      App                 `yaml:"app"`
+	Otel     Otel                `yaml:"otel"`
 	Server   map[string]Server   `yaml:"server"`
 	SMTP     map[string]SMTP     `yaml:"smtp"`
 	Template map[string]string   `yaml:"template"`
@@ -40,8 +41,19 @@ type Cfg struct {
 
 type App struct {
 	Env      string `yaml:"env"`
-	Name     string `yaml:"name"`
+	Project  string `yaml:"project"`
 	Timezone string `yaml:"timezone"`
+}
+
+type Otel struct {
+	Tracer bool       `yaml:"tracer"`
+	Metric bool       `yaml:"metric"`
+	Server OtelServer `yaml:"server"`
+}
+
+type OtelServer struct {
+	GrpcHost string `yaml:"grpc.host"`
+	GrpcPort int    `yaml:"grpc.port"`
 }
 
 type Server struct {
@@ -153,12 +165,4 @@ type LogRotation struct {
 type Provider struct {
 	BaseURL    string            `yaml:"base.url"`
 	Additional map[string]string `yaml:"additional"`
-}
-
-// # Additional
-
-type ServerName string
-
-func (s ServerName) String() string {
-	return string(s)
 }
