@@ -3,8 +3,9 @@
 # Add deploy script
 source deploy.script.sh
 
-PARAM="$1"
-REBUILD_PARAM="$2"
+APP_NAME="$1"
+PARAM="$2"
+REBUILD_PARAM="$3"
 
 SOURCE_FILE="config.example.yaml"
 DESTINATION_FILE="config.yaml"
@@ -12,7 +13,6 @@ DESTINATION_FILE="config.yaml"
 ENV_FILE=".env"
 APP_ENV=$(get_env_value "$ENV_FILE" "APP_ENV" "dev")
 
-APP_NAME="core"
 APP_SERVICE_NAME="$APP_NAME-$APP_ENV-app"
 APP_STACK_NAME="$APP_SERVICE_NAME-stack"
 APP_IMAGE_NAME="$APP_SERVICE_NAME:$PARAM"
@@ -129,7 +129,7 @@ if [[ "$PARAM" != "setup" ]]; then
         docker compose -p "$APP_STACK_NAME" -f "$COMPOSE_FILE" down
 
         # Call the function with the new version
-        update_service_version_in_env "$NEW_VERSION" "$ENV_FILE"
+        update_service_version_in_env "$NEW_VERSION" "$ENV_FILE" "$APP_NAME"
 
         # Update the SERVICE_CORE_VERSION in .env file
         echo "Updating version in $ENV_FILE to $NEW_VERSION"

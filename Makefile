@@ -34,6 +34,49 @@ help:
 	@echo "  make sqlc-gen"
 	@echo "  make go-help"
 	@echo "  make migrate-help"
+	@echo "  make deploy-help"
+
+deploy-help:
+	@echo "Application Deployment Available Commands"
+	@echo ""
+	@echo "Usage: make deploy-[commands]"
+	@echo ""
+	@echo "Commands:"
+	@echo "  deploy-[asynq|core] v=[major|minor|patch|latest]  Make deploy app with automatic increment sematic version"
+	@echo "  deploy-[asynq|core]-rebuild v=0.0.1               Make deploy app with force rebuild docker image with specific tag version"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make deploy-[asynq|core] v=major"
+	@echo "  make deploy-[asynq|core] v=minor"
+	@echo "  make deploy-[asynq|core] v=patch"
+	@echo "  make deploy-[asynq|core] v=latest"
+	@echo "  make deploy-[asynq|core]-rebuild v=0.0.1"
+	@echo "  make deploy-[asynq|core]-rebuild v=0.1.1"
+
+# Command Deployment
+deploy-asynq:
+	@[ -n "$(v)" ] || { echo "Error: v is not set."; exit 1; }
+	@echo "Validating version: $(v)"
+	@echo "$(v)" | grep -Eq '^(major|minor|patch|latest)$$' || { echo "Error: v must be one of: major, minor, patch, latest."; exit 1; }
+	@./deploy.sh asynq $(v)
+
+deploy-asynq-rebuild:
+	@[ -n "$(v)" ] || { echo "Error: v is not set."; exit 1; }
+	@echo "Validating version: $(v)"
+	@echo "$(v)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: Version must follow the semantic versioning format 'vX.Y.Z' (e.g., v1.0.0). Please refer to: https://semver.org/"; exit 1; }
+	@./deploy.sh asynq v$(v) rebuild
+
+deploy-core:
+	@[ -n "$(v)" ] || { echo "Error: v is not set."; exit 1; }
+	@echo "Validating version: $(v)"
+	@echo "$(v)" | grep -Eq '^(major|minor|patch|latest)$$' || { echo "Error: v must be one of: major, minor, patch, latest."; exit 1; }
+	@./deploy.sh core $(v)
+
+deploy-core-rebuild:
+	@[ -n "$(v)" ] || { echo "Error: v is not set."; exit 1; }
+	@echo "Validating version: $(v)"
+	@echo "$(v)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: Version must follow the semantic versioning format 'vX.Y.Z' (e.g., v1.0.0). Please refer to: https://semver.org/"; exit 1; }
+	@./deploy.sh core v$(v) rebuild
 
 # Command Setup
 setup:

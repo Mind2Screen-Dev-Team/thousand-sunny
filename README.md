@@ -112,8 +112,6 @@ Here's a quick look at what's done and what's still in progress:
 - 📄 **Logging**: Integrated logging for better observability.
 - 📑 **Makefile Runner**: Simple command runners for building and testing.
 - 🐳 **Docker Integration**: Containerize the application.
-
-## Todo 📋
 - 🌐 **Open-Telemetry**: Add Tracer and Metric Configuration.
 
 ## 📦 Installation and Setup
@@ -151,18 +149,8 @@ make go-run a=core
 cp config.example.yaml config.yaml
 
 # Make it script deployment executeable
+chmod +x ./deploy.sh
 chmod +x ./deploy.*.sh
-
-# IMPORTANT:
-#   1. Run your docker apps before run this deploy scripts
-#   2. Run the deploy setup first
-#   3. Run the deploy script
-
-# For setup core app
-./deploy.core.sh setup
-
-# For setup asynq app
-./deploy.asynq.sh setup
 
 # Note For (AUTOMATICALLY) Set Version:
 # Please refer on this docs: https://semver.org/
@@ -171,30 +159,24 @@ chmod +x ./deploy.*.sh
 #   - [patch]: increment by 1 patch version (patch do not reset existing major and minor version). [ex. before -> v0.1.24 -> after -> v0.1.25]
 
 # For deploy core app
-./deploy.core.sh major
-./deploy.core.sh minor
-./deploy.core.sh patch
+make deploy-core v=major
+make deploy-core v=minor
+make deploy-core v=patch
 
 # For deploy asynq app
-./deploy.asynq.sh major
-./deploy.asynq.sh minor
-./deploy.asynq.sh patch
+make deploy-asynq v=major
+make deploy-asynq v=minor
+make deploy-asynq v=patch
 
 # Note For (MANUAL) Set Version:
-# Version must follow the sematic versioning format 'vX.Y.Z' (e.g., v1.0.0).
+# Version must follow the sematic versioning format 'X.Y.Z' (e.g., 1.0.0).
 # Please refer on this docs: https://semver.org/
 
-# For deploy core app, ex: v0.0.1
-./deploy.core.sh <version>
+# For force re-build docker image to deploy core app, ex: 0.0.1
+make deploy-core-rebuild <version>
 
-# For deploy asynq app, ex: v0.0.1
-./deploy.asynq.sh <version>
-
-# For force re-build docker image to deploy core app, ex: v0.0.1
-./deploy.core.sh <version> rebuild
-
-# For force re-build docker image to deploy asynq app, ex: v0.0.1
-./deploy.asynq.sh <version> rebuild
+# For force re-build docker image to deploy asynq app, ex: 0.0.1
+make deploy-asynq-rebuild <version>
 ```
 
 ## ⚙️ Makefile Commands

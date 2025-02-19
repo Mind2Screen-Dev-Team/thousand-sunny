@@ -130,10 +130,17 @@ validate_version() {
     fi
 }
 
+# Function for convert text into title case.
+to_title_case() {
+  echo "$1" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2)); print}'
+}
+
 # Function to update SERVICE_CORE_VERSION in .env file based on OS
 update_service_version_in_env() {
   local SERVICE_VERSION="$1"
   local ENV_FILE="$2"
+  local APP_NAME="$3"
+  APP_NAME="$(echo "$APP_NAME" | tr '[:lower:]' '[:upper:]')"  # Convert to uppercase
 
   # Detect the operating system type
   local OS=$(uname)
@@ -141,18 +148,18 @@ update_service_version_in_env() {
   # Replace SERVICE_CORE_VERSION value in .env file based on OS
   if [[ "$OS" == "Darwin" ]]; then
       # macOS (BSD sed requires -i with empty string)
-      sed -i '' "s/^SERVICE_CORE_VERSION=\"[^\"']*\"/SERVICE_CORE_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update Core Service Version in .env file."; exit 1; }
-      echo "Core Service Version updated to $SERVICE_VERSION in .env file (macOS)."
+      sed -i '' "s/^SERVICE_${APP_NAME}_VERSION=\"[^\"']*\"/SERVICE_${APP_NAME}_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update $(to_title_case "$APP_NAME") Service Version in .env file."; exit 1; }
+      echo "$(to_title_case "$APP_NAME") Service Version updated to $SERVICE_VERSION in .env file (macOS)."
 
   elif [[ "$OS" == "Linux" ]]; then
       # Linux (GNU sed allows -i without empty string)
-      sed -i "s/^SERVICE_CORE_VERSION=\"[^\"']*\"/SERVICE_CORE_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update Core Service Version in .env file."; exit 1; }
-      echo "Core Service Version updated to $SERVICE_VERSION in .env file (Linux)."
+      sed -i "s/^SERVICE_${APP_NAME}_VERSION=\"[^\"']*\"/SERVICE_${APP_NAME}_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update $(to_title_case "$APP_NAME") Service Version in .env file."; exit 1; }
+      echo "$(to_title_case "$APP_NAME") Service Version updated to $SERVICE_VERSION in .env file (Linux)."
 
   elif [[ "$OS" == *"MINGW"* || "$OS" == *"MSYS"* ]]; then
       # Windows (Git Bash or MSYS environments)
-      sed -i "s/^SERVICE_CORE_VERSION=\"[^\"']*\"/SERVICE_CORE_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update Core Service Version in .env file."; exit 1; }
-      echo "Core Service Version updated to $SERVICE_VERSION in .env file (Windows)."
+      sed -i "s/^SERVICE_${APP_NAME}_VERSION=\"[^\"']*\"/SERVICE_${APP_NAME}_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update $(to_title_case "$APP_NAME") Service Version in .env file."; exit 1; }
+      echo "$(to_title_case "$APP_NAME") Service Version updated to $SERVICE_VERSION in .env file (Windows)."
 
   else
       echo "Unsupported OS: $OS"
