@@ -89,10 +89,6 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
     ├── template    # Template files.
     │   └── ...     # Add other template here.
     └── logs        # Application log files.
-        ├── <server.name> # Based `config.yaml` on server section.
-        │   ├── debug     # Debug-level logs.
-        │   ├── io        # Input/output (incoming logs) operation logs.
-        │   └── trx       # Transaction logs for auditing or debugging.
         └── <server.name> # Based `config.yaml` on server section.
             ├── debug     # Debug-level logs.
             ├── io        # Input/output (incoming logs) operation logs.
