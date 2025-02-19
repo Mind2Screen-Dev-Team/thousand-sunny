@@ -48,6 +48,7 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │   │   │   └── private # Middleware for restricted/private routes.
 │   │   │       └── ... # Other Private Middleware.
 │   │   └── router      # Base HTTP routing configuration (No need to add Something here).
+│   ├── schema       # Defind Schema Database Object Table and column.
 │   ├── provider     # External Provider Data access layer.
 │   │   ├── api      # External Provider interfaces for APIs.
 │   │   │   └── ...  # Other API External Provider.
@@ -71,29 +72,31 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │           └── ...  # Other Implementaion Service.
 ├── pkg             # Utility and reusable packages.
 │   ├── xasynq       # Asynq sever helpers and utilities.
-│   ├── xmail        # Email helpers and utilities.
 │   ├── xauth        # Authentication helpers and utilities.
 │   ├── xecho        # Extensions for the Echo web framework.
 │   ├── xfilter      # Utilities for filtering data in requests.
 │   ├── xhttp        # General HTTP helpers and utilities.
 │   ├── xlog         # Logging utilities.
+│   ├── xmail        # Email helpers and utilities.
 │   ├── xpanic       # Panic recovery utilities for error handling.
 │   ├── xresp        # Response utilities for standardizing HTTP responses.
-│   └── xrsa         # RSA encryption and decryption utilities.
+│   ├── xrsa         # RSA encryption and decryption utilities.
+│   ├── xtracer      # Open-Telemtry Pkg Helper.
+│   └── xvalidate    # Validation Pkg for helper mapping / defind error.
 └── storage         # Storage for static files and logs.
     ├── assets      # Static assets like images or documents.
     │   └── ...     # Add other assets here.
     ├── template    # Template files.
     │   └── ...     # Add other template here.
     └── logs        # Application log files.
-        ├── asynq
-        │   ├── debug   # Debug-level logs.
-        │   ├── io      # Input/output (incoming logs) operation logs.
-        │   └── trx     # Transaction logs for auditing or debugging.
-        └── core
-            ├── debug   # Debug-level logs.
-            ├── io      # Input/output (incoming logs) operation logs.
-            └── trx     # Transaction logs for auditing or debugging.
+        ├── <server.name> # Based `config.yaml` on server section.
+        │   ├── debug     # Debug-level logs.
+        │   ├── io        # Input/output (incoming logs) operation logs.
+        │   └── trx       # Transaction logs for auditing or debugging.
+        └── <server.name> # Based `config.yaml` on server section.
+            ├── debug     # Debug-level logs.
+            ├── io        # Input/output (incoming logs) operation logs.
+            └── trx       # Transaction logs for auditing or debugging.
 ```
 
 ## 📋 Features
@@ -173,10 +176,10 @@ make deploy-asynq v=patch
 # Please refer on this docs: https://semver.org/
 
 # For force re-build docker image to deploy core app, ex: 0.0.1
-make deploy-core-rebuild <version>
+make deploy-core-rebuild v=<version>
 
 # For force re-build docker image to deploy asynq app, ex: 0.0.1
-make deploy-asynq-rebuild <version>
+make deploy-asynq-rebuild v=<version>
 ```
 
 ## ⚙️ Makefile Commands
