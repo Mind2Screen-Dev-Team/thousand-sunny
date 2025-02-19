@@ -135,7 +135,7 @@ to_title_case() {
   echo "$1" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2)); print}'
 }
 
-# Function to update SERVICE_CORE_VERSION in .env file based on OS
+# Function to update SERVICE_[APP_NAME]_VERSION in .env file based on OS
 update_service_version_in_env() {
   local SERVICE_VERSION="$1"
   local ENV_FILE="$2"
@@ -145,7 +145,7 @@ update_service_version_in_env() {
   # Detect the operating system type
   local OS=$(uname)
 
-  # Replace SERVICE_CORE_VERSION value in .env file based on OS
+  # Replace SERVICE_[APP_NAME]_VERSION value in .env file based on OS
   if [[ "$OS" == "Darwin" ]]; then
       # macOS (BSD sed requires -i with empty string)
       sed -i '' "s/^SERVICE_${APP_NAME}_VERSION=\"[^\"']*\"/SERVICE_${APP_NAME}_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update $(to_title_case "$APP_NAME") Service Version in .env file."; exit 1; }
