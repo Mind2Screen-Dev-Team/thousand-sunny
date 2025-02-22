@@ -3,17 +3,21 @@ package dependency
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/fx"
 
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/gen/repo"
 	http_middleware "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware"
 	http_router "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/router"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 )
 
 type InvokeHttpServerParam struct {
 	fx.In
 
 	Echo       *echo.Echo
+	Query      *repo.Queries
 	Middleware []http_middleware.Middleware `group:"global:http:middleware"`
 	Router     []http_router.HttpRouter     `group:"global:http:router"`
 }
@@ -49,6 +53,20 @@ func InvokeHttpServer(p InvokeHttpServerParam) {
 			return err
 		}
 		return c.String(http.StatusOK, ".")
+	})
+
+	p.Echo.GET("/test/db", func(c echo.Context) error {
+		var (
+			ctx = c.Request().Context()
+		)
+
+		ctx = xlog.QueryName(ctx, "query.items.by.id")
+		item, err := p.Query.FindByID(ctx, uuid.MustParse("01952e0e-2283-7f7c-af3c-f4cf328aa3d6"))
+		if err != nil {
+			return c.String(http.StatusOK, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, item)
 	})
 
 	p.Echo.GET("/", func(c echo.Context) error {

@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/fx"
+
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 )
 
-func ProvidePostgres(c config.Cfg, s config.Server, lc fx.Lifecycle) (*pgxpool.Pool, error) {
+func ProvidePostgres(c config.Cfg, s config.Server, debug *xlog.DebugLogger, lc fx.Lifecycle) (*pgxpool.Pool, error) {
 	var (
 		cfg = c.DB["postgres"]
 		ctx = context.Background()
@@ -46,6 +48,7 @@ func ProvidePostgres(c config.Cfg, s config.Server, lc fx.Lifecycle) (*pgxpool.P
 	poolCfg.MaxConns = int32(cfg.Options.MaxOpenConnection)
 	poolCfg.MinConns = int32(cfg.Options.MaxIdleConnection)
 	poolCfg.MaxConnLifetime = time.Duration(cfg.Options.MaxConnectionLifetime) * time.Second
+	poolCfg.ConnConfig.Tracer = &xlog.PgxLogger{Log: debug.Logger}
 
 	db, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
