@@ -64,8 +64,8 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			l.DebugLog.Logger.Debug().
 				Err(e.Err).
 				Str("type", e.TypeName).
-				Strs("stacktrace", e.StackTrace).
-				Strs("moduletrace", e.ModuleTrace).
+				Strs("stack.trace", e.StackTrace).
+				Strs("module.trace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
 				Msg("Debug encountered while applying options")
 			return
@@ -73,16 +73,16 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 
 		l.DebugLog.Logger.Debug().
 			Str("type", e.TypeName).
-			Strs("stacktrace", e.StackTrace).
-			Strs("moduletrace", e.ModuleTrace).
+			Strs("stack.trace", e.StackTrace).
+			Strs("module.trace", e.ModuleTrace).
 			Func(moduleField(e.ModuleName)).
 			Msg("supplied")
 	case *fxevent.Provided:
 		for _, rtype := range e.OutputTypeNames {
 			l.DebugLog.Logger.Debug().
 				Str("constructor", e.ConstructorName).
-				Strs("stacktrace", e.StackTrace).
-				Strs("moduletrace", e.ModuleTrace).
+				Strs("stack.trace", e.StackTrace).
+				Strs("module.trace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
 				Str("type", rtype).
 				Func(maybeBool("private", e.Private)).
@@ -92,16 +92,16 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		if e.Err != nil {
 			l.DebugLog.Logger.Debug().
 				Err(e.Err).
-				Strs("stacktrace", e.StackTrace).
-				Strs("moduletrace", e.ModuleTrace).
+				Strs("stack.trace", e.StackTrace).
+				Strs("module.trace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
 				Msg("Debug encountered while applying options")
 		}
 	case *fxevent.Replaced:
 		for _, rtype := range e.OutputTypeNames {
 			l.DebugLog.Logger.Debug().
-				Strs("stacktrace", e.StackTrace).
-				Strs("moduletrace", e.ModuleTrace).
+				Strs("stack.trace", e.StackTrace).
+				Strs("module.trace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
 				Str("type", rtype).
 				Msg("replaced")
@@ -110,8 +110,8 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		if e.Err != nil {
 			l.DebugLog.Logger.Debug().
 				Err(e.Err).
-				Strs("stacktrace", e.StackTrace).
-				Strs("moduletrace", e.ModuleTrace).
+				Strs("stack.trace", e.StackTrace).
+				Strs("module.trace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
 				Msg("Debug encountered while replacing")
 		}
@@ -119,8 +119,8 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		for _, rtype := range e.OutputTypeNames {
 			l.DebugLog.Logger.Debug().
 				Str("decorator", e.DecoratorName).
-				Strs("stacktrace", e.StackTrace).
-				Strs("moduletrace", e.ModuleTrace).
+				Strs("stack.trace", e.StackTrace).
+				Strs("module.trace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
 				Str("type", rtype).
 				Msg("decorated")
@@ -129,8 +129,8 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		if e.Err != nil {
 			l.DebugLog.Logger.Debug().
 				Err(e.Err).
-				Strs("stacktrace", e.StackTrace).
-				Strs("moduletrace", e.ModuleTrace).
+				Strs("stack.trace", e.StackTrace).
+				Strs("module.trace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
 				Msg("Debug encountered while applying options")
 		}

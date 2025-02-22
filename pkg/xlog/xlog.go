@@ -2,7 +2,6 @@ package xlog
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
@@ -34,7 +33,7 @@ func FromEcho(c echo.Context) Logger {
 	}
 
 	return NewLogger(
-		v.With().Any("trace_id", c.Get(XLOG_TRACE_ID_KEY)).Logger(),
+		v.With().Any("req.trace.id", c.Get(XLOG_TRACE_ID_KEY)).Logger(),
 	)
 }
 
@@ -165,60 +164,61 @@ func NewLogger(log zerolog.Logger) Logger {
 }
 
 // attachFields directly to the zerolog.Event object without creating a new map
-func (zl *ZeroLogger) attachFields(event *zerolog.Event, fields []any) *zerolog.Event {
+func (zl *ZeroLogger) attachFields(e *zerolog.Event, fields []any) *zerolog.Event {
 	for i := 0; i < len(fields); i += 2 {
-		if i+1 < len(fields) {
-			key, ok := fields[i].(string)
-			if ok {
-				if slices.Contains([]string{"err", "error"}, key) {
-					event = event.Interface(key, fmt.Sprintf("%+v", fields[i+1]))
-					continue
-				}
-				event = event.Interface(key, fields[i+1])
-			}
+		if isHasKV := i+1 < len(fields); !isHasKV {
+			continue
 		}
+
+		key, ok := fields[i].(string)
+		if !ok {
+			continue
+		}
+
+		e = AnyFieldToZeroLogEvent(e, key, fields[i+1])
 	}
-	return event
+
+	return e
 }
 
 func (zl *ZeroLogger) Trace(msg string, fields ...any) {
-	event := zl.log.Trace()
-	event = zl.attachFields(event, fields)
-	event.Msg(msg)
+	e := zl.log.Trace()
+	e = zl.attachFields(e, fields)
+	e.Msg(msg)
 }
 
 func (zl *ZeroLogger) Debug(msg string, fields ...any) {
-	event := zl.log.Debug()
-	event = zl.attachFields(event, fields)
-	event.Msg(msg)
+	e := zl.log.Debug()
+	e = zl.attachFields(e, fields)
+	e.Msg(msg)
 }
 
 func (zl *ZeroLogger) Info(msg string, fields ...any) {
-	event := zl.log.Info()
-	event = zl.attachFields(event, fields)
-	event.Msg(msg)
+	e := zl.log.Info()
+	e = zl.attachFields(e, fields)
+	e.Msg(msg)
 }
 
 func (zl *ZeroLogger) Warn(msg string, fields ...any) {
-	event := zl.log.Warn()
-	event = zl.attachFields(event, fields)
-	event.Msg(msg)
+	e := zl.log.Warn()
+	e = zl.attachFields(e, fields)
+	e.Msg(msg)
 }
 
 func (zl *ZeroLogger) Error(msg string, fields ...any) {
-	event := zl.log.Error()
-	event = zl.attachFields(event, fields)
-	event.Msg(msg)
+	e := zl.log.Error()
+	e = zl.attachFields(e, fields)
+	e.Msg(msg)
 }
 
 func (zl *ZeroLogger) Fatal(msg string, fields ...any) {
-	event := zl.log.Fatal()
-	event = zl.attachFields(event, fields)
-	event.Msg(msg)
+	e := zl.log.Fatal()
+	e = zl.attachFields(e, fields)
+	e.Msg(msg)
 }
 
 func (zl *ZeroLogger) Panic(msg string, fields ...any) {
-	event := zl.log.Panic()
-	event = zl.attachFields(event, fields)
-	event.Msg(msg)
+	e := zl.log.Panic()
+	e = zl.attachFields(e, fields)
+	e.Msg(msg)
 }

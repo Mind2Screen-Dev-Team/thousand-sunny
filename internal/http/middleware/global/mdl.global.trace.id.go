@@ -16,7 +16,7 @@ func ProvideTraceID() TraceID {
 type TraceID struct{}
 
 func (TraceID) Name() string {
-	return "trace.id"
+	return "req.trace.id"
 }
 
 func (TraceID) Serve(next echo.HandlerFunc) echo.HandlerFunc {

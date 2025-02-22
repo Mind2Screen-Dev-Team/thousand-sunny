@@ -21,7 +21,7 @@ type ResponseSTD[D any, E any] struct {
 	Msg     string `json:"msg"`
 	Data    D      `json:"data"`
 	Err     E      `json:"err"`
-	TraceID any    `json:"traceId,omitempty"`
+	TraceID any    `json:"reqTraceId,omitempty"`
 }
 
 func (r *ResponseSTD[D, E]) SetMsg(msg string) *ResponseSTD[D, E] {

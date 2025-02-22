@@ -9,6 +9,7 @@ import (
 
 var (
 	ProvideHttpModules = fx.Options(
+		UserDependencyModule,
 		HealthHttpModule,
 		UserHttpModule,
 	)

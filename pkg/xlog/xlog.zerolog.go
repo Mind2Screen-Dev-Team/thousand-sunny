@@ -110,7 +110,7 @@ func NewZeroLog(opts ...LogOptionFn) zerolog.Logger {
 
 	ctx := zerolog.New(zerolog.MultiLevelWriter(mw...)).With()
 	if len(opt.LogFields) > 0 {
-		ctx = ctx.Fields(opt.LogFields)
+		ctx = AnyFieldsToContext(ctx, opt.LogFields)
 	}
 
 	// Set Default into time format with nano

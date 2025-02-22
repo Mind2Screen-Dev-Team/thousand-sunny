@@ -164,34 +164,34 @@ func (in IncomingLog) _IncomingLogging(
 	var (
 		fields = []any{
 			// request
-			"reqTraceId", c.Get(xlog.XLOG_TRACE_ID_KEY),
-			"reqTime", reqtime,
-			"reqRemoteAddress", r.RemoteAddr,
-			"reqPath", r.URL.Path,
-			"reqHeader", r.Header,
-			"reqProto", r.Proto,
-			"reqMethod", r.Method,
-			"reqUserAgent", r.UserAgent(),
-			"reqBodyRaw", reqRawBytes,
-			"reqBodyParsed", parsedBody,
-			"reqBytesIn", contentSize,
+			"req.trace.id", c.Get(xlog.XLOG_TRACE_ID_KEY),
+			"req.time", reqtime,
+			"req.remote.address", r.RemoteAddr,
+			"req.path", r.URL.Path,
+			"req.header", r.Header,
+			"req.proto", r.Proto,
+			"req.method", r.Method,
+			"req.user.agent", r.UserAgent(),
+			"req.body.raw", reqRawBytes,
+			"req.body.parsed", parsedBody,
+			"req.bytes.in", contentSize,
 
 			// response
-			"resHeader", ww.Header(),
-			"resStatus", http.StatusText(ww.Status()),
-			"resStatusCode", ww.Status(),
-			"resBody", rw.String(),
-			"resBytesOut", ww.BytesWritten(),
+			"res.header", ww.Header(),
+			"res.status", http.StatusText(ww.Status()),
+			"res.status.code", ww.Status(),
+			"res.body", rw.String(),
+			"res.bytes.out", ww.BytesWritten(),
 		}
 	)
 
 	if resFilename != "" {
-		fields = append(fields, "resFileName", resFilename)
+		fields = append(fields, "res.filename", resFilename)
 	}
 
 	if panicked {
-		fields = append(fields, "panicRecoverErr", recorverErr)
-		fields = append(fields, "panicStack", stacks)
+		fields = append(fields, "panic.recover.err", recorverErr)
+		fields = append(fields, "panic.stack", stacks)
 	}
 
 	in.iolog.Info("incoming request", fields...)
