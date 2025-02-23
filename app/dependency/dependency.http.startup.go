@@ -60,8 +60,7 @@ func InvokeHttpServer(p InvokeHttpServerParam) {
 			ctx = c.Request().Context()
 		)
 
-		ctx = xlog.QueryName(ctx, "query.items.by.id")
-		item, err := p.Query.FindByID(ctx, uuid.MustParse("01952e0e-2283-7f7c-af3c-f4cf328aa3d6"))
+		item, err := p.Query.FindByID(xlog.QueryName(ctx, "query.items.by.id"), uuid.MustParse("01952e0e-2283-7f7c-af3c-f4cf328aa3d6"))
 		if err != nil {
 			return c.String(http.StatusOK, err.Error())
 		}
