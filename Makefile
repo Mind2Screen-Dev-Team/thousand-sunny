@@ -42,16 +42,17 @@ deploy-help:
 	@echo "Usage: make deploy-[commands]"
 	@echo ""
 	@echo "Commands:"
-	@echo "  deploy-[asynq|core] v=[major|minor|patch|latest]  Make deploy app with automatic increment sematic version"
-	@echo "  deploy-[asynq|core]-rebuild v=0.0.1               Make deploy app with force rebuild docker image with specific tag version"
+	@echo "  deploy-[asynq|core] v=[major|minor|patch]  Make deploy app with automatic increment sematic version"
+	@echo "  deploy-[asynq|core]-rebuild v=0.0.1        Make deploy app with force rebuild docker image with specific tag version"
+	@echo "  deploy-[asynq|core]-down                   Make deployed app shutdown from docker"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make deploy-[asynq|core] v=major"
 	@echo "  make deploy-[asynq|core] v=minor"
 	@echo "  make deploy-[asynq|core] v=patch"
-	@echo "  make deploy-[asynq|core] v=latest"
 	@echo "  make deploy-[asynq|core]-rebuild v=0.0.1"
 	@echo "  make deploy-[asynq|core]-rebuild v=0.1.1"
+	@echo "  make deploy-[asynq|core]-down"
 
 # Command Deployment
 deploy-asynq:
@@ -66,6 +67,9 @@ deploy-asynq-rebuild:
 	@echo "$(v)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: Version must follow the semantic versioning format 'vX.Y.Z' (e.g., v1.0.0). Please refer to: https://semver.org/"; exit 1; }
 	@./deploy.sh asynq v$(v) rebuild
 
+deploy-asynq-down:
+	@docker compose -p asynq-$(APP_ENV)-app-stack down
+
 deploy-core:
 	@[ -n "$(v)" ] || { echo "Error: v is not set."; exit 1; }
 	@echo "Validating version: $(v)"
@@ -77,6 +81,9 @@ deploy-core-rebuild:
 	@echo "Validating version: $(v)"
 	@echo "$(v)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: Version must follow the semantic versioning format 'vX.Y.Z' (e.g., v1.0.0). Please refer to: https://semver.org/"; exit 1; }
 	@./deploy.sh core v$(v) rebuild
+
+deploy-core-down:
+	@docker compose -p core-$(APP_ENV)-app-stack down
 
 # Command Setup
 setup:
