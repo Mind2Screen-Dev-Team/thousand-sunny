@@ -2,6 +2,7 @@ package xlog
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -80,7 +81,8 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 		e = e.Any("query.args", queryData.Args)
 		e = e.Time("query.end.time", queryEndTime)
 		e = e.Time("query.start.time", queryStartTime)
-		e = e.Dur("query.duration", queryDurr)
+		e = e.Str("query.duration", FormatDuration(queryDurr))
+		e = e.Int64("query.duration.ns", queryDurr.Nanoseconds())
 		e.Msg("executing query is failed")
 		return
 	}
@@ -105,7 +107,8 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 	e = e.Int64("query.rows.affected", data.CommandTag.RowsAffected())
 	e = e.Time("query.end.time", queryEndTime)
 	e = e.Time("query.start.time", queryStartTime)
-	e = e.Dur("query.duration", queryDurr)
+	e = e.Str("query.duration", FormatDuration(queryDurr))
+	e = e.Int64("query.duration.ns", queryDurr.Nanoseconds())
 	e.Msg("executing query is success")
 }
 
@@ -122,5 +125,27 @@ func getQueryType(ct pgconn.CommandTag) string {
 		return "DELETE"
 	default:
 		return ""
+	}
+}
+
+// FormatDuration dynamically formats time.Duration into ns, µs, ms, s, m, h, or d
+func FormatDuration(d time.Duration) string {
+	const day = 24 * time.Hour
+
+	switch {
+	case d >= day:
+		return fmt.Sprintf("%.2f d", d.Hours()/24)
+	case d >= time.Hour:
+		return fmt.Sprintf("%.2f h", d.Hours())
+	case d >= time.Minute:
+		return fmt.Sprintf("%.2f m", d.Minutes())
+	case d >= time.Second:
+		return fmt.Sprintf("%.3f s", d.Seconds())
+	case d >= time.Millisecond:
+		return fmt.Sprintf("%.3f ms", float64(d)/float64(time.Millisecond))
+	case d >= time.Microsecond:
+		return fmt.Sprintf("%.3f µs", float64(d)/float64(time.Microsecond))
+	default:
+		return fmt.Sprintf("%d ns", d.Nanoseconds())
 	}
 }
