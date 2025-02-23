@@ -16,8 +16,7 @@ type (
 	querySQLDataKey   struct{}
 )
 
-// Define context keys to store start time
-func QueryName(ctx context.Context, name string) context.Context {
+func PgxQueryName(ctx context.Context, name string) context.Context {
 	return context.WithValue(ctx, queryNameKey{}, name)
 }
 
@@ -29,9 +28,9 @@ type PgxLogger struct {
 // TraceQueryStart logs the start of a query.
 func (t *PgxLogger) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
 	var (
-		queryStartTime = time.Now()
-		id, _          = ctx.Value(XLOG_TRACE_ID_CTX_KEY).(xid.ID)
-		e              = t.Log.Info()
+		n     = time.Now()
+		e     = t.Log.Info()
+		id, _ = ctx.Value(XLOG_TRACE_ID_CTX_KEY).(xid.ID)
 	)
 
 	if !id.IsZero() {
@@ -40,10 +39,10 @@ func (t *PgxLogger) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pg
 
 	e = e.Str("query.sql", data.SQL)
 	e = e.Any("query.args", data.Args)
-	e = e.Time("query.start.time", queryStartTime)
+	e = e.Time("query.start.time", n)
 	e.Msg("start executing query")
 
-	ctx = context.WithValue(ctx, queryStartTimeKey{}, queryStartTime)
+	ctx = context.WithValue(ctx, queryStartTimeKey{}, n)
 	ctx = context.WithValue(ctx, querySQLDataKey{}, data)
 	return ctx
 }
@@ -88,15 +87,19 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 
 	// Log execution success with rows affected
 	e := t.Log.Info()
+
 	if !id.IsZero() {
 		e = e.Str("req.trace.id", id.String())
 	}
+
 	if queryName != "" {
 		e = e.Str("query.name", queryName)
 	}
+
 	if queryType != "" {
 		e = e.Str("query.type", queryType)
 	}
+
 	e = e.Str("query.sql", queryData.SQL)
 	e = e.Any("query.args", queryData.Args)
 	e = e.Int64("query.rows.affected", data.CommandTag.RowsAffected())
