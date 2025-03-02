@@ -9,13 +9,15 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type LogArrayMarshaler interface {
-	MarshalZerologArray(*zerolog.Array)
-}
+type (
+	LogArrayMarshaler interface {
+		MarshalZerologArray(*zerolog.Array)
+	}
 
-type LogObjectMarshaler interface {
-	MarshalZerologObject(*zerolog.Event)
-}
+	LogObjectMarshaler interface {
+		MarshalZerologObject(*zerolog.Event)
+	}
+)
 
 // Generic function to handle pointer dereferencing
 func deref(v any) any {
@@ -43,10 +45,28 @@ func AnyFieldToZeroLogContext(c zerolog.Context, key string, value any) zerolog.
 		c = c.Strs(key, v)
 
 	// Numeric types
-	case int, int8, int16, int32, int64:
-		c = c.Int64(key, reflect.ValueOf(v).Int())
-	case uint, uint8, uint16, uint32, uint64:
-		c = c.Uint64(key, reflect.ValueOf(v).Uint())
+	case int:
+		c = c.Int(key, v)
+	case int8:
+		c = c.Int8(key, v)
+	case int16:
+		c = c.Int16(key, v)
+	case int32:
+		c = c.Int32(key, v)
+	case int64:
+		c = c.Int64(key, v)
+
+	case uint:
+		c = c.Uint(key, v)
+	case uint8:
+		c = c.Uint8(key, v)
+	case uint16:
+		c = c.Uint16(key, v)
+	case uint32:
+		c = c.Uint32(key, v)
+	case uint64:
+		c = c.Uint64(key, v)
+
 	case float32:
 		c = c.Float32(key, v)
 	case float64:
@@ -118,10 +138,28 @@ func AnyFieldToZeroLogEvent(c *zerolog.Event, key string, value any) *zerolog.Ev
 		c = c.Strs(key, v)
 
 	// Numeric types
-	case int, int8, int16, int32, int64:
-		c = c.Int64(key, reflect.ValueOf(v).Int())
-	case uint, uint8, uint16, uint32, uint64:
-		c = c.Uint64(key, reflect.ValueOf(v).Uint())
+	case int:
+		c = c.Int(key, v)
+	case int8:
+		c = c.Int8(key, v)
+	case int16:
+		c = c.Int16(key, v)
+	case int32:
+		c = c.Int32(key, v)
+	case int64:
+		c = c.Int64(key, v)
+
+	case uint:
+		c = c.Uint(key, v)
+	case uint8:
+		c = c.Uint8(key, v)
+	case uint16:
+		c = c.Uint16(key, v)
+	case uint32:
+		c = c.Uint32(key, v)
+	case uint64:
+		c = c.Uint64(key, v)
+
 	case float32:
 		c = c.Float32(key, v)
 	case float64:

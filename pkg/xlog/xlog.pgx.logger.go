@@ -31,16 +31,16 @@ func (t *PgxLogger) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pg
 	var (
 		n     = time.Now()
 		e     = t.Log.Info()
-		id, _ = ctx.Value(XLOG_TRACE_ID_CTX_KEY).(xid.ID)
+		id, _ = ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID)
 	)
 
 	if !id.IsZero() {
-		e = e.Str("req.trace.id", id.String())
+		e = e.Str("req_trace_id", id.String())
 	}
 
-	e = e.Str("query.sql", data.SQL)
-	e = e.Any("query.args", data.Args)
-	e = e.Time("query.start.time", n)
+	e = e.Str("query_sql", data.SQL)
+	e = e.Any("query_args", data.Args)
+	e = e.Time("query_start_time", n)
 	e.Msg("start executing query")
 
 	ctx = context.WithValue(ctx, queryStartTimeKey{}, n)
@@ -55,7 +55,7 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 		queryStartTime, _ = ctx.Value(queryStartTimeKey{}).(time.Time) // Retrieve the start time from context
 		queryDurr         = queryEndTime.Sub(queryStartTime)
 
-		id, _        = ctx.Value(XLOG_TRACE_ID_CTX_KEY).(xid.ID)
+		id, _        = ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID)
 		queryName, _ = ctx.Value(queryNameKey{}).(string)
 		queryData, _ = ctx.Value(querySQLDataKey{}).(pgx.TraceQueryStartData) // Retrieve the trace query start data from context
 		queryType    = getQueryType(data.CommandTag)                          // Determine query typex
@@ -65,24 +65,24 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 		e := t.Log.Error()
 
 		if !id.IsZero() {
-			e = e.Str("req.trace.id", id.String())
+			e = e.Str("req_trace_id", id.String())
 		}
 
 		if queryName != "" {
-			e = e.Str("query.name", queryName)
+			e = e.Str("query_name", queryName)
 		}
 
 		if queryType != "" {
-			e = e.Str("query.type", queryType)
+			e = e.Str("query_type", queryType)
 		}
 
 		e = e.Err(data.Err)
-		e = e.Str("query.sql", queryData.SQL)
-		e = e.Any("query.args", queryData.Args)
-		e = e.Time("query.end.time", queryEndTime)
-		e = e.Time("query.start.time", queryStartTime)
-		e = e.Str("query.duration", FormatDuration(queryDurr))
-		e = e.Int64("query.duration.ns", queryDurr.Nanoseconds())
+		e = e.Str("query_sql", queryData.SQL)
+		e = e.Any("query_args", queryData.Args)
+		e = e.Time("query_end_time", queryEndTime)
+		e = e.Time("query_start_time", queryStartTime)
+		e = e.Str("query_duration", FormatDuration(queryDurr))
+		e = e.Int64("query_duration_ns", queryDurr.Nanoseconds())
 		e.Msg("executing query is failed")
 		return
 	}
@@ -91,24 +91,24 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 	e := t.Log.Info()
 
 	if !id.IsZero() {
-		e = e.Str("req.trace.id", id.String())
+		e = e.Str("req_trace_id", id.String())
 	}
 
 	if queryName != "" {
-		e = e.Str("query.name", queryName)
+		e = e.Str("query_name", queryName)
 	}
 
 	if queryType != "" {
-		e = e.Str("query.type", queryType)
+		e = e.Str("query_type", queryType)
 	}
 
-	e = e.Str("query.sql", queryData.SQL)
-	e = e.Any("query.args", queryData.Args)
-	e = e.Int64("query.rows.affected", data.CommandTag.RowsAffected())
-	e = e.Time("query.end.time", queryEndTime)
-	e = e.Time("query.start.time", queryStartTime)
-	e = e.Str("query.duration", FormatDuration(queryDurr))
-	e = e.Int64("query.duration.ns", queryDurr.Nanoseconds())
+	e = e.Str("query_sql", queryData.SQL)
+	e = e.Any("query_args", queryData.Args)
+	e = e.Int64("query_rows_affected", data.CommandTag.RowsAffected())
+	e = e.Time("query_end_time", queryEndTime)
+	e = e.Time("query_start_time", queryStartTime)
+	e = e.Str("query_duration", FormatDuration(queryDurr))
+	e = e.Int64("query_duration_ns", queryDurr.Nanoseconds())
 	e.Msg("executing query is success")
 }
 

@@ -1,10 +1,13 @@
 package xlog
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/xid"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type CtxKey string
@@ -14,12 +17,12 @@ func (s CtxKey) String() string {
 }
 
 const (
-	XLOG_TRACE_ID_CTX_KEY CtxKey = "XLOG_TRACE_ID_CTX_KEY"
+	XLOG_REQ_TRACE_ID_CTX_KEY CtxKey = "XLOG_REQ_TRACE_ID_CTX_KEY"
 )
 
 const (
-	XLOG_TRACE_ID_KEY = "XLOG_TRACE_ID_KEY"
-	XLOG_KEY          = "XLOG_KEY"
+	XLOG_TRACE_ID_KEY string = "XLOG_TRACE_ID_KEY"
+	XLOG_KEY          string = "XLOG_KEY"
 )
 
 var (
@@ -48,11 +51,11 @@ type Logger interface {
 				first  = "first value"
 				second = "second value"
 			)
-			xlog.FromEcho(c).Trace("hello", "first", first, "second", second)
-			xlog.FromEcho(c).Trace(xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
-			xlog.FromEcho(c).Trace("oh snap! got error", "error", err)
+			<Imported_Log>.Trace(ctx, "hello", "first", first, "second", second)
+			<Imported_Log>.Trace(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Trace(ctx, "oh snap! got error", "error", err)
 	*/
-	Trace(msg string, fields ...any)
+	Trace(ctx context.Context, msg string, fields ...any)
 
 	/*
 		Fields is a helper function to use a map or slice to set fields using type assertion.
@@ -64,11 +67,11 @@ type Logger interface {
 				first  = "first value"
 				second = "second value"
 			)
-			xlog.FromEcho(c).Debug("hello", "first", first, "second", second)
-			xlog.FromEcho(c).Debug(xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
-			xlog.FromEcho(c).Debug("oh snap! got error", "error", err)
+			<Imported_Log>.Debug(ctx, "hello", "first", first, "second", second)
+			<Imported_Log>.Debug(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Debug(ctx, "oh snap! got error", "error", err)
 	*/
-	Debug(msg string, fields ...any)
+	Debug(ctx context.Context, msg string, fields ...any)
 
 	/*
 		Fields is a helper function to use a map or slice to set fields using type assertion.
@@ -80,11 +83,11 @@ type Logger interface {
 				first  = "first value"
 				second = "second value"
 			)
-			xlog.FromEcho(c).Info("hello", "first", first, "second", second)
-			xlog.FromEcho(c).Info(xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
-			xlog.FromEcho(c).Info("oh snap! got error", "error", err)
+			<Imported_Log>.Info(ctx, "hello", "first", first, "second", second)
+			<Imported_Log>.Info(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Info(ctx, "oh snap! got error", "error", err)
 	*/
-	Info(msg string, fields ...any)
+	Info(ctx context.Context, msg string, fields ...any)
 
 	/*
 		Fields is a helper function to use a map or slice to set fields using type assertion.
@@ -96,11 +99,11 @@ type Logger interface {
 				first  = "first value"
 				second = "second value"
 			)
-			xlog.FromEcho(c).Warn("hello", "first", first, "second", second)
-			xlog.FromEcho(c).Warn(xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
-			xlog.FromEcho(c).Warn("oh snap! got error", "error", err)
+			<Imported_Log>.Warn(ctx, "hello", "first", first, "second", second)
+			<Imported_Log>.Warn(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Warn(ctx, "oh snap! got error", "error", err)
 	*/
-	Warn(msg string, fields ...any)
+	Warn(ctx context.Context, msg string, fields ...any)
 
 	/*
 		Fields is a helper function to use a map or slice to set fields using type assertion.
@@ -112,11 +115,11 @@ type Logger interface {
 				first  = "first value"
 				second = "second value"
 			)
-			xlog.FromEcho(c).Error("hello", "first", first, "second", second)
-			xlog.FromEcho(c).Error(xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
-			xlog.FromEcho(c).Error("oh snap! got error", "error", err)
+			<Imported_Log>.Error(ctx, "hello", "first", first, "second", second)
+			<Imported_Log>.Error(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Error(ctx, "oh snap! got error", "error", err)
 	*/
-	Error(msg string, fields ...any)
+	Error(ctx context.Context, msg string, fields ...any)
 
 	/*
 		Fields is a helper function to use a map or slice to set fields using type assertion.
@@ -128,11 +131,11 @@ type Logger interface {
 				first  = "first value"
 				second = "second value"
 			)
-			xlog.FromEcho(c).Fatal("hello", "first", first, "second", second)
-			xlog.FromEcho(c).Fatal(xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
-			xlog.FromEcho(c).Fatal("oh snap! got error", "error", err)
+			<Imported_Log>.Fatal(ctx, "hello", "first", first, "second", second)
+			<Imported_Log>.Fatal(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Fatal(ctx, "oh snap! got error", "error", err)
 	*/
-	Fatal(msg string, fields ...any)
+	Fatal(ctx context.Context, msg string, fields ...any)
 
 	/*
 		Fields is a helper function to use a map or slice to set fields using type assertion.
@@ -144,14 +147,14 @@ type Logger interface {
 				first  = "first value"
 				second = "second value"
 			)
-			xlog.FromEcho(c).Panic("hello", "first", first, "second", second)
-			xlog.FromEcho(c).Panic(xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
-			xlog.FromEcho(c).Panic("oh snap! got error", "error", err)
+			<Imported_Log>.Panic(ctx, "hello", "first", first, "second", second)
+			<Imported_Log>.Panic(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Panic(ctx, "oh snap! got error", "error", err)
 	*/
-	Panic(msg string, fields ...any)
+	Panic(ctx context.Context, msg string, fields ...any)
 }
 
-func Msgf(msg string, args ...any) string {
+func Msgf(ctx context.Context, msg string, args ...any) string {
 	return fmt.Sprintf(msg, args...)
 }
 
@@ -164,7 +167,22 @@ func NewLogger(log zerolog.Logger) Logger {
 }
 
 // attachFields directly to the zerolog.Event object without creating a new map
-func (zl *ZeroLogger) attachFields(e *zerolog.Event, fields []any) *zerolog.Event {
+func (zl *ZeroLogger) attachFields(ctx context.Context, e *zerolog.Event, fields []any) *zerolog.Event {
+	span := trace.SpanFromContext(ctx).SpanContext()
+	if span.IsValid() {
+		fields = append(fields,
+			"otel_span_id", span.SpanID().String(),
+			"otel_trace_id", span.TraceID().String(),
+			"otel_trace_flags", byte(span.TraceFlags()),
+			"otel_trace_state", span.TraceState().String(),
+			"otel_trace_remote", span.IsRemote(),
+		)
+	}
+
+	if v, ok := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID); ok {
+		fields = append(fields, "req_trace_id", v)
+	}
+
 	for i := 0; i < len(fields); i += 2 {
 		if isHasKV := i+1 < len(fields); !isHasKV {
 			continue
@@ -181,44 +199,51 @@ func (zl *ZeroLogger) attachFields(e *zerolog.Event, fields []any) *zerolog.Even
 	return e
 }
 
-func (zl *ZeroLogger) Trace(msg string, fields ...any) {
+func (zl *ZeroLogger) Trace(ctx context.Context, msg string, fields ...any) {
 	e := zl.log.Trace()
-	e = zl.attachFields(e, fields)
+	e = e.Ctx(ctx)
+	e = zl.attachFields(ctx, e, fields)
 	e.Msg(msg)
 }
 
-func (zl *ZeroLogger) Debug(msg string, fields ...any) {
+func (zl *ZeroLogger) Debug(ctx context.Context, msg string, fields ...any) {
 	e := zl.log.Debug()
-	e = zl.attachFields(e, fields)
+	e = e.Ctx(ctx)
+	e = zl.attachFields(ctx, e, fields)
 	e.Msg(msg)
 }
 
-func (zl *ZeroLogger) Info(msg string, fields ...any) {
+func (zl *ZeroLogger) Info(ctx context.Context, msg string, fields ...any) {
 	e := zl.log.Info()
-	e = zl.attachFields(e, fields)
+	e = e.Ctx(ctx)
+	e = zl.attachFields(ctx, e, fields)
 	e.Msg(msg)
 }
 
-func (zl *ZeroLogger) Warn(msg string, fields ...any) {
+func (zl *ZeroLogger) Warn(ctx context.Context, msg string, fields ...any) {
 	e := zl.log.Warn()
-	e = zl.attachFields(e, fields)
+	e = e.Ctx(ctx)
+	e = zl.attachFields(ctx, e, fields)
 	e.Msg(msg)
 }
 
-func (zl *ZeroLogger) Error(msg string, fields ...any) {
+func (zl *ZeroLogger) Error(ctx context.Context, msg string, fields ...any) {
 	e := zl.log.Error()
-	e = zl.attachFields(e, fields)
+	e = e.Ctx(ctx)
+	e = zl.attachFields(ctx, e, fields)
 	e.Msg(msg)
 }
 
-func (zl *ZeroLogger) Fatal(msg string, fields ...any) {
+func (zl *ZeroLogger) Fatal(ctx context.Context, msg string, fields ...any) {
 	e := zl.log.Fatal()
-	e = zl.attachFields(e, fields)
+	e = e.Ctx(ctx)
+	e = zl.attachFields(ctx, e, fields)
 	e.Msg(msg)
 }
 
-func (zl *ZeroLogger) Panic(msg string, fields ...any) {
+func (zl *ZeroLogger) Panic(ctx context.Context, msg string, fields ...any) {
 	e := zl.log.Panic()
-	e = zl.attachFields(e, fields)
+	e = e.Ctx(ctx)
+	e = zl.attachFields(ctx, e, fields)
 	e.Msg(msg)
 }

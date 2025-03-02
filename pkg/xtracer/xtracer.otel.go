@@ -33,10 +33,10 @@ var (
 )
 
 func Start(ctx context.Context, span string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
-	if reqTraceId, ok := ctx.Value(xlog.XLOG_TRACE_ID_CTX_KEY).(xid.ID); ok {
+	if reqTraceId, ok := ctx.Value(xlog.XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID); ok {
 		opts = append(opts,
 			trace.WithTimestamp(time.Now()),
-			trace.WithAttributes(attribute.String("req.trace.id", reqTraceId.String())),
+			trace.WithAttributes(attribute.String("req_trace_id", reqTraceId.String())),
 		)
 	}
 	return _trace.Start(ctx, span, opts...)
@@ -47,6 +47,7 @@ func Start(ctx context.Context, span string, opts ...trace.SpanStartOption) (con
 type Config struct {
 	Tracer bool
 	Metric bool
+	Logs   bool
 
 	ModuleName    string
 	ServerName    string

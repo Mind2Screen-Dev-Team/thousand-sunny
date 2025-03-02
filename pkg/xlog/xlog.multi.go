@@ -37,7 +37,7 @@ type MultiLogger struct {
 	entryRotation map[string]*lumberjack.Logger
 }
 
-func NewMultiLogging(level int, entries ...Entry) MultiLogger {
+func NewMultiLogging(entries ...Entry) MultiLogger {
 	l := MultiLogger{
 		entryLogger:   make(map[string]zerolog.Logger),
 		entryRotation: make(map[string]*lumberjack.Logger),
@@ -52,6 +52,11 @@ func NewMultiLogging(level int, entries ...Entry) MultiLogger {
 
 			var (
 				opts = []LogOptionFn{
+					// Log Otel
+					SetLogOtelDisabled(e.Options.LogOtelDisable),
+					SetLogOtelLevel(e.Options.LogOtelLevel),
+					SetLogOtelOutput(e.Options.LogOtelOut),
+
 					// Log Console
 					SetLogConsoleDisabled(e.Options.LogConsoleDisable),
 					SetLogConsoleLevel(e.Options.LogConsoleLevel),

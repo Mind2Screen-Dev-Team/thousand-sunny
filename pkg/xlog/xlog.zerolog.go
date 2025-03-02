@@ -13,6 +13,11 @@ type (
 		// Log Fields
 		LogFields map[string]any
 
+		// Otel
+		LogOtelDisable bool
+		LogOtelLevel   int
+		LogOtelOut     io.Writer
+
 		// Console
 		LogConsoleDisable bool
 		LogConsoleLevel   int
@@ -34,6 +39,24 @@ func SetField(key string, val any) LogOptionFn {
 		}
 
 		opt.LogFields[key] = val
+	}
+}
+
+func SetLogOtelDisabled(v bool) LogOptionFn {
+	return func(opt *LogOptions) {
+		opt.LogOtelDisable = v
+	}
+}
+
+func SetLogOtelLevel(lvl int) LogOptionFn {
+	return func(opt *LogOptions) {
+		opt.LogOtelLevel = lvl
+	}
+}
+
+func SetLogOtelOutput(out io.Writer) LogOptionFn {
+	return func(opt *LogOptions) {
+		opt.LogOtelOut = out
 	}
 }
 
@@ -87,6 +110,15 @@ func NewZeroLog(opts ...LogOptionFn) zerolog.Logger {
 
 	if opt.LogConsoleDisable && opt.LogFileDisable {
 		return zerolog.Nop()
+	}
+
+	if !opt.LogOtelDisable {
+		otelLog := zerolog.FilteredLevelWriter{
+			Writer: zerolog.LevelWriterAdapter{Writer: opt.LogOtelOut},
+			Level:  zerolog.Level(opt.LogOtelLevel),
+		}
+
+		mw = append(mw, &otelLog)
 	}
 
 	if !opt.LogConsoleDisable {
