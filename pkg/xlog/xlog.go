@@ -36,7 +36,7 @@ func FromEcho(c echo.Context) Logger {
 	}
 
 	return NewLogger(
-		v.With().Any("req.trace.id", c.Get(XLOG_TRACE_ID_KEY)).Logger(),
+		v.With().Any("req_trace_id", c.Get(XLOG_TRACE_ID_KEY)).Logger(),
 	)
 }
 
