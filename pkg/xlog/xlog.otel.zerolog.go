@@ -143,7 +143,6 @@ func (l *OtelLogger) Write(p []byte) (n int, err error) {
 		attrs, span, _err = mapToKeyValues(data)
 
 		_lvl      = strings.ToUpper(gjson.GetBytes(p, "level").String())
-		_msg      = gjson.GetBytes(p, "message").String()
 		_time     = gjson.GetBytes(p, "time").String()
 		_vtime, _ = time.Parse(time.RFC3339Nano, _time)
 	)
@@ -168,7 +167,7 @@ func (l *OtelLogger) Write(p []byte) (n int, err error) {
 	}
 
 	rec.SetSeverity(lvl)
-	rec.SetBody(log.StringValue(_msg))
+	rec.SetBody(log.BytesValue(p))
 	rec.SetSeverityText(lvl.String())
 	rec.SetTimestamp(_vtime)
 	rec.AddAttributes(attrs...)

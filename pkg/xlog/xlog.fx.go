@@ -20,13 +20,13 @@ type FxZeroLogger struct {
 func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 	switch e := event.(type) {
 	case *fxevent.OnStartExecuting:
-		l.DebugLog.Logger.Debug().
+		l.DebugLog.Logger.Trace().
 			Str("callee", e.FunctionName).
 			Str("caller", e.CallerName).
 			Msg("OnStart hook executing")
 	case *fxevent.OnStartExecuted:
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Err(e.Err).
 				Str("callee", e.FunctionName).
 				Str("caller", e.CallerName).
@@ -34,19 +34,19 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			return
 		}
 
-		l.DebugLog.Logger.Debug().
+		l.DebugLog.Logger.Trace().
 			Str("callee", e.FunctionName).
 			Str("caller", e.CallerName).
 			Str("runtime", e.Runtime.String()).
 			Msg("OnStart hook executed")
 	case *fxevent.OnStopExecuting:
-		l.DebugLog.Logger.Debug().
+		l.DebugLog.Logger.Trace().
 			Str("callee", e.FunctionName).
 			Str("caller", e.CallerName).
 			Msg("OnStop hook executing")
 	case *fxevent.OnStopExecuted:
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Err(e.Err).
 				Str("callee", e.FunctionName).
 				Str("caller", e.CallerName).
@@ -54,14 +54,14 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			return
 		}
 
-		l.DebugLog.Logger.Debug().
+		l.DebugLog.Logger.Trace().
 			Str("callee", e.FunctionName).
 			Str("caller", e.CallerName).
 			Str("runtime", e.Runtime.String()).
 			Msg("OnStart hook executed")
 	case *fxevent.Supplied:
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Err(e.Err).
 				Str("type", e.TypeName).
 				Strs("stack_trace", e.StackTrace).
@@ -71,7 +71,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			return
 		}
 
-		l.DebugLog.Logger.Debug().
+		l.DebugLog.Logger.Trace().
 			Str("type", e.TypeName).
 			Strs("stack_trace", e.StackTrace).
 			Strs("module_trace", e.ModuleTrace).
@@ -79,7 +79,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			Msg("supplied")
 	case *fxevent.Provided:
 		for _, rtype := range e.OutputTypeNames {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Str("constructor", e.ConstructorName).
 				Strs("stack_trace", e.StackTrace).
 				Strs("module_trace", e.ModuleTrace).
@@ -90,7 +90,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		}
 
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Err(e.Err).
 				Strs("stack_trace", e.StackTrace).
 				Strs("module_trace", e.ModuleTrace).
@@ -99,7 +99,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		}
 	case *fxevent.Replaced:
 		for _, rtype := range e.OutputTypeNames {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Strs("stack_trace", e.StackTrace).
 				Strs("module_trace", e.ModuleTrace).
 				Func(moduleField(e.ModuleName)).
@@ -108,7 +108,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		}
 
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Err(e.Err).
 				Strs("stack_trace", e.StackTrace).
 				Strs("module_trace", e.ModuleTrace).
@@ -117,7 +117,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		}
 	case *fxevent.Decorated:
 		for _, rtype := range e.OutputTypeNames {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Str("decorator", e.DecoratorName).
 				Strs("stack_trace", e.StackTrace).
 				Strs("module_trace", e.ModuleTrace).
@@ -127,7 +127,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		}
 
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Err(e.Err).
 				Strs("stack_trace", e.StackTrace).
 				Strs("module_trace", e.ModuleTrace).
@@ -136,7 +136,7 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 		}
 	case *fxevent.Run:
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Str("name", e.Name).
 				Str("kind", e.Kind).
 				Func(moduleField(e.ModuleName)).
@@ -144,20 +144,20 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			return
 		}
 
-		l.DebugLog.Logger.Debug().
+		l.DebugLog.Logger.Trace().
 			Str("name", e.Name).
 			Str("kind", e.Kind).
 			Func(moduleField(e.ModuleName)).
 			Msg("run")
 	case *fxevent.Invoking:
 		// do not log stack as it will make logs hard to read
-		l.DebugLog.Logger.Debug().
+		l.DebugLog.Logger.Trace().
 			Str("function", e.FunctionName).
 			Func(moduleField(e.ModuleName)).
 			Msg("invoking")
 	case *fxevent.Invoked:
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().
+			l.DebugLog.Logger.Trace().
 				Err(e.Err).
 				Str("function", e.FunctionName).
 				Str("stack", e.Trace).
@@ -170,28 +170,28 @@ func (l *FxZeroLogger) LogEvent(event fxevent.Event) {
 			Msg("received signal")
 	case *fxevent.Stopped:
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().Err(e.Err).Msg("stop failed")
+			l.DebugLog.Logger.Trace().Err(e.Err).Msg("stop failed")
 		}
 	case *fxevent.RollingBack:
-		l.DebugLog.Logger.Debug().Err(e.StartErr).Msg("start failed, rolling back")
+		l.DebugLog.Logger.Trace().Err(e.StartErr).Msg("start failed, rolling back")
 	case *fxevent.RolledBack:
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().Err(e.Err).Msg("rollback failed")
+			l.DebugLog.Logger.Trace().Err(e.Err).Msg("rollback failed")
 		}
 	case *fxevent.Started:
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().Err(e.Err).Msg("start failed")
+			l.DebugLog.Logger.Trace().Err(e.Err).Msg("start failed")
 			return
 		}
 
-		l.DebugLog.Logger.Debug().Msg("started")
+		l.DebugLog.Logger.Trace().Msg("started")
 	case *fxevent.LoggerInitialized:
 		if e.Err != nil {
-			l.DebugLog.Logger.Debug().Err(e.Err).Msg("custom logger initialization failed")
+			l.DebugLog.Logger.Trace().Err(e.Err).Msg("custom logger initialization failed")
 			return
 		}
 
-		l.DebugLog.Logger.Debug().Str("function", e.ConstructorName).Msg("initialized custom fxevent.Logger")
+		l.DebugLog.Logger.Trace().Str("function", e.ConstructorName).Msg("initialized custom fxevent.Logger")
 	}
 }
 
