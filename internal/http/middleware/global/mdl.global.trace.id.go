@@ -29,9 +29,7 @@ func (TraceID) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 
 		c.Set(xlog.XLOG_TRACE_ID_KEY, id)
 		c.SetRequest(
-			r.WithContext(
-				context.WithValue(ctx, xlog.XLOG_TRACE_ID_CTX_KEY, id),
-			),
+			r.WithContext(context.WithValue(ctx, xlog.XLOG_REQ_TRACE_ID_CTX_KEY, id)),
 		)
 
 		return next(c)

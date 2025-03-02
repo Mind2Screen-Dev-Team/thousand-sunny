@@ -2,21 +2,28 @@ package dependency
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
-
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
+
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
 )
 
 func ProvideOtelConfig(c config.Cfg, s config.Server) xtracer.Config {
 	return xtracer.Config{
 		Tracer: c.Otel.Tracer,
 		Metric: c.Otel.Metric,
+		Logs:   c.Otel.Logs,
 
 		ModuleName:    fmt.Sprintf("%s/%s", c.App.Project, s.Name),
 		ServerName:    fmt.Sprintf("%s/%s", c.App.Project, s.Name),
@@ -52,8 +59,8 @@ type OtelParamFx struct {
 	Resource   *resource.Resource
 }
 
-func ProvideOtelTracer(ctx context.Context, p OtelParamFx) (trace.Tracer, error) {
-	tracer, shutdownFn, err := xtracer.NewOtelTracer(ctx, p.Cfg, p.Resource, p.GrpcClient.ClientConn)
+func ProvideOtelTracer(p OtelParamFx) (trace.Tracer, error) {
+	tracer, shutdownFn, err := xtracer.NewOtelTracer(context.Background(), p.Cfg, p.Resource, p.GrpcClient.ClientConn)
 	if err != nil {
 		return nil, err
 	}
@@ -63,9 +70,9 @@ func ProvideOtelTracer(ctx context.Context, p OtelParamFx) (trace.Tracer, error)
 	return tracer, nil
 }
 
-func ProvideOtelMetric(ctx context.Context, p OtelParamFx) (metric.Meter, error) {
+func ProvideOtelMetric(p OtelParamFx) (metric.Meter, error) {
 	meter, shutdownFn, err := xtracer.NewOtelMeter(
-		ctx,
+		context.Background(),
 		p.Cfg,
 		p.Resource,
 		p.GrpcClient.ClientConn,
@@ -77,4 +84,62 @@ func ProvideOtelMetric(ctx context.Context, p OtelParamFx) (metric.Meter, error)
 	p.Lc.Append(fx.Hook{OnStop: shutdownFn})
 
 	return meter, nil
+}
+
+func ProvideOtelLog(p OtelParamFx) (*xlog.OtelLogger, error) {
+	if !p.Cfg.Logs {
+		return nil, nil
+	}
+
+	logExporter, err := otlploggrpc.New(
+		context.Background(),
+		otlploggrpc.WithGRPCConn(p.GrpcClient.ClientConn),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		logBatchProcessor = log.NewBatchProcessor(
+			logExporter,
+			log.WithExportMaxBatchSize(512),
+			log.WithExportInterval(2*time.Second),
+		)
+
+		logProvider = log.NewLoggerProvider(
+			log.WithResource(p.Resource),
+			log.WithProcessor(logBatchProcessor),
+		)
+
+		logger = xlog.NewOtelLogger(
+			p.Cfg.ModuleName,
+			xlog.WithServerName(p.Cfg.ServerName),
+			xlog.WithServerAddress(p.Cfg.ServerAddress),
+			xlog.WithLoggerProvider(logProvider),
+		)
+	)
+
+	global.SetLoggerProvider(logProvider)
+
+	p.Lc.Append(fx.Hook{OnStop: func(ctx context.Context) error {
+		var errs []error
+
+		if err := logProvider.Shutdown(ctx); err != nil {
+			errs = append(errs, err)
+		}
+		if err := logBatchProcessor.Shutdown(ctx); err != nil {
+			errs = append(errs, err)
+		}
+		if err := logExporter.Shutdown(ctx); err != nil {
+			errs = append(errs, err)
+		}
+
+		if len(errs) > 0 {
+			return errors.Join(errs...)
+		}
+
+		return nil
+	}})
+
+	return logger, nil
 }

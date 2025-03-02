@@ -7,9 +7,10 @@ import (
 	"path"
 	"strings"
 
+	"gopkg.in/natefinch/lumberjack.v2"
+
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var (
@@ -41,7 +42,7 @@ func RotateLog() {
 	}
 }
 
-func ProvideDebugLogger(c config.Cfg, s config.Server) *xlog.DebugLogger {
+func ProvideDebugLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog.DebugLogger {
 
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "debug")
@@ -65,6 +66,10 @@ func ProvideDebugLogger(c config.Cfg, s config.Server) *xlog.DebugLogger {
 
 	debugLog.Logger = xlog.NewZeroLog(
 		// # options
+		xlog.SetLogOtelDisabled(cfg.Otel.Disabled),
+		xlog.SetLogOtelLevel(cfg.Otel.Level),
+		xlog.SetLogOtelOutput(o),
+
 		xlog.SetLogConsoleDisabled(cfg.Console.Disabled),
 		xlog.SetLogConsoleLevel(cfg.Console.Level),
 		xlog.SetLogConsoleOutput(os.Stderr),
@@ -74,10 +79,10 @@ func ProvideDebugLogger(c config.Cfg, s config.Server) *xlog.DebugLogger {
 		xlog.SetLogFileOutput(&debugLog.LogRotation),
 
 		// # Options Fields
-		xlog.SetField("app.name", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
-		xlog.SetField("app.env", c.App.Env),
-		xlog.SetField("app.server", s.Name),
-		xlog.SetField("app.log", "debug:logger"),
+		xlog.SetField("app_name", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
+		xlog.SetField("app_env", c.App.Env),
+		xlog.SetField("app_server", s.Name),
+		xlog.SetField("app_log", "debug:logger"),
 	)
 
 	_DebugLogger = &debugLog
@@ -85,7 +90,7 @@ func ProvideDebugLogger(c config.Cfg, s config.Server) *xlog.DebugLogger {
 	return &debugLog
 }
 
-func ProvideIoLogger(c config.Cfg, s config.Server) *xlog.IOLogger {
+func ProvideIoLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog.IOLogger {
 
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "io")
@@ -109,6 +114,10 @@ func ProvideIoLogger(c config.Cfg, s config.Server) *xlog.IOLogger {
 
 	ioLog.Logger = xlog.NewZeroLog(
 		// # options
+		xlog.SetLogOtelDisabled(cfg.Otel.Disabled),
+		xlog.SetLogOtelLevel(cfg.Otel.Level),
+		xlog.SetLogOtelOutput(o),
+
 		xlog.SetLogConsoleDisabled(cfg.Console.Disabled),
 		xlog.SetLogConsoleLevel(cfg.Console.Level),
 		xlog.SetLogConsoleOutput(os.Stderr),
@@ -118,17 +127,18 @@ func ProvideIoLogger(c config.Cfg, s config.Server) *xlog.IOLogger {
 		xlog.SetLogFileOutput(&ioLog.LogRotation),
 
 		// # fields
-		xlog.SetField("app.name", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
-		xlog.SetField("app.env", c.App.Env),
-		xlog.SetField("app.server", s.Name),
-		xlog.SetField("app.log", "io:logger"),
+		xlog.SetField("app_name", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
+		xlog.SetField("app_env", c.App.Env),
+		xlog.SetField("app_server", s.Name),
+		xlog.SetField("app_log", "io:logger"),
 	)
+
 	_IOLogger = &ioLog
 
 	return &ioLog
 }
 
-func ProvideTrxLogger(c config.Cfg, s config.Server) *xlog.TrxLogger {
+func ProvideTrxLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog.TrxLogger {
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "trx")
 	basePath = strings.Join([]string{basePath, "{trx.client}"}, "/")
@@ -159,6 +169,10 @@ func ProvideTrxLogger(c config.Cfg, s config.Server) *xlog.TrxLogger {
 			&logFileRotation,
 
 			// # options
+			xlog.SetLogOtelDisabled(cfg.Otel.Disabled),
+			xlog.SetLogOtelLevel(cfg.Otel.Level),
+			xlog.SetLogOtelOutput(o),
+
 			xlog.SetLogConsoleDisabled(cfg.Console.Disabled),
 			xlog.SetLogConsoleLevel(cfg.Console.Level),
 			xlog.SetLogConsoleOutput(os.Stderr),
@@ -168,14 +182,14 @@ func ProvideTrxLogger(c config.Cfg, s config.Server) *xlog.TrxLogger {
 			xlog.SetLogFileOutput(&logFileRotation),
 
 			// # fields
-			xlog.SetField("app.name", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
-			xlog.SetField("app.env", c.App.Env),
-			xlog.SetField("app.server", s.Name),
-			xlog.SetField("app.log", fmt.Sprintf("trx:logger:%s", key)),
+			xlog.SetField("app_name", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
+			xlog.SetField("app_env", c.App.Env),
+			xlog.SetField("app_server", s.Name),
+			xlog.SetField("app_log", fmt.Sprintf("trx:logger:%s", key)),
 		)
 	}
 
-	l.MultiLogger = xlog.NewMultiLogging(cfg.File.Level, entries...)
+	l.MultiLogger = xlog.NewMultiLogging(entries...)
 	_TrxLogger = &l
 
 	return &l

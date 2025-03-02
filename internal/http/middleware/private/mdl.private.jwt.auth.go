@@ -37,6 +37,7 @@ func (a AuthJWT) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var (
 			req  = c.Request()
+			ctx  = req.Context()
 			auth = req.Header.Get("Authorization")
 			msg  = http.StatusText(http.StatusUnauthorized)
 		)
@@ -49,7 +50,7 @@ func (a AuthJWT) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.String(http.StatusUnauthorized, msg)
 		}
 
-		a.debug.Info("auth is success")
+		a.debug.Info(ctx, "auth is success")
 
 		return next(c)
 	}

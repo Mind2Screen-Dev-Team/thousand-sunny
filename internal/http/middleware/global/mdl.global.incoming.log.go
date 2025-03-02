@@ -2,6 +2,7 @@ package http_middleware_global
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -119,6 +120,8 @@ func (in IncomingLog) _IncomingLogging(
 	stacks []xpanic.Stack,
 ) {
 	var (
+		ctx = r.Context()
+
 		bw bytes.Buffer
 		rw bytes.Buffer
 
@@ -164,37 +167,37 @@ func (in IncomingLog) _IncomingLogging(
 	var (
 		fields = []any{
 			// request
-			"req.trace.id", c.Get(xlog.XLOG_TRACE_ID_KEY),
-			"req.time", reqtime,
-			"req.remote.address", r.RemoteAddr,
-			"req.path", r.URL.Path,
-			"req.header", r.Header,
-			"req.proto", r.Proto,
-			"req.method", r.Method,
-			"req.user.agent", r.UserAgent(),
-			"req.body.raw", reqRawBytes,
-			"req.body.parsed", parsedBody,
-			"req.bytes.in", contentSize,
+			"req_trace_id", c.Get(xlog.XLOG_TRACE_ID_KEY),
+			"req_time", reqtime,
+			"req_remote_address", r.RemoteAddr,
+			"req_path", r.URL.Path,
+			"req_header", r.Header,
+			"req_proto", r.Proto,
+			"req_method", r.Method,
+			"req_user_agent", r.UserAgent(),
+			"req_body_raw", reqRawBytes,
+			"req_body_parsed", parsedBody,
+			"req_bytes_in", contentSize,
 
 			// response
-			"res.header", ww.Header(),
-			"res.status", http.StatusText(ww.Status()),
-			"res.status.code", ww.Status(),
-			"res.body", rw.String(),
-			"res.bytes.out", ww.BytesWritten(),
+			"res_header", ww.Header(),
+			"res_status", http.StatusText(ww.Status()),
+			"res_status_code", ww.Status(),
+			"res_body", rw.String(),
+			"res_bytes_out", ww.BytesWritten(),
 		}
 	)
 
 	if resFilename != "" {
-		fields = append(fields, "res.filename", resFilename)
+		fields = append(fields, "res_filename", resFilename)
 	}
 
 	if panicked {
-		fields = append(fields, "panic.recover.err", recorverErr)
-		fields = append(fields, "panic.stack", stacks)
+		fields = append(fields, "panic_recover_err", recorverErr)
+		fields = append(fields, "panic_stack", stacks)
 	}
 
-	in.iolog.Info("incoming request", fields...)
+	in.iolog.Info(c.Request().Context(), "incoming request", fields...)
 
 	// # Notify Process Incoming Log
 	ioLogCfg, ok := in.cfg.Log.LogType["io"]
@@ -218,10 +221,10 @@ func (in IncomingLog) _IncomingLogging(
 		}
 	}
 
-	in._Notify(&ioLogCfg, m)
+	in._Notify(ctx, &ioLogCfg, m)
 }
 
-func (in *IncomingLog) _Notify(ioLogCfg *config.LogType, m map[string]any) {
+func (in *IncomingLog) _Notify(ctx context.Context, ioLogCfg *config.LogType, m map[string]any) {
 	var (
 		b, _      = json.Marshal(m)
 		name      = xasynq.BuildWorkerRouteName(in.cfg.App.Env, "notify:incoming:log")
@@ -230,13 +233,13 @@ func (in *IncomingLog) _Notify(ioLogCfg *config.LogType, m map[string]any) {
 	)
 	if err != nil {
 		if ioLogCfg.Notify.Debug {
-			in.debuglog.Error("error send notification incoming log into asynq", "info", info, "error", err)
+			in.debuglog.Error(ctx, "error send notification incoming log into asynq", "info", info, "error", err)
 		}
 		return
 	}
 
 	if ioLogCfg.Notify.Debug {
-		in.debuglog.Debug("send notification incoming log into asynq", "info", info)
+		in.debuglog.Debug(ctx, "send notification incoming log into asynq", "info", info)
 	}
 }
 

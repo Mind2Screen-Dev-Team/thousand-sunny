@@ -42,6 +42,7 @@ func InvokeAsynqSchedulerServer(p InvokeAsynqSchedulerServerParam) error {
 	}
 
 	var (
+		ctx     = context.Background()
 		env     = p.Cfg.App.Env
 		acfg, _ = p.Cfg.Server["asynq"]
 		all, _  = acfg.Additional["asynq.log.level"]
@@ -88,16 +89,16 @@ func InvokeAsynqSchedulerServer(p InvokeAsynqSchedulerServerParam) error {
 		OnStart: func(ctx context.Context) error {
 
 			go func() {
-				logger.Info("asynq scheduler started")
+				logger.Info(ctx, "asynq scheduler started")
 				if err := server.Start(mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
-					logger.Error("failed to start asynq scheduler server", "error", err)
+					logger.Error(ctx, "failed to start asynq scheduler server", "error", err)
 				}
 			}()
 
 			go func() {
-				logger.Info("asynq cron scheduler started")
+				logger.Info(ctx, "asynq cron scheduler started")
 				if err := p.Asynq.Scheduler.Run(); err != nil {
-					logger.Error("failed to start asynq cron scheduler", "error", err)
+					logger.Error(ctx, "failed to start asynq cron scheduler", "error", err)
 				}
 			}()
 
@@ -106,15 +107,15 @@ func InvokeAsynqSchedulerServer(p InvokeAsynqSchedulerServerParam) error {
 		OnStop: func(ctx context.Context) error {
 
 			server.Shutdown()
-			logger.Info("asynq scheduler server stopped")
+			logger.Info(ctx, "asynq scheduler server stopped")
 
 			p.Asynq.Scheduler.Shutdown()
-			logger.Info("asynq cron scheduler stopped")
+			logger.Info(ctx, "asynq cron scheduler stopped")
 
 			return nil
 		},
 	})
 
-	logger.Info("asynq information of concurrency and queue", "kind", "scheduler", "concurrency", cfg.Concurrency, "queue", cfg.Queues)
+	logger.Info(ctx, "asynq information of concurrency and queue", "kind", "scheduler", "concurrency", cfg.Concurrency, "queue", cfg.Queues)
 	return nil
 }

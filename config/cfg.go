@@ -48,6 +48,7 @@ type App struct {
 type Otel struct {
 	Tracer bool       `yaml:"tracer"`
 	Metric bool       `yaml:"metric"`
+	Logs   bool       `yaml:"logs"`
 	Server OtelServer `yaml:"server"`
 }
 
@@ -133,8 +134,14 @@ type Log struct {
 type LogType struct {
 	Disabled bool       `yaml:"disabled"`
 	Notify   LogNotify  `yaml:"notify"`
+	Otel     LogOtel    `yaml:"otel"`
 	Console  LogConsole `yaml:"console"`
 	File     LogFile    `yaml:"file"`
+}
+
+type LogOtel struct {
+	Disabled bool `yaml:"disabled"`
+	Level    int  `yaml:"level"`
 }
 
 type LogConsole struct {

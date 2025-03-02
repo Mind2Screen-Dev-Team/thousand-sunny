@@ -17,6 +17,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xecho"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
 )
 
 func ProvideAsynqServerConfig(c config.Cfg) config.Server {
@@ -81,6 +82,9 @@ func ProvideAsynqMonitoringServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifec
 			return
 		}
 
+		ctx, span := xtracer.Start(context.Background(), "asynq.endpoint.error.handler")
+		defer span.End()
+
 		var (
 			code   = http.StatusInternalServerError
 			resp   = xresp.NewRestResponse[any, any](c)
@@ -90,10 +94,10 @@ func ProvideAsynqMonitoringServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifec
 		if ok {
 			code = he.Code
 			if err = he.Internal; err != nil {
-				logger.Error("catch internal error from handler", "error", err)
+				logger.Error(ctx, "catch internal error from handler", "error", err)
 			}
 		} else if err != nil {
-			logger.Error("catch error from handler", "error", err)
+			logger.Error(ctx, "catch error from handler", "error", err)
 		}
 
 		resp.
@@ -106,16 +110,16 @@ func ProvideAsynqMonitoringServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifec
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				logger.Info("asynq monitoring server started", "address", cfg.Address)
+				logger.Info(ctx, "asynq monitoring server started", "address", cfg.Address)
 				if err := srv.Start(cfg.Address); err != nil && err != http.ErrServerClosed {
-					logger.Error("failed to start asynq monitoring server", "error", err)
+					logger.Error(ctx, "failed to start asynq monitoring server", "error", err)
 				}
 			}()
 
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			defer logger.Info("asynq monitoring server stopped", "address", cfg.Address)
+			defer logger.Info(ctx, "asynq monitoring server stopped", "address", cfg.Address)
 			return srv.Shutdown(ctx)
 		},
 	})

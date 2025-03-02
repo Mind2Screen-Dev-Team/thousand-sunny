@@ -37,6 +37,7 @@ func InvokeAsynqWorkerServer(p InvokeAsynqWorkerServerParam) error {
 	}
 
 	var (
+		ctx     = context.Background()
 		env     = p.Cfg.App.Env
 		acfg, _ = p.Cfg.Server["asynq"]
 		all, _  = acfg.Additional["asynq.log.level"]
@@ -82,22 +83,21 @@ func InvokeAsynqWorkerServer(p InvokeAsynqWorkerServerParam) error {
 	p.Lfc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				logger.Info("asynq worker started")
+				logger.Info(ctx, "asynq worker started")
 				if err := server.Start(mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
-					logger.Error("failed to start asynq worker server", "error", err)
+					logger.Error(ctx, "failed to start asynq worker server", "error", err)
 				}
 			}()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-
 			server.Shutdown()
-			logger.Info("asynq worker server stopped")
+			logger.Info(ctx, "asynq worker server stopped")
 
 			return nil
 		},
 	})
 
-	logger.Info("asynq information of concurrency and queue", "kind", "worker", "concurrency", cfg.Concurrency, "queue", cfg.Queues)
+	logger.Info(ctx, "asynq information of concurrency and queue", "kind", "worker", "concurrency", cfg.Concurrency, "queue", cfg.Queues)
 	return nil
 }
