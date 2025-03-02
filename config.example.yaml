@@ -5,6 +5,7 @@ app:
 otel:
   tracer: true
   metric: true
+  logs: true
   server:
     grpc.host: "localhost"
     grpc.port: 4317
@@ -46,6 +47,9 @@ log:
   log.type:
     debug: # For logging debug app, for feed `:log.type`
       disabled: false
+      otel:
+        disabled: false
+        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
       console:
         disabled: false
         level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
@@ -65,6 +69,9 @@ log:
         enabled: false # Notify State for Send Notify
         debug: true # Notify Status Success / Error into Log Debug
         retention: 7200 # format number is seconds, this for asynq worker retention log will be disappear
+      otel:
+        disabled: false
+        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
       console:
         disabled: false
         level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
@@ -80,6 +87,9 @@ log:
           compress: false # default false
     trx: # For logging Transaction process your client, for feed `:log.type`
       disabled: false
+      otel:
+        disabled: false
+        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
       console:
         disabled: false
         level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
