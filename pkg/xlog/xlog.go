@@ -52,7 +52,7 @@ type Logger interface {
 				second = "second value"
 			)
 			<Imported_Log>.Trace(ctx, "hello", "first", first, "second", second)
-			<Imported_Log>.Trace(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Trace(ctx, xlog.Msgf("hello %s", "world!"), "first", first, "second", second)
 			<Imported_Log>.Trace(ctx, "oh snap! got error", "error", err)
 	*/
 	Trace(ctx context.Context, msg string, fields ...any)
@@ -68,7 +68,7 @@ type Logger interface {
 				second = "second value"
 			)
 			<Imported_Log>.Debug(ctx, "hello", "first", first, "second", second)
-			<Imported_Log>.Debug(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Debug(ctx, xlog.Msgf("hello %s", "world!"), "first", first, "second", second)
 			<Imported_Log>.Debug(ctx, "oh snap! got error", "error", err)
 	*/
 	Debug(ctx context.Context, msg string, fields ...any)
@@ -84,7 +84,7 @@ type Logger interface {
 				second = "second value"
 			)
 			<Imported_Log>.Info(ctx, "hello", "first", first, "second", second)
-			<Imported_Log>.Info(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Info(ctx, xlog.Msgf("hello %s", "world!"), "first", first, "second", second)
 			<Imported_Log>.Info(ctx, "oh snap! got error", "error", err)
 	*/
 	Info(ctx context.Context, msg string, fields ...any)
@@ -100,7 +100,7 @@ type Logger interface {
 				second = "second value"
 			)
 			<Imported_Log>.Warn(ctx, "hello", "first", first, "second", second)
-			<Imported_Log>.Warn(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Warn(ctx, xlog.Msgf("hello %s", "world!"), "first", first, "second", second)
 			<Imported_Log>.Warn(ctx, "oh snap! got error", "error", err)
 	*/
 	Warn(ctx context.Context, msg string, fields ...any)
@@ -116,7 +116,7 @@ type Logger interface {
 				second = "second value"
 			)
 			<Imported_Log>.Error(ctx, "hello", "first", first, "second", second)
-			<Imported_Log>.Error(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Error(ctx, xlog.Msgf("hello %s", "world!"), "first", first, "second", second)
 			<Imported_Log>.Error(ctx, "oh snap! got error", "error", err)
 	*/
 	Error(ctx context.Context, msg string, fields ...any)
@@ -132,7 +132,7 @@ type Logger interface {
 				second = "second value"
 			)
 			<Imported_Log>.Fatal(ctx, "hello", "first", first, "second", second)
-			<Imported_Log>.Fatal(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Fatal(ctx, xlog.Msgf("hello %s", "world!"), "first", first, "second", second)
 			<Imported_Log>.Fatal(ctx, "oh snap! got error", "error", err)
 	*/
 	Fatal(ctx context.Context, msg string, fields ...any)
@@ -148,7 +148,7 @@ type Logger interface {
 				second = "second value"
 			)
 			<Imported_Log>.Panic(ctx, "hello", "first", first, "second", second)
-			<Imported_Log>.Panic(ctx, xlogger.Msgf("hello %s", "world!"), "first", first, "second", second)
+			<Imported_Log>.Panic(ctx, xlog.Msgf("hello %s", "world!"), "first", first, "second", second)
 			<Imported_Log>.Panic(ctx, "oh snap! got error", "error", err)
 	*/
 	Panic(ctx context.Context, msg string, fields ...any)
