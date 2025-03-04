@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/rs/xid"
-	"github.com/rs/zerolog"
 )
 
 type (
@@ -23,25 +22,28 @@ func PgxQueryName(ctx context.Context, name string) context.Context {
 
 // PgxLogger is a custom QueryTracer implementation for pgx using zerolog.
 type PgxLogger struct {
-	Log zerolog.Logger
+	Log Logger
 }
 
 // TraceQueryStart logs the start of a query.
 func (t *PgxLogger) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
 	var (
-		n     = time.Now()
-		e     = t.Log.Info()
-		id, _ = ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID)
+		n      = time.Now()
+		fields = make([]any, 0)
+		id, _  = ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID)
 	)
 
 	if !id.IsZero() {
-		e = e.Str("req_trace_id", id.String())
+		fields = append(fields, "req_trace_id", id)
 	}
 
-	e = e.Str("query_sql", data.SQL)
-	e = e.Any("query_args", data.Args)
-	e = e.Time("query_start_time", n)
-	e.Msg("start executing query")
+	fields = append(fields,
+		"req_trace_id", id,
+		"query_sql", data.SQL,
+		"query_args", data.Args,
+		"query_start_time", n,
+	)
+	t.Log.Info(ctx, "start executing query", fields...)
 
 	ctx = context.WithValue(ctx, queryStartTimeKey{}, n)
 	ctx = context.WithValue(ctx, querySQLDataKey{}, data)
@@ -52,6 +54,7 @@ func (t *PgxLogger) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pg
 func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryEndData) {
 	var (
 		queryEndTime      = time.Now()
+		fields            = make([]any, 0)
 		queryStartTime, _ = ctx.Value(queryStartTimeKey{}).(time.Time) // Retrieve the start time from context
 		queryDurr         = queryEndTime.Sub(queryStartTime)
 
@@ -62,54 +65,53 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 	)
 
 	if data.Err != nil {
-		e := t.Log.Error()
-
 		if !id.IsZero() {
-			e = e.Str("req_trace_id", id.String())
+			fields = append(fields, "req_trace_id", id)
 		}
 
 		if queryName != "" {
-			e = e.Str("query_name", queryName)
+			fields = append(fields, "query_name", queryName)
 		}
 
 		if queryType != "" {
-			e = e.Str("query_type", queryType)
+			fields = append(fields, "query_type", queryType)
 		}
 
-		e = e.Err(data.Err)
-		e = e.Str("query_sql", queryData.SQL)
-		e = e.Any("query_args", queryData.Args)
-		e = e.Time("query_end_time", queryEndTime)
-		e = e.Time("query_start_time", queryStartTime)
-		e = e.Str("query_duration", FormatDuration(queryDurr))
-		e = e.Int64("query_duration_ns", queryDurr.Nanoseconds())
-		e.Msg("executing query is failed")
+		fields = append(fields,
+			"err", data.Err,
+			"query_sql", queryData.SQL,
+			"query_args", queryData.Args,
+			"query_end_time", queryEndTime,
+			"query_start_time", queryStartTime,
+			"query_duration", FormatDuration(queryDurr),
+			"query_duration_ns", queryDurr.Nanoseconds(),
+		)
+		t.Log.Error(ctx, "executing query is failed", fields...)
 		return
 	}
 
-	// Log execution success with rows affected
-	e := t.Log.Info()
-
 	if !id.IsZero() {
-		e = e.Str("req_trace_id", id.String())
+		fields = append(fields, "req_trace_id", id)
 	}
 
 	if queryName != "" {
-		e = e.Str("query_name", queryName)
+		fields = append(fields, "query_name", queryName)
 	}
 
 	if queryType != "" {
-		e = e.Str("query_type", queryType)
+		fields = append(fields, "query_type", queryType)
 	}
 
-	e = e.Str("query_sql", queryData.SQL)
-	e = e.Any("query_args", queryData.Args)
-	e = e.Int64("query_rows_affected", data.CommandTag.RowsAffected())
-	e = e.Time("query_end_time", queryEndTime)
-	e = e.Time("query_start_time", queryStartTime)
-	e = e.Str("query_duration", FormatDuration(queryDurr))
-	e = e.Int64("query_duration_ns", queryDurr.Nanoseconds())
-	e.Msg("executing query is success")
+	fields = append(fields,
+		"query_sql", queryData.SQL,
+		"query_args", queryData.Args,
+		"query_rows_affected", data.CommandTag.RowsAffected(),
+		"query_end_time", queryEndTime,
+		"query_start_time", queryStartTime,
+		"query_duration", FormatDuration(queryDurr),
+		"query_duration_ns", queryDurr.Nanoseconds(),
+	)
+	t.Log.Info(ctx, "executing query is success", fields...)
 }
 
 // getQueryType determines the type of SQL command from CommandTag.

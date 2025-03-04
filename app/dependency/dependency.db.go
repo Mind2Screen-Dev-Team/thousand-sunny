@@ -48,7 +48,7 @@ func ProvidePostgres(c config.Cfg, s config.Server, debug *xlog.DebugLogger, lc 
 	poolCfg.MaxConns = int32(cfg.Options.MaxOpenConnection)
 	poolCfg.MinConns = int32(cfg.Options.MaxIdleConnection)
 	poolCfg.MaxConnLifetime = time.Duration(cfg.Options.MaxConnectionLifetime) * time.Second
-	poolCfg.ConnConfig.Tracer = &xlog.PgxLogger{Log: debug.Logger}
+	poolCfg.ConnConfig.Tracer = &xlog.PgxLogger{Log: xlog.NewLogger(debug.Logger)}
 
 	db, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {

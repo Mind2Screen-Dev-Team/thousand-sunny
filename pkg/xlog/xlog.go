@@ -173,9 +173,6 @@ func (zl *ZeroLogger) attachFields(ctx context.Context, e *zerolog.Event, fields
 		fields = append(fields,
 			"otel_span_id", span.SpanID().String(),
 			"otel_trace_id", span.TraceID().String(),
-			"otel_trace_flags", byte(span.TraceFlags()),
-			"otel_trace_state", span.TraceState().String(),
-			"otel_trace_remote", span.IsRemote(),
 		)
 	}
 
