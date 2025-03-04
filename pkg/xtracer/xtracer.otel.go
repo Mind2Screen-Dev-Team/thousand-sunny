@@ -16,30 +16,25 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/trace"
 
 	metricnoop "go.opentelemetry.io/otel/metric/noop"
 	tracenoop "go.opentelemetry.io/otel/trace/noop"
 
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
-// # Global Configuration
-var (
-	_trace trace.Tracer
-)
-
-func Start(ctx context.Context, span string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
+func Start(tracer trace.Tracer, ctx context.Context, span string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
 	if reqTraceId, ok := ctx.Value(xlog.XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID); ok {
-		opts = append(opts,
-			trace.WithTimestamp(time.Now()),
-			trace.WithAttributes(attribute.String("req_trace_id", reqTraceId.String())),
-		)
+		opts = append(opts, trace.WithAttributes(attribute.String("req_trace_id", reqTraceId.String())))
 	}
-	return _trace.Start(ctx, span, opts...)
+
+	opts = append(opts, trace.WithTimestamp(time.Now()))
+
+	return tracer.Start(ctx, span, opts...)
 }
 
 // # Configuration
@@ -82,13 +77,13 @@ func NewGrpcClient(cfg Config) (*GrpcClient, error) {
 	return &GrpcClient{conn}, err
 }
 
-func NewResource(ctx context.Context, cfg Config) (*resource.Resource, error) {
+func NewResource(ctx context.Context, cfg Config) (*sdkresource.Resource, error) {
 	if !cfg.Tracer && !cfg.Metric {
 		return nil, nil
 	}
 
-	res, err := resource.New(ctx,
-		resource.WithAttributes(
+	res, err := sdkresource.New(ctx,
+		sdkresource.WithAttributes(
 			// The service name used to display traces in backends
 			semconv.ServiceNameKey.String(cfg.ServerName),
 		),
@@ -97,7 +92,7 @@ func NewResource(ctx context.Context, cfg Config) (*resource.Resource, error) {
 	return res, err
 }
 
-func NewOtelTracer(ctx context.Context, cfg Config, res *resource.Resource, conn *grpc.ClientConn) (trace.Tracer, ShutdownFn, error) {
+func NewOtelTracer(ctx context.Context, cfg Config, res *sdkresource.Resource, conn *grpc.ClientConn) (trace.Tracer, ShutdownFn, error) {
 	var (
 		tracerShutdownFn ShutdownFn
 		tracerProvider   trace.TracerProvider
@@ -130,17 +125,16 @@ func NewOtelTracer(ctx context.Context, cfg Config, res *resource.Resource, conn
 
 	tracer := otel.Tracer(cfg.ModuleName,
 		trace.WithInstrumentationAttributes(
-			attribute.String("server.name", cfg.ServerName),
-			attribute.String("server.addr", cfg.ServerAddress),
+			attribute.String("server_name", cfg.ServerName),
+			attribute.String("server_addr", cfg.ServerAddress),
 		),
 	)
-	_trace = tracer
 
 	// Shutdown will flush any remaining spans and shut down the exporter.
 	return tracer, tracerShutdownFn, nil
 }
 
-func NewOtelMeter(ctx context.Context, cfg Config, res *resource.Resource, conn *grpc.ClientConn) (metric.Meter, ShutdownFn, error) {
+func NewOtelMeter(ctx context.Context, cfg Config, res *sdkresource.Resource, conn *grpc.ClientConn) (metric.Meter, ShutdownFn, error) {
 	var (
 		meterShutdownFn ShutdownFn
 		meterProvider   metric.MeterProvider
@@ -166,8 +160,8 @@ func NewOtelMeter(ctx context.Context, cfg Config, res *resource.Resource, conn 
 
 	meter := otel.Meter(cfg.ModuleName,
 		metric.WithInstrumentationAttributes(
-			attribute.String("server.name", cfg.ServerName),
-			attribute.String("server.addr", cfg.ServerAddress),
+			attribute.String("server_name", cfg.ServerName),
+			attribute.String("server_addr", cfg.ServerAddress),
 		),
 	)
 

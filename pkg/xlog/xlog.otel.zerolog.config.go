@@ -1,30 +1,28 @@
 package xlog
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"math"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/tidwall/gjson"
+	"github.com/guregu/null/v5"
+	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/global"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type config struct {
-	provider   log.LoggerProvider
-	version    string
-	schemaURL  string
-	serverName string
-	serverAddr string
+	provider          log.LoggerProvider
+	logEnabled        null.Bool
+	logWriterDisabled null.Bool
+	level             zerolog.Level
+	version           string
+	schemaURL         string
+	serverName        string
+	serverAddr        string
 }
 
 func newConfig(options []Option) config {
@@ -46,11 +44,11 @@ func (c config) logger(name string) log.Logger {
 	)
 
 	if c.serverName != "" {
-		attr = append(attr, attribute.String("server.name", c.serverName))
+		attr = append(attr, attribute.String("server_name", c.serverName))
 	}
 
 	if c.serverName != "" {
-		attr = append(attr, attribute.String("server.addr", c.serverAddr))
+		attr = append(attr, attribute.String("server_addr", c.serverAddr))
 	}
 
 	if len(attr) > 0 {
@@ -86,6 +84,30 @@ func WithVersion(version string) Option {
 	})
 }
 
+func WithLogEnabled(v bool) Option {
+	return optFunc(func(c config) config {
+		c.logEnabled = null.BoolFrom(v)
+		return c
+	})
+}
+
+func WithLogWriterDisabled(v bool) Option {
+	return optFunc(func(c config) config {
+		c.logWriterDisabled = null.BoolFrom(v)
+		return c
+	})
+}
+
+// WithLevel returns an [Option] that configures the version of the
+// [log.Logger] used by a [OtelLogger]. The version should be the version of the
+// package that is being logged.
+func WithLevel(lvl zerolog.Level) Option {
+	return optFunc(func(c config) config {
+		c.level = lvl
+		return c
+	})
+}
+
 // WithSchemaURL returns an [Option] that configures the semantic convention
 // schema URL of the [log.Logger] used by a [OtelLogger]. The schemaURL should be
 // the schema URL for the semantic conventions used in log records.
@@ -96,6 +118,9 @@ func WithSchemaURL(schemaURL string) Option {
 	})
 }
 
+// WithServerName returns an [Option] that configures the semantic convention
+// Server Name of the [log.Logger] used by a [OtelLogger]. The Server Name should be
+// the Server Name for the semantic conventions used in log records.
 func WithServerName(serverName string) Option {
 	return optFunc(func(c config) config {
 		c.serverName = serverName
@@ -103,6 +128,9 @@ func WithServerName(serverName string) Option {
 	})
 }
 
+// WithServerAddress returns an [Option] that configures the semantic convention
+// Server Address of the [log.Logger] used by a [OtelLogger]. The Server Address should be
+// the Server Address for the semantic conventions used in log records.
 func WithServerAddress(serverAddres string) Option {
 	return optFunc(func(c config) config {
 		c.serverAddr = serverAddres
@@ -120,81 +148,9 @@ func WithLoggerProvider(provider log.LoggerProvider) Option {
 	})
 }
 
-var _ io.WriteCloser = (*OtelLogger)(nil)
-
-type OtelLogger struct {
-	logger log.Logger
-}
-
-func NewOtelLogger(name string, options ...Option) *OtelLogger {
-	cfg := newConfig(options)
-	return &OtelLogger{
-		logger: cfg.logger(name),
-	}
-}
-
-func (l *OtelLogger) Write(p []byte) (n int, err error) {
-	var (
-		rec               log.Record
-		ctx               = context.Background()
-		lvl               = log.SeverityInfo
-		data              = make(map[string]any)
-		_                 = json.Unmarshal(p, &data)
-		attrs, span, _err = mapToKeyValues(data)
-
-		_lvl      = strings.ToUpper(gjson.GetBytes(p, "level").String())
-		_time     = gjson.GetBytes(p, "time").String()
-		_vtime, _ = time.Parse(time.RFC3339Nano, _time)
-	)
-
-	if _err != nil {
-		ctx = trace.ContextWithSpanContext(ctx, span)
-	}
-
-	switch {
-	case _lvl == log.SeverityTrace.String():
-		lvl = log.SeverityTrace
-	case _lvl == log.SeverityDebug.String():
-		lvl = log.SeverityDebug
-	case _lvl == log.SeverityInfo.String():
-		lvl = log.SeverityInfo
-	case _lvl == log.SeverityWarn.String():
-		lvl = log.SeverityWarn
-	case _lvl == log.SeverityError.String():
-		lvl = log.SeverityError
-	case _lvl == log.SeverityFatal.String():
-		lvl = log.SeverityFatal
-	}
-
-	rec.SetSeverity(lvl)
-	rec.SetBody(log.BytesValue(p))
-	rec.SetSeverityText(lvl.String())
-	rec.SetTimestamp(_vtime)
-	rec.AddAttributes(attrs...)
-
-	l.logger.Emit(ctx, rec)
-
-	clear(data)
-
-	return len(p), nil
-}
-
-// Close implements io.Closer, and closes the current logfile.
-func (l *OtelLogger) Close() error {
-	return nil
-}
-
 // Converts map[string]any to []log.KeyValue
-func mapToKeyValues(input map[string]any) (attrs []log.KeyValue, span trace.SpanContext, err error) {
+func mapToKeyValues(input map[string]any) (attrs []log.KeyValue) {
 	result := make([]log.KeyValue, 0, len(input))
-
-	var (
-		_spanId, _      = input["otel_span_id"].(string)
-		_traceId, _     = input["otel_trace_id"].(string)
-		_traceFlags, _  = input["otel_trace_flags"].(byte)
-		_traceState, _  = input["otel_trace_state"].(string)
-		_traceRemote, _ = input["otel_trace_remote"].(bool)
-	)
 
 	for key, value := range input {
 		result = append(result, log.KeyValue{
@@ -203,30 +159,7 @@ func mapToKeyValues(input map[string]any) (attrs []log.KeyValue, span trace.Span
 		})
 	}
 
-	var errs []error
-	spanId, err := trace.SpanIDFromHex(_spanId)
-	if err != nil {
-		errs = append(errs, err)
-	}
-
-	traceId, err := trace.TraceIDFromHex(_traceId)
-	if err != nil {
-		errs = append(errs, err)
-	}
-
-	traceState, _ := trace.ParseTraceState(_traceState)
-
-	if len(errs) > 0 {
-		err = errors.Join(errs...)
-	}
-
-	return result, trace.NewSpanContext(trace.SpanContextConfig{
-		TraceID:    traceId,
-		SpanID:     spanId,
-		TraceState: traceState,
-		TraceFlags: trace.TraceFlags(_traceFlags),
-		Remote:     _traceRemote,
-	}), err
+	return result
 }
 
 // convertValue converts various types to log.Value.

@@ -43,8 +43,20 @@ func NewMultiLogging(entries ...Entry) MultiLogger {
 		entryRotation: make(map[string]*lumberjack.Logger),
 	}
 
+	disabledFn := func(validity bool, value bool) bool {
+		if validity {
+			return value
+		}
+		return true
+	}
+
 	for _, e := range entries {
-		if e.Options.LogConsoleDisable || e.Options.LogFileDisable {
+		var (
+			isLogConsoleDisabled = disabledFn(e.Options.LogConsoleDisable.Valid, e.Options.LogConsoleDisable.Bool)
+			isLogFileDisabled    = disabledFn(e.Options.LogFileDisable.Valid, e.Options.LogFileDisable.Bool)
+		)
+
+		if isLogConsoleDisabled || isLogFileDisabled {
 			continue
 		}
 
@@ -52,18 +64,16 @@ func NewMultiLogging(entries ...Entry) MultiLogger {
 
 			var (
 				opts = []LogOptionFn{
-					// Log Otel
-					SetLogOtelDisabled(e.Options.LogOtelDisable),
-					SetLogOtelLevel(e.Options.LogOtelLevel),
-					SetLogOtelOutput(e.Options.LogOtelOut),
+					// Log Hook
+					SetLogHook(e.Options.Hook...),
 
 					// Log Console
-					SetLogConsoleDisabled(e.Options.LogConsoleDisable),
+					SetLogConsoleDisabled(isLogConsoleDisabled),
 					SetLogConsoleLevel(e.Options.LogConsoleLevel),
 					SetLogConsoleOutput(e.Options.LogConsoleOut),
 
 					// Log File
-					SetLogFileDisabled(e.Options.LogFileDisable),
+					SetLogFileDisabled(isLogFileDisabled),
 					SetLogFileLevel(e.Options.LogFileLevel),
 					SetLogFileOutput(e.rotation),
 				}

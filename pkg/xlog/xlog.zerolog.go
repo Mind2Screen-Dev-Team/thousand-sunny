@@ -5,26 +5,25 @@ import (
 	"os"
 	"time"
 
+	"github.com/guregu/null/v5"
 	"github.com/rs/zerolog"
 )
 
 type (
 	LogOptions struct {
+		// Log Hook
+		Hook []zerolog.Hook
+
 		// Log Fields
 		LogFields map[string]any
 
-		// Otel
-		LogOtelDisable bool
-		LogOtelLevel   int
-		LogOtelOut     io.Writer
-
 		// Console
-		LogConsoleDisable bool
+		LogConsoleDisable null.Bool
 		LogConsoleLevel   int
 		LogConsoleOut     io.Writer
 
 		// File
-		LogFileDisable bool
+		LogFileDisable null.Bool
 		LogFileLevel   int
 		LogFileOut     io.Writer
 	}
@@ -42,27 +41,15 @@ func SetField(key string, val any) LogOptionFn {
 	}
 }
 
-func SetLogOtelDisabled(v bool) LogOptionFn {
+func SetLogHook(v ...zerolog.Hook) LogOptionFn {
 	return func(opt *LogOptions) {
-		opt.LogOtelDisable = v
-	}
-}
-
-func SetLogOtelLevel(lvl int) LogOptionFn {
-	return func(opt *LogOptions) {
-		opt.LogOtelLevel = lvl
-	}
-}
-
-func SetLogOtelOutput(out io.Writer) LogOptionFn {
-	return func(opt *LogOptions) {
-		opt.LogOtelOut = out
+		opt.Hook = v
 	}
 }
 
 func SetLogConsoleDisabled(v bool) LogOptionFn {
 	return func(opt *LogOptions) {
-		opt.LogConsoleDisable = v
+		opt.LogConsoleDisable = null.BoolFrom(v)
 	}
 }
 
@@ -80,7 +67,7 @@ func SetLogConsoleOutput(out io.Writer) LogOptionFn {
 
 func SetLogFileDisabled(v bool) LogOptionFn {
 	return func(opt *LogOptions) {
-		opt.LogFileDisable = v
+		opt.LogFileDisable = null.BoolFrom(v)
 	}
 }
 
@@ -108,20 +95,23 @@ func NewZeroLog(opts ...LogOptionFn) zerolog.Logger {
 		fn(&opt)
 	}
 
-	if opt.LogConsoleDisable && opt.LogFileDisable {
+	disabledFn := func(validity bool, value bool) bool {
+		if validity {
+			return value
+		}
+		return true
+	}
+
+	var (
+		isLogConsoleDisabled = disabledFn(opt.LogConsoleDisable.Valid, opt.LogConsoleDisable.Bool)
+		isLogFileDisabled    = disabledFn(opt.LogFileDisable.Valid, opt.LogFileDisable.Bool)
+	)
+
+	if isLogConsoleDisabled && isLogFileDisabled {
 		return zerolog.Nop()
 	}
 
-	if !opt.LogOtelDisable {
-		otelLog := zerolog.FilteredLevelWriter{
-			Writer: zerolog.LevelWriterAdapter{Writer: opt.LogOtelOut},
-			Level:  zerolog.Level(opt.LogOtelLevel),
-		}
-
-		mw = append(mw, &otelLog)
-	}
-
-	if !opt.LogConsoleDisable {
+	if !isLogConsoleDisabled {
 		consoleLog := zerolog.FilteredLevelWriter{
 			Writer: zerolog.LevelWriterAdapter{Writer: zerolog.ConsoleWriter{Out: opt.LogConsoleOut}},
 			Level:  zerolog.Level(opt.LogConsoleLevel),
@@ -130,7 +120,7 @@ func NewZeroLog(opts ...LogOptionFn) zerolog.Logger {
 		mw = append(mw, &consoleLog)
 	}
 
-	if !opt.LogFileDisable {
+	if !isLogFileDisabled {
 		fileLog := zerolog.FilteredLevelWriter{
 			Writer: zerolog.LevelWriterAdapter{Writer: opt.LogFileOut},
 			Level:  zerolog.Level(opt.LogFileLevel),
@@ -148,5 +138,5 @@ func NewZeroLog(opts ...LogOptionFn) zerolog.Logger {
 	// Set Default into time format with nano
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 
-	return ctx.Timestamp().Logger()
+	return ctx.Timestamp().Logger().Hook(opt.Hook...)
 }

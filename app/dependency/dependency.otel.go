@@ -15,7 +15,6 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
 )
 
@@ -86,7 +85,7 @@ func ProvideOtelMetric(p OtelParamFx) (metric.Meter, error) {
 	return meter, nil
 }
 
-func ProvideOtelLog(p OtelParamFx) (*xlog.OtelLogger, error) {
+func ProvideOtelLog(p OtelParamFx) (*log.LoggerProvider, error) {
 	if !p.Cfg.Logs {
 		return nil, nil
 	}
@@ -109,13 +108,6 @@ func ProvideOtelLog(p OtelParamFx) (*xlog.OtelLogger, error) {
 		logProvider = log.NewLoggerProvider(
 			log.WithResource(p.Resource),
 			log.WithProcessor(logBatchProcessor),
-		)
-
-		logger = xlog.NewOtelLogger(
-			p.Cfg.ModuleName,
-			xlog.WithServerName(p.Cfg.ServerName),
-			xlog.WithServerAddress(p.Cfg.ServerAddress),
-			xlog.WithLoggerProvider(logProvider),
 		)
 	)
 
@@ -141,5 +133,5 @@ func ProvideOtelLog(p OtelParamFx) (*xlog.OtelLogger, error) {
 		return nil
 	}})
 
-	return logger, nil
+	return logProvider, nil
 }

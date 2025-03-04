@@ -61,7 +61,7 @@ func ProvideHTTPServer(c config.Cfg, logger *xlog.DebugLogger, lc fx.Lifecycle) 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				logger.Logger.Info().Str("address", cfg.Address).Msg("http server started")
+				logger.Logger.Info().Ctx(context.Background()).Str("address", cfg.Address).Msg("http server started")
 				if err := srv.Start(cfg.Address); err != nil && err != http.ErrServerClosed {
 					logger.Logger.Error().Err(err).Msg("failed to start http server")
 				}
@@ -70,7 +70,7 @@ func ProvideHTTPServer(c config.Cfg, logger *xlog.DebugLogger, lc fx.Lifecycle) 
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			defer logger.Logger.Info().Str("address", cfg.Address).Msg("http server stopped")
+			defer logger.Logger.Info().Ctx(context.Background()).Str("address", cfg.Address).Msg("http server stopped")
 			return srv.Shutdown(ctx)
 		},
 	})

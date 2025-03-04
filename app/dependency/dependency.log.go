@@ -11,6 +11,8 @@ import (
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
+	"github.com/rs/zerolog"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
 )
 
 var (
@@ -42,7 +44,7 @@ func RotateLog() {
 	}
 }
 
-func ProvideDebugLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog.DebugLogger {
+func ProvideDebugLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider) *xlog.DebugLogger {
 
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "debug")
@@ -66,9 +68,16 @@ func ProvideDebugLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog
 
 	debugLog.Logger = xlog.NewZeroLog(
 		// # options
-		xlog.SetLogOtelDisabled(cfg.Otel.Disabled),
-		xlog.SetLogOtelLevel(cfg.Otel.Level),
-		xlog.SetLogOtelOutput(o),
+		xlog.SetLogHook(
+			xlog.NewOtelHook(
+				fmt.Sprintf("%s/%s", c.App.Project, s.Name),
+				xlog.WithLogEnabled(c.Otel.Logs),
+				xlog.WithLogWriterDisabled(cfg.Otel.Disabled),
+				xlog.WithLevel(zerolog.Level(cfg.Otel.Level)),
+				xlog.WithLoggerProvider(lp),
+				xlog.WithVersion("1.0.0"),
+			),
+		),
 
 		xlog.SetLogConsoleDisabled(cfg.Console.Disabled),
 		xlog.SetLogConsoleLevel(cfg.Console.Level),
@@ -90,7 +99,7 @@ func ProvideDebugLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog
 	return &debugLog
 }
 
-func ProvideIoLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog.IOLogger {
+func ProvideIoLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider) *xlog.IOLogger {
 
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "io")
@@ -114,9 +123,16 @@ func ProvideIoLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog.IO
 
 	ioLog.Logger = xlog.NewZeroLog(
 		// # options
-		xlog.SetLogOtelDisabled(cfg.Otel.Disabled),
-		xlog.SetLogOtelLevel(cfg.Otel.Level),
-		xlog.SetLogOtelOutput(o),
+		xlog.SetLogHook(
+			xlog.NewOtelHook(
+				fmt.Sprintf("%s/%s", c.App.Project, s.Name),
+				xlog.WithLogEnabled(c.Otel.Logs),
+				xlog.WithLogWriterDisabled(cfg.Otel.Disabled),
+				xlog.WithLevel(zerolog.Level(cfg.Otel.Level)),
+				xlog.WithLoggerProvider(lp),
+				xlog.WithVersion("1.0.0"),
+			),
+		),
 
 		xlog.SetLogConsoleDisabled(cfg.Console.Disabled),
 		xlog.SetLogConsoleLevel(cfg.Console.Level),
@@ -138,7 +154,7 @@ func ProvideIoLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog.IO
 	return &ioLog
 }
 
-func ProvideTrxLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog.TrxLogger {
+func ProvideTrxLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider) *xlog.TrxLogger {
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "trx")
 	basePath = strings.Join([]string{basePath, "{trx.client}"}, "/")
@@ -169,9 +185,16 @@ func ProvideTrxLogger(c config.Cfg, s config.Server, o *xlog.OtelLogger) *xlog.T
 			&logFileRotation,
 
 			// # options
-			xlog.SetLogOtelDisabled(cfg.Otel.Disabled),
-			xlog.SetLogOtelLevel(cfg.Otel.Level),
-			xlog.SetLogOtelOutput(o),
+			xlog.SetLogHook(
+				xlog.NewOtelHook(
+					fmt.Sprintf("%s/%s", c.App.Project, s.Name),
+					xlog.WithLogEnabled(c.Otel.Logs),
+					xlog.WithLogWriterDisabled(cfg.Otel.Disabled),
+					xlog.WithLevel(zerolog.Level(cfg.Otel.Level)),
+					xlog.WithLoggerProvider(lp),
+					xlog.WithVersion("1.0.0"),
+				),
+			),
 
 			xlog.SetLogConsoleDisabled(cfg.Console.Disabled),
 			xlog.SetLogConsoleLevel(cfg.Console.Level),

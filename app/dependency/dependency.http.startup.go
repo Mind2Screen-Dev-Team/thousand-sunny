@@ -74,7 +74,7 @@ func InvokeHttpServer(p InvokeHttpServerParam) {
 
 	p.Echo.GET("/test/db", func(c echo.Context) error {
 		var (
-			ctx, span = xtracer.Start(c.Request().Context(), "test.db.connection")
+			ctx, span = xtracer.Start(p.Tracer, c.Request().Context(), "test.db.connection")
 		)
 		defer span.End()
 

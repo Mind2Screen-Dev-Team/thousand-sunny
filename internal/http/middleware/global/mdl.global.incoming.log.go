@@ -97,7 +97,7 @@ func (in IncomingLog) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 				})
 			}
 
-			go in._IncomingLogging(c, rCopy, ww, &rw, reqTime, panicked, recorverErr, parsedStacks)
+			in._IncomingLogging(c, rCopy, ww, &rw, reqTime, panicked, recorverErr, parsedStacks)
 		}()
 
 		return nil
@@ -120,7 +120,7 @@ func (in IncomingLog) _IncomingLogging(
 	stacks []xpanic.Stack,
 ) {
 	var (
-		ctx = r.Context()
+		// ctx = r.Context()
 
 		bw bytes.Buffer
 		rw bytes.Buffer
@@ -221,10 +221,10 @@ func (in IncomingLog) _IncomingLogging(
 		}
 	}
 
-	in._Notify(ctx, &ioLogCfg, m)
+	go in._Notify(context.Background(), ioLogCfg, m)
 }
 
-func (in *IncomingLog) _Notify(ctx context.Context, ioLogCfg *config.LogType, m map[string]any) {
+func (in *IncomingLog) _Notify(ctx context.Context, ioLogCfg config.LogType, m map[string]any) {
 	var (
 		b, _      = json.Marshal(m)
 		name      = xasynq.BuildWorkerRouteName(in.cfg.App.Env, "notify:incoming:log")

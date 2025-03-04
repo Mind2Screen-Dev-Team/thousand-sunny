@@ -65,6 +65,7 @@ require (
 	github.com/ggicci/httpin v0.19.0
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/guregu/null/v5 v5.0.0
 	github.com/hibiken/asynq v0.25.1
 	github.com/hibiken/asynqmon v0.7.2
 	github.com/labstack/echo/v4 v4.13.3
