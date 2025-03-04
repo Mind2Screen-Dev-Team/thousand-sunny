@@ -43,7 +43,7 @@ func (t *PgxLogger) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pg
 		"query_args", data.Args,
 		"query_start_time", n,
 	)
-	t.Log.Info(ctx, "start executing query", fields...)
+	t.Log.Debug(ctx, "start executing query", fields...)
 
 	ctx = context.WithValue(ctx, queryStartTimeKey{}, n)
 	ctx = context.WithValue(ctx, querySQLDataKey{}, data)
@@ -86,7 +86,7 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 			"query_duration", FormatDuration(queryDurr),
 			"query_duration_ns", queryDurr.Nanoseconds(),
 		)
-		t.Log.Error(ctx, "executing query is failed", fields...)
+		t.Log.Debug(ctx, "executing query is failed", fields...)
 		return
 	}
 
@@ -111,7 +111,7 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 		"query_duration", FormatDuration(queryDurr),
 		"query_duration_ns", queryDurr.Nanoseconds(),
 	)
-	t.Log.Info(ctx, "executing query is success", fields...)
+	t.Log.Debug(ctx, "executing query is success", fields...)
 }
 
 // getQueryType determines the type of SQL command from CommandTag.
