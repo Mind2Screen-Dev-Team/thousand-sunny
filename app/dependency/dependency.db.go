@@ -12,7 +12,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 )
 
-func ProvidePostgres(c config.Cfg, s config.Server, debug *xlog.DebugLogger, lc fx.Lifecycle) (*pgxpool.Pool, error) {
+func ProvidePostgres(c config.Cfg, s config.Server, d *xlog.DebugLogger, lc fx.Lifecycle) (*pgxpool.Pool, error) {
 	var (
 		cfg = c.DB["postgres"]
 		ctx = context.Background()
@@ -48,7 +48,7 @@ func ProvidePostgres(c config.Cfg, s config.Server, debug *xlog.DebugLogger, lc 
 	poolCfg.MaxConns = int32(cfg.Options.MaxOpenConnection)
 	poolCfg.MinConns = int32(cfg.Options.MaxIdleConnection)
 	poolCfg.MaxConnLifetime = time.Duration(cfg.Options.MaxConnectionLifetime) * time.Second
-	poolCfg.ConnConfig.Tracer = &xlog.PgxLogger{Log: xlog.NewLogger(debug.Logger)}
+	poolCfg.ConnConfig.Tracer = &xlog.PgxLogger{Log: xlog.NewLogger(d.Logger)}
 
 	db, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
