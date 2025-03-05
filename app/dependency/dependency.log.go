@@ -7,12 +7,12 @@ import (
 	"path"
 	"strings"
 
-	"gopkg.in/natefinch/lumberjack.v2"
-
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
+
 	"github.com/rs/zerolog"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var (

@@ -6,17 +6,18 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/gen/repo"
-	http_middleware "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware"
-	http_router "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/router"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
+
+	http_middleware "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware"
+	http_router "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/router"
 )
 
 type InvokeHttpServerParam struct {

@@ -128,6 +128,7 @@ func NewOtelTracer(ctx context.Context, cfg Config, res *sdkresource.Resource, c
 			attribute.String("server_name", cfg.ServerName),
 			attribute.String("server_addr", cfg.ServerAddress),
 		),
+		trace.WithInstrumentationVersion("1.0.0"),
 	)
 
 	// Shutdown will flush any remaining spans and shut down the exporter.
@@ -163,6 +164,7 @@ func NewOtelMeter(ctx context.Context, cfg Config, res *sdkresource.Resource, co
 			attribute.String("server_name", cfg.ServerName),
 			attribute.String("server_addr", cfg.ServerAddress),
 		),
+		metric.WithInstrumentationVersion("1.0.0"),
 	)
 
 	return meter, meterShutdownFn, nil

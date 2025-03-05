@@ -111,7 +111,7 @@ Here's a quick look at what's done and what's still in progress:
 - 📄 **Logging**: Integrated logging for better observability.
 - 📑 **Makefile Runner**: Simple command runners for building and testing.
 - 🐳 **Docker Integration**: Containerize the application.
-- 🌐 **Open-Telemetry**: Add Tracer and Metric Configuration.
+- 🌐 **Open-Telemetry**: Add Tracer, Metric and Logs Configuration.
 
 ## 📦 Installation and Setup
 
