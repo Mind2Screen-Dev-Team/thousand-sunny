@@ -25,5 +25,5 @@ type (
 )
 
 func NoopSingleLogger() SingleLogger {
-	return SingleLogger{Logger: nopZeroLogger}
+	return SingleLogger{Logger: NoopZeroLogger}
 }

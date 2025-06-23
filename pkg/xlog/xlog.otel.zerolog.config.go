@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"slices"
 	"strconv"
 	"time"
 
@@ -12,6 +13,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/global"
+)
+
+const (
+	IGNORE_KEY = "ignore.key"
 )
 
 type config struct {
@@ -23,6 +28,7 @@ type config struct {
 	schemaURL         string
 	serverName        string
 	serverAddr        string
+	IgnoreKeys        map[string][]string
 }
 
 func newConfig(options []Option) config {
@@ -148,11 +154,34 @@ func WithLoggerProvider(provider log.LoggerProvider) Option {
 	})
 }
 
-// Converts map[string]any to []log.KeyValue
-func mapToKeyValues(input map[string]any) (attrs []log.KeyValue) {
-	result := make([]log.KeyValue, 0, len(input))
+func WithListIgnoreKeys(m map[string][]string) Option {
+	return optFunc(func(c config) config {
+		c.IgnoreKeys = m
+		return c
+	})
+}
 
+// Converts map[string]any to []log.KeyValue
+func mapToKeyValues(input map[string]any, mapIgnoreKeys map[string][]string) (attrs []log.KeyValue) {
+	var (
+		group  string
+		result = make([]log.KeyValue, 0, len(input))
+	)
+
+	for k, v := range input {
+		if k == IGNORE_KEY {
+			group, _ = v.(string)
+			break
+		}
+	}
+
+	keys := mapIgnoreKeys[group]
+	keys = append(keys, IGNORE_KEY)
 	for key, value := range input {
+		if slices.Contains(keys, key) {
+			continue
+		}
+
 		result = append(result, log.KeyValue{
 			Key:   key,
 			Value: convertValue(value),

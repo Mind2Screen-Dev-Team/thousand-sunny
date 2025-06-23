@@ -127,7 +127,7 @@ func (a *AsynqZeroLogger) Debug(args ...any) {
 		msg = fmt.Sprintf("%v", args[0])
 	}
 
-	a.logger.Debug().Msgf(msg, args[1:]...)
+	a.logger.Debug().Fields(args[1:]).Msg(msg)
 }
 
 // Error implements asynq.Logger.
@@ -137,7 +137,7 @@ func (a *AsynqZeroLogger) Error(args ...any) {
 		msg = fmt.Sprintf("%v", args[0])
 	}
 
-	a.logger.Error().Msgf(msg, args[1:]...)
+	a.logger.Error().Fields(args[1:]).Msg(msg)
 }
 
 // Fatal implements asynq.Logger.
@@ -147,7 +147,7 @@ func (a *AsynqZeroLogger) Fatal(args ...any) {
 		msg = fmt.Sprintf("%v", args[0])
 	}
 
-	a.logger.Fatal().Msgf(msg, args[1:]...)
+	a.logger.Fatal().Fields(args[1:]).Msg(msg)
 }
 
 // Info implements asynq.Logger.
@@ -157,7 +157,7 @@ func (a *AsynqZeroLogger) Info(args ...any) {
 		msg = fmt.Sprintf("%v", args[0])
 	}
 
-	a.logger.Info().Msgf(msg, args[1:]...)
+	a.logger.Info().Fields(args[1:]).Msg(msg)
 }
 
 // Warn implements asynq.Logger.
@@ -167,5 +167,5 @@ func (a *AsynqZeroLogger) Warn(args ...any) {
 		msg = fmt.Sprintf("%v", args[0])
 	}
 
-	a.logger.Warn().Msgf(msg, args[1:]...)
+	a.logger.Warn().Fields(args[1:]).Msg(msg)
 }

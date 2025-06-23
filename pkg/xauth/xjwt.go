@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xrsa"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xsecurity"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -35,7 +35,7 @@ type _JWTManager struct {
 
 // NewJWTManager initializes a new _JWTManager
 func NewJWTManager(privateKeyPath, issuer string) (*_JWTManager, error) {
-	privateKey, err := xrsa.LoadPrivateKey(privateKeyPath)
+	privateKey, err := xsecurity.LoadPrivateKey(privateKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load jwt private key: %w", err)
 	}

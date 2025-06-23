@@ -21,18 +21,26 @@ const (
 )
 
 const (
-	XLOG_TRACE_ID_KEY string = "XLOG_TRACE_ID_KEY"
-	XLOG_KEY          string = "XLOG_KEY"
+	XLOG_TRACE_ID_KEY = "XLOG_TRACE_ID_KEY"
+	XLOG_REQ_BODY_KEY = "XLOG_REQ_BODY_KEY"
+	XLOG_KEY          = "XLOG_KEY"
 )
 
 var (
-	nopZeroLogger = zerolog.Nop()
+	NoopZeroLogger = zerolog.Nop()
+	NoopLogger     = NewLogger(NoopZeroLogger)
 )
+
+// SkipLogResponse sets a flag in the Echo context to indicate that
+// the response should not be logged, either to the console or to a file.
+func SkipLogResponse(c echo.Context) {
+	c.Set("skip_log_response", true)
+}
 
 func FromEcho(c echo.Context) Logger {
 	v, ok := c.Get(XLOG_KEY).(zerolog.Logger)
 	if !ok {
-		v = nopZeroLogger
+		v = NoopZeroLogger
 	}
 
 	return NewLogger(

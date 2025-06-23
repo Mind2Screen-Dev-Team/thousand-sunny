@@ -21,7 +21,7 @@ type ResponseSTD[D any, E any] struct {
 	Msg     string `json:"msg"`
 	Data    D      `json:"data"`
 	Err     E      `json:"err"`
-	TraceID any    `json:"reqTraceId,omitempty"`
+	TraceID any    `json:"traceId,omitempty"`
 }
 
 func (r *ResponseSTD[D, E]) SetMsg(msg string) *ResponseSTD[D, E] {
@@ -86,6 +86,11 @@ func (r *ResponseSTD[D, E]) DelHeader(key string) *ResponseSTD[D, E] {
 func (r *ResponseSTD[D, E]) RestJSON() {
 	r.responseWriter.Header().Add("Accept", "application/json")
 	r.responseWriter.Header().Add("Content-Type", "application/json")
+	r.responseWriter.WriteHeader(r.statusCode)
+	r.JSON(r.responseWriter)
+}
+
+func (r *ResponseSTD[D, E]) RestRawJSON() {
 	r.responseWriter.WriteHeader(r.statusCode)
 	r.JSON(r.responseWriter)
 }

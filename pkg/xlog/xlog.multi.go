@@ -93,7 +93,7 @@ func (c *MultiLogger) LogBy(key string) zerolog.Logger {
 		return logger
 	}
 
-	return nopZeroLogger
+	return NoopZeroLogger
 }
 
 func (c *MultiLogger) RotateBy(key string) error {

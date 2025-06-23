@@ -20,6 +20,7 @@ type OtelHook struct {
 	logWriterDisabled null.Bool
 	logEnabled        null.Bool
 	logger            log.Logger
+	IgnoreKeys        map[string][]string
 }
 
 // NewHook returns a new [Hook] to be used as a [Zerolog.Hook].
@@ -27,11 +28,16 @@ type OtelHook struct {
 // global LoggerProvider.
 func NewOtelHook(name string, options ...Option) *OtelHook {
 	cfg := newConfig(options)
+	if cfg.IgnoreKeys == nil {
+		cfg.IgnoreKeys = make(map[string][]string)
+	}
+
 	return &OtelHook{
 		logger:            cfg.logger(name),
 		lvl:               cfg.level,
 		logEnabled:        cfg.logEnabled,
 		logWriterDisabled: cfg.logWriterDisabled,
+		IgnoreKeys:        cfg.IgnoreKeys,
 	}
 }
 
@@ -72,7 +78,7 @@ func (h OtelHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
 	data["message"] = msg
 
 	var (
-		attrs     = mapToKeyValues(data)
+		attrs     = mapToKeyValues(data, h.IgnoreKeys)
 		buff, _   = json.Marshal(data)
 		_time     = gjson.GetBytes(buff, "time").String()
 		_vtime, _ = time.Parse(time.RFC3339Nano, _time)

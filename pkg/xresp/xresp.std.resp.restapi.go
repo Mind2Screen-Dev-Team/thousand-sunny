@@ -57,6 +57,7 @@ type RestResponseSTD[D any, E any] interface {
 	//	// Default httpStatusCode is 200
 	//	responseWriter.WriteHeader(httpStatusCode)
 	JSON() error
+	RawJSON() error
 
 	// A General Purpose JSON Response Encoder to text
 	JSONText() (string, error)
@@ -148,6 +149,16 @@ func (r *restResponseSTD[D, E]) JSON() error {
 	}
 
 	r.onceFn.Do(r.ResponseSTD.RestJSON)
+
+	return nil
+}
+
+func (r *restResponseSTD[D, E]) RawJSON() error {
+	if r.statusCode == 0 {
+		r.statusCode = http.StatusOK // OK as Default
+	}
+
+	r.onceFn.Do(r.ResponseSTD.RestRawJSON)
 
 	return nil
 }

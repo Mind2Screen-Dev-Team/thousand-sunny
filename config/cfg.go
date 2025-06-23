@@ -37,6 +37,7 @@ type Cfg struct {
 	Cache    map[string]Cache    `yaml:"cache"`
 	Log      Log                 `yaml:"log"`
 	Provider map[string]Provider `yaml:"provider"`
+	Security Security            `yaml:"security"`
 }
 
 type App struct {
@@ -46,15 +47,24 @@ type App struct {
 }
 
 type Otel struct {
-	Tracer bool       `yaml:"tracer"`
-	Metric bool       `yaml:"metric"`
-	Logs   bool       `yaml:"logs"`
-	Server OtelServer `yaml:"server"`
+	Tracer  bool        `yaml:"tracer"`
+	Metric  bool        `yaml:"metric"`
+	Logs    bool        `yaml:"logs"`
+	Server  OtelServer  `yaml:"server"`
+	Options OtelOptions `yaml:"options"`
 }
 
 type OtelServer struct {
 	GrpcHost string `yaml:"grpc.host"`
 	GrpcPort int    `yaml:"grpc.port"`
+}
+
+type OtelOptions struct {
+	Logs OtelLogOptions `yaml:"logs"`
+}
+
+type OtelLogOptions struct {
+	IgnoreAttrKey map[string][]string `yaml:"ignore.attr.keys"` // key map is group name
 }
 
 type Server struct {
@@ -169,7 +179,12 @@ type LogRotation struct {
 	LocalTime bool   `yaml:"local.time"`
 	Compress  bool   `yaml:"compress"`
 }
+
+type Security struct {
+	AESKey map[string]string `yaml:"aes.key"`
+}
+
 type Provider struct {
-	BaseURL    string            `yaml:"base.url"`
-	Additional map[string]string `yaml:"additional"`
+	BaseUrl string            `yaml:"base.url"`
+	Options map[string]string `yaml:"options"`
 }

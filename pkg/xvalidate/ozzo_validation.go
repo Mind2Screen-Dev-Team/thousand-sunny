@@ -28,12 +28,25 @@ func WrapperValidation(err error) error {
 
 	var errs Errors
 	if es, ok := err.(validation.Errors); ok {
-		jsonBytes, _ := es.MarshalJSON()
-		json.Unmarshal(jsonBytes, &errs)
+		errs = make(Errors)
+		for field, validationErr := range es {
+			errs[field] = UnwrapErrorJSON(validationErr.Error())
+		}
+
 		return errs
 	}
 
 	return nil
+}
+
+func UnwrapErrorJSON(errStr string) any {
+	var result map[string]any
+
+	if err := json.Unmarshal([]byte(errStr), &result); err == nil {
+		return result
+	}
+
+	return errStr
 }
 
 func IsErrors(err error) (errs Errors, ok bool) {
