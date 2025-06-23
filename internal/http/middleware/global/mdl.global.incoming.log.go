@@ -3,6 +3,7 @@ package http_middleware_global
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"runtime/debug"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
@@ -18,6 +20,9 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhttp"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xpanic"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
+
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/hibiken/asynq"
@@ -30,9 +35,10 @@ import (
 
 // const DefaultMultipartMaxMemory = 100 << 20
 
-func ProvideIncomingLog(cfg config.Cfg, iolog *xlog.IOLogger, debuglog *xlog.DebugLogger, async *xasynq.Asynq) IncomingLog {
+func ProvideIncomingLog(cfg config.Cfg, tracer trace.Tracer, iolog *xlog.IOLogger, debuglog *xlog.DebugLogger, async *xasynq.Asynq) IncomingLog {
 	return IncomingLog{
 		cfg:      cfg,
+		tracer:   tracer,
 		async:    async,
 		iolog:    xlog.NewLogger(iolog.Logger),
 		debuglog: xlog.NewLogger(debuglog.Logger),
@@ -41,6 +47,7 @@ func ProvideIncomingLog(cfg config.Cfg, iolog *xlog.IOLogger, debuglog *xlog.Deb
 
 type IncomingLog struct {
 	cfg      config.Cfg
+	tracer   trace.Tracer
 	async    *xasynq.Asynq
 	iolog    xlog.Logger
 	debuglog xlog.Logger
@@ -50,10 +57,16 @@ func (IncomingLog) Name() string {
 	return "incoming.log"
 }
 
+func (IncomingLog) Order() int {
+	return 3
+}
+
 func (in IncomingLog) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return echo.HandlerFunc(func(c echo.Context) error {
 		var (
 			req     = c.Request()
+			ctx     = req.Context()
+			wg      = sync.WaitGroup{}
 			reqBody = xhttp.CopyRequestBody(req)
 			reqTime = time.Now().Format(time.RFC3339Nano)
 			rw      = bytes.Buffer{}
@@ -61,12 +74,19 @@ func (in IncomingLog) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 			ww      = chi_middleware.NewWrapResponseWriter(w, req.ProtoMajor)
 		)
 
+		ctx, span := xtracer.Start(in.tracer, ctx, "incoming log")
+
+		// Set Request Body
+		if len(reqBody) > 0 {
+			c.Set(xlog.XLOG_REQ_BODY_KEY, string(reqBody))
+		}
+
 		ww.Tee(&rw)
-		c.SetRequest(req)
+		c.SetRequest(req.WithContext(ctx))
 		c.Response().Writer = ww
 
 		if err := next(c); err != nil {
-			return nil
+			return err
 		}
 
 		req.Body = io.NopCloser(bytes.NewBuffer(reqBody))
@@ -75,37 +95,53 @@ func (in IncomingLog) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 			rCopy = xhttp.DeepCopyRequest(req)
 		)
 
+		// Add BEFORE defer/spawned goroutine to prevent early Wait() for span.End()
+		wg.Add(1)
+
 		defer func() {
 			var (
 				panicked     bool
-				recorverErr  any
+				recoverErr   any
 				parsedStacks = make([]xpanic.Stack, 0)
 			)
 
 			if r := recover(); r != nil && r != http.ErrAbortHandler {
 				// assign
 				panicked = true
-				recorverErr = r
+				recoverErr = r
 
 				stacks := debug.Stack()
 				parsedStacks = xpanic.ParseStack(bytes.NewReader(stacks))
 
-				c.JSON(http.StatusInternalServerError, map[string]any{
-					"code": http.StatusInternalServerError,
-					"msg":  http.StatusText(http.StatusInternalServerError),
-					"data": nil,
-				})
+				// Only try writing error response if not already written
+				if !c.Response().Committed {
+					c.JSON(http.StatusInternalServerError, map[string]any{
+						"code": http.StatusInternalServerError,
+						"msg":  http.StatusText(http.StatusInternalServerError),
+						"data": nil,
+					})
+				}
 			}
 
-			in._IncomingLogging(c, rCopy, ww, &rw, reqTime, panicked, recorverErr, parsedStacks)
+			go func() {
+				defer wg.Done()
+				in.incomingLogging(ctx, c, rCopy, ww, &rw, reqTime, panicked, recoverErr, parsedStacks)
+			}()
+		}()
+
+		// Wait for logging and end span in a blocking goroutine
+		go func() {
+			wg.Wait()
+			span.End()
 		}()
 
 		return nil
 	})
 }
 
-func (in IncomingLog) _IncomingLogging(
+func (in IncomingLog) incomingLogging(
 	// general
+	ctx context.Context,
 	c echo.Context,
 
 	// general params
@@ -119,20 +155,24 @@ func (in IncomingLog) _IncomingLogging(
 	recorverErr any,
 	stacks []xpanic.Stack,
 ) {
-	var (
-		// ctx = r.Context()
+	var skipRes bool
+	if v, ok := c.Get("skip_log_response").(bool); ok {
+		skipRes = v
+	}
 
-		bw bytes.Buffer
-		rw bytes.Buffer
+	var (
+		isGzip = strings.Contains(c.Request().Header.Get(echo.HeaderAcceptEncoding), "gzip")
+		bw     bytes.Buffer
+		rw     bytes.Buffer
 
 		min            = min.New()
 		reqRawBytes, _ = io.ReadAll(r.Body)
 		reqBody        = io.NopCloser(bytes.NewReader(reqRawBytes))
 		resMim         = mimetype.Detect(resbody.Bytes())
 
-		parsedBody, contentSize = in._ParseRequest(r, reqBody)
-		resFilename             = in._GetFilenameFromHeader(ww.Header().Get("Content-Disposition"))
-		_                       = in._MinifyResponse(min, resMim, &rw, resbody, resFilename)
+		parsedBody, contentSize = in.parseRequest(r, reqBody)
+		resFilename             = in.getFilenameFromHeader(ww.Header().Get("Content-Disposition"))
+		_                       = in.minifyResponse(skipRes, isGzip, min, resMim, &rw, resbody, resFilename)
 	)
 
 	defer func() {
@@ -165,7 +205,11 @@ func (in IncomingLog) _IncomingLogging(
 	}
 
 	var (
-		fields = []any{
+		reqTime, _ = time.Parse(time.RFC3339Nano, reqtime)
+		fields     = []any{
+			// set to ignore list keys by group key name
+			xlog.IGNORE_KEY, "incoming.log",
+
 			// request
 			"req_trace_id", c.Get(xlog.XLOG_TRACE_ID_KEY),
 			"req_time", reqtime,
@@ -185,6 +229,7 @@ func (in IncomingLog) _IncomingLogging(
 			"res_status_code", ww.Status(),
 			"res_body", rw.String(),
 			"res_bytes_out", ww.BytesWritten(),
+			"res_latency", time.Since(reqTime).String(),
 		}
 	)
 
@@ -197,7 +242,7 @@ func (in IncomingLog) _IncomingLogging(
 		fields = append(fields, "panic_stack", stacks)
 	}
 
-	in.iolog.Info(c.Request().Context(), "incoming request", fields...)
+	in.iolog.Info(ctx, "incoming request", fields...)
 
 	// # Notify Process Incoming Log
 	ioLogCfg, ok := in.cfg.Log.LogType["io"]
@@ -206,29 +251,36 @@ func (in IncomingLog) _IncomingLogging(
 	}
 
 	m := make(map[string]any)
-	for i := 0; i < len(fields); i++ {
-		for i := 0; i < len(fields); i += 2 {
-			if i+1 < len(fields) {
-				key, ok := fields[i].(string)
-				if ok {
-					if slices.Contains([]string{"err", "error"}, key) {
-						m[key] = fmt.Sprintf("%+v", fields[i+1])
-						continue
-					}
-					m[key] = fields[i+1]
-				}
-			}
+	for i := 0; i < len(fields); i += 2 {
+		if isHasKV := i+1 < len(fields); !isHasKV {
+			continue
 		}
+
+		key, ok := fields[i].(string)
+		if !ok {
+			continue
+		}
+
+		val := fields[i+1]
+		if slices.Contains([]string{"err", "error"}, key) {
+			key = "err"
+			val = fmt.Sprintf("%+v", val)
+		}
+		m[key] = val
 	}
 
-	go in._Notify(context.Background(), ioLogCfg, m)
+	in.notify(ctx, ioLogCfg, m)
 }
 
-func (in *IncomingLog) _Notify(ctx context.Context, ioLogCfg config.LogType, m map[string]any) {
+func (in *IncomingLog) notify(ctx context.Context, ioLogCfg config.LogType, m map[string]any) {
 	var (
-		b, _      = json.Marshal(m)
-		name      = xasynq.BuildWorkerRouteName(in.cfg.App.Env, "notify:incoming:log")
-		task      = asynq.NewTask(name, b, asynq.Queue(name), asynq.Retention(time.Duration(ioLogCfg.Notify.Retention)*time.Second))
+		b, _ = json.Marshal(m)
+		name = xasynq.BuildWorkerRouteName(in.cfg.App.Env, "notify:incoming:log")
+	)
+
+	var (
+		retention = time.Duration(ioLogCfg.Notify.Retention)
+		task      = asynq.NewTask(name, b, asynq.Queue(name), asynq.Retention(retention*time.Second))
 		info, err = in.async.Client.Enqueue(task)
 	)
 	if err != nil {
@@ -243,7 +295,7 @@ func (in *IncomingLog) _Notify(ctx context.Context, ioLogCfg config.LogType, m m
 	}
 }
 
-func (IncomingLog) _GetFilenameFromHeader(d string) string {
+func (IncomingLog) getFilenameFromHeader(d string) string {
 	const key = "filename="
 	idx := strings.Index(d, key)
 	if idx == -1 {
@@ -252,22 +304,41 @@ func (IncomingLog) _GetFilenameFromHeader(d string) string {
 	return strings.Trim(d[idx+len(key):], "\"")
 }
 
-func (in IncomingLog) _MinifyResponse(min *min.M, mim *mimetype.MIME, w io.Writer, res *bytes.Buffer, filename string) error {
+func (in IncomingLog) minifyResponse(skipRes bool, isGzip bool, min *min.M, mim *mimetype.MIME, w io.Writer, res *bytes.Buffer, filename string) error {
+	if skipRes {
+		return nil
+	}
+
+	if isGzip {
+		var (
+			enc    = base64.NewEncoder(base64.RawURLEncoding, w)
+			_, err = res.WriteTo(enc)
+		)
+
+		defer enc.Close() // ensure flush even on early return
+
+		if err != nil && !errors.Is(err, io.EOF) {
+			return err
+		}
+
+		return nil
+	}
+
 	if mim.Is("application/json") {
 		return min_json.Minify(min, w, res, nil)
 	}
 
 	if mim.Is("text/plain") && filename == "" {
-		if _, err := res.WriteTo(w); err != nil && !errors.Is(err, io.EOF) {
+		_, err := res.WriteTo(w)
+		if err != nil && !errors.Is(err, io.EOF) {
 			return err
 		}
-		return nil
 	}
 
 	return nil
 }
 
-func (in IncomingLog) _ParseRequest(req *http.Request, r io.Reader) (any, int64) {
+func (in IncomingLog) parseRequest(req *http.Request, r io.Reader) (any, int64) {
 	var (
 		reqBody any
 		total   int64

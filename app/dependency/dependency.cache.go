@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
+	"github.com/bsm/redislock"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 )
@@ -55,4 +56,8 @@ func InvokeRedis(rdb *redis.Client) error {
 		return err
 	}
 	return nil
+}
+
+func ProvideRedisLock(c *redis.Client) *redislock.Client {
+	return redislock.New(c)
 }

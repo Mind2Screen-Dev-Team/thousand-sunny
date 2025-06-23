@@ -42,7 +42,6 @@ func InvokeAsynqSchedulerServer(p InvokeAsynqSchedulerServerParam) error {
 	}
 
 	var (
-		ctx     = context.Background()
 		env     = p.Cfg.App.Env
 		acfg, _ = p.Cfg.Server["asynq"]
 		all, _  = acfg.Additional["asynq.log.level"]
@@ -82,6 +81,7 @@ func InvokeAsynqSchedulerServer(p InvokeAsynqSchedulerServerParam) error {
 	}
 
 	var (
+		ctx    = context.Background()
 		server = asynq.NewServer(*p.RedisConnOpt, cfg)
 	)
 

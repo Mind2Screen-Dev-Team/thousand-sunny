@@ -9,6 +9,7 @@ var (
 	Cache = fx.Options(
 		fx.Module("dependency:cache",
 			fx.Provide(dependency.ProvideRedis),
+			fx.Provide(dependency.ProvideRedisLock),
 		),
 	)
 

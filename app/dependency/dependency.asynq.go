@@ -10,7 +10,6 @@ import (
 	"github.com/hibiken/asynq"
 	"github.com/hibiken/asynqmon"
 	"github.com/labstack/echo/v4"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
@@ -18,12 +17,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xecho"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
 )
-
-func ProvideAsynqServerConfig(c config.Cfg) config.Server {
-	return c.Server["asynq"]
-}
 
 func ProvideAsynqRedisConnOption(c config.Cfg) *asynq.RedisClientOpt {
 	var (
@@ -68,7 +62,11 @@ func ProvideXAsynq(c config.Cfg, opt *asynq.RedisClientOpt, log *xlog.DebugLogge
 	return xasynq.NewAsynq(*opt, logger, loglvl, loc)
 }
 
-func ProvideAsynqMonitoringServer(c config.Cfg, l *xlog.DebugLogger, tracer trace.Tracer, lc fx.Lifecycle) *echo.Echo {
+func ProvideAsynqServerName(c config.Cfg) config.Server {
+	return c.Server["asynq"]
+}
+
+func ProvideAsynqMonitoringServer(c config.Cfg, l *xlog.DebugLogger, lc fx.Lifecycle) *echo.Echo {
 	var (
 		cfg    = c.Server["asynq"]
 		logger = xlog.NewLogger(l.Logger)
@@ -83,10 +81,9 @@ func ProvideAsynqMonitoringServer(c config.Cfg, l *xlog.DebugLogger, tracer trac
 			return
 		}
 
-		ctx, span := xtracer.Start(tracer, context.Background(), "asynq.endpoint.error.handler")
-		defer span.End()
-
 		var (
+			req    = c.Request()
+			ctx    = req.Context()
 			code   = http.StatusInternalServerError
 			resp   = xresp.NewRestResponse[any, any](c)
 			he, ok = err.(*echo.HTTPError)

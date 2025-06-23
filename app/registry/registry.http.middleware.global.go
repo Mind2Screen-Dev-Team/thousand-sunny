@@ -12,6 +12,8 @@ var (
 		fx.Module("http:server:global:middleware",
 			fx.Provide(
 				middleware.ProvideAs(global_middleware.ProvideCORS),
+				middleware.ProvideAs(global_middleware.ProvideGZip),
+				middleware.ProvideAs(global_middleware.ProvideCache),
 				middleware.ProvideAs(global_middleware.ProvideTraceID),
 				middleware.ProvideAs(global_middleware.ProvideIncomingLog),
 			),

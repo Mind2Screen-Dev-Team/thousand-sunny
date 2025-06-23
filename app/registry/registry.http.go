@@ -9,7 +9,7 @@ import (
 var (
 	Http = fx.Options(
 		fx.Module("http:server",
-			fx.Provide(dependency.ProvideHTTPServerConfig),
+			fx.Provide(dependency.ProvideHTTPServerName),
 			fx.Provide(dependency.ProvideHTTPServer),
 		),
 	)

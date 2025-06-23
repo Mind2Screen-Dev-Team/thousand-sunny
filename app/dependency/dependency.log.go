@@ -11,7 +11,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 
 	"github.com/rs/zerolog"
-	sdklog "go.opentelemetry.io/otel/sdk/log"
+	otelog "go.opentelemetry.io/otel/log"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -44,7 +44,7 @@ func RotateLog() {
 	}
 }
 
-func ProvideDebugLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider) *xlog.DebugLogger {
+func ProvideDebugLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *xlog.DebugLogger {
 
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "debug")
@@ -72,6 +72,7 @@ func ProvideDebugLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider
 			xlog.NewOtelHook(
 				fmt.Sprintf("%s/%s", c.App.Project, s.Name),
 				xlog.WithLogEnabled(c.Otel.Logs),
+				xlog.WithListIgnoreKeys(c.Otel.Options.Logs.IgnoreAttrKey),
 				xlog.WithLogWriterDisabled(cfg.Otel.Disabled),
 				xlog.WithLevel(zerolog.Level(cfg.Otel.Level)),
 				xlog.WithLoggerProvider(lp),
@@ -99,7 +100,7 @@ func ProvideDebugLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider
 	return &debugLog
 }
 
-func ProvideIoLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider) *xlog.IOLogger {
+func ProvideIoLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *xlog.IOLogger {
 
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "io")
@@ -127,6 +128,7 @@ func ProvideIoLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider) *
 			xlog.NewOtelHook(
 				fmt.Sprintf("%s/%s", c.App.Project, s.Name),
 				xlog.WithLogEnabled(c.Otel.Logs),
+				xlog.WithListIgnoreKeys(c.Otel.Options.Logs.IgnoreAttrKey),
 				xlog.WithLogWriterDisabled(cfg.Otel.Disabled),
 				xlog.WithLevel(zerolog.Level(cfg.Otel.Level)),
 				xlog.WithLoggerProvider(lp),
@@ -154,7 +156,7 @@ func ProvideIoLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider) *
 	return &ioLog
 }
 
-func ProvideTrxLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider) *xlog.TrxLogger {
+func ProvideTrxLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *xlog.TrxLogger {
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "trx")
 	basePath = strings.Join([]string{basePath, "{trx.client}"}, "/")
@@ -189,6 +191,7 @@ func ProvideTrxLogger(c config.Cfg, s config.Server, lp *sdklog.LoggerProvider) 
 				xlog.NewOtelHook(
 					fmt.Sprintf("%s/%s", c.App.Project, s.Name),
 					xlog.WithLogEnabled(c.Otel.Logs),
+					xlog.WithListIgnoreKeys(c.Otel.Options.Logs.IgnoreAttrKey),
 					xlog.WithLogWriterDisabled(cfg.Otel.Disabled),
 					xlog.WithLevel(zerolog.Level(cfg.Otel.Level)),
 					xlog.WithLoggerProvider(lp),

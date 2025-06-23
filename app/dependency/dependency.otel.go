@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/global"
+	"go.opentelemetry.io/otel/log/noop"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/sdk/log"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
@@ -42,10 +45,15 @@ func ProvideOtelResource(c xtracer.Config) (*resource.Resource, error) {
 }
 
 func ProvideOtelGrpcClient(c xtracer.Config) (*xtracer.GrpcClient, error) {
+	if !(c.Tracer || c.Metric || c.Logs) {
+		return &xtracer.GrpcClient{}, nil
+	}
+
 	client, err := xtracer.NewGrpcClient(c)
 	if err != nil {
 		return nil, err
 	}
+
 	return client, nil
 }
 
@@ -59,6 +67,10 @@ type OtelParamFx struct {
 }
 
 func ProvideOtelTracer(p OtelParamFx) (trace.Tracer, error) {
+	if !p.Cfg.Tracer {
+		return otel.Tracer(p.Cfg.ModuleName), nil
+	}
+
 	tracer, shutdownFn, err := xtracer.NewOtelTracer(context.Background(), p.Cfg, p.Resource, p.GrpcClient.ClientConn)
 	if err != nil {
 		return nil, err
@@ -70,6 +82,10 @@ func ProvideOtelTracer(p OtelParamFx) (trace.Tracer, error) {
 }
 
 func ProvideOtelMetric(p OtelParamFx) (metric.Meter, error) {
+	if !p.Cfg.Metric {
+		return otel.Meter(p.Cfg.ModuleName), nil
+	}
+
 	meter, shutdownFn, err := xtracer.NewOtelMeter(
 		context.Background(),
 		p.Cfg,
@@ -85,9 +101,9 @@ func ProvideOtelMetric(p OtelParamFx) (metric.Meter, error) {
 	return meter, nil
 }
 
-func ProvideOtelLog(p OtelParamFx) (*log.LoggerProvider, error) {
+func ProvideOtelLog(p OtelParamFx) (log.LoggerProvider, error) {
 	if !p.Cfg.Logs {
-		return nil, nil
+		return noop.NewLoggerProvider(), nil
 	}
 
 	logExporter, err := otlploggrpc.New(
@@ -95,19 +111,19 @@ func ProvideOtelLog(p OtelParamFx) (*log.LoggerProvider, error) {
 		otlploggrpc.WithGRPCConn(p.GrpcClient.ClientConn),
 	)
 	if err != nil {
-		return nil, err
+		return noop.NewLoggerProvider(), err
 	}
 
 	var (
-		logBatchProcessor = log.NewBatchProcessor(
+		logBatchProcessor = sdklog.NewBatchProcessor(
 			logExporter,
-			log.WithExportMaxBatchSize(512),
-			log.WithExportInterval(2*time.Second),
+			sdklog.WithExportMaxBatchSize(512),
+			sdklog.WithExportInterval(2*time.Second),
 		)
 
-		logProvider = log.NewLoggerProvider(
-			log.WithResource(p.Resource),
-			log.WithProcessor(logBatchProcessor),
+		logProvider = sdklog.NewLoggerProvider(
+			sdklog.WithResource(p.Resource),
+			sdklog.WithProcessor(logBatchProcessor),
 		)
 	)
 

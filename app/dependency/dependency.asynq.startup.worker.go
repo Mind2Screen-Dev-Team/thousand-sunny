@@ -37,7 +37,6 @@ func InvokeAsynqWorkerServer(p InvokeAsynqWorkerServerParam) error {
 	}
 
 	var (
-		ctx     = context.Background()
 		env     = p.Cfg.App.Env
 		acfg, _ = p.Cfg.Server["asynq"]
 		all, _  = acfg.Additional["asynq.log.level"]
@@ -77,6 +76,7 @@ func InvokeAsynqWorkerServer(p InvokeAsynqWorkerServerParam) error {
 	}
 
 	var (
+		ctx    = context.Background()
 		server = asynq.NewServer(*p.RedisConnOpt, cfg)
 	)
 
@@ -91,6 +91,7 @@ func InvokeAsynqWorkerServer(p InvokeAsynqWorkerServerParam) error {
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
+
 			server.Shutdown()
 			logger.Info(ctx, "asynq worker server stopped")
 

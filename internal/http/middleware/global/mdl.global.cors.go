@@ -15,6 +15,10 @@ func (CORS) Name() string {
 	return "cors"
 }
 
+func (CORS) Order() int {
+	return 1
+}
+
 func (CORS) Serve(next echo.HandlerFunc) echo.HandlerFunc {
 	return middleware.CORS()(next)
 }
