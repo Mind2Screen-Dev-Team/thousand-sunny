@@ -3,12 +3,16 @@ app:
   project: "example-project"
   timezone: "Asia/Jakarta"
 otel:
-  tracer: true
-  metric: true
-  logs: true
+  tracer: false
+  metric: false
+  logs: false
   server:
     grpc.host: "localhost"
     grpc.port: 4317
+  options:
+    logs:
+      ignore.attr.keys:
+        incoming.log: ["req_user_agent", "req_header", "req_body_raw", "req_body_parsed", "res_header", "res_body", "panic_recover_err", "panic_stack"]
 server:
   asynq:
     name: "asynq-svc"
@@ -41,9 +45,9 @@ log:
   base.path: "./storage/logs/{server.name}/{log.type}"
   trx.client:
     # The sparator ':' mean 'merchant/x' it will be directory. I suggest you to use easy and exact naming with no-space for removing complexity.
-    - "client:x"
+    - "merchant:x"
     - "merchant:y"
-    - "supplier:z"
+    - "merchant:z"
   log.type:
     debug: # For logging debug app, for feed `:log.type`
       disabled: false
@@ -52,7 +56,7 @@ log:
         level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
       console:
         disabled: false
-        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+        level: -1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
       file:
         disabled: false
         level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
@@ -135,9 +139,12 @@ db:
       max.connection.lifetime: 180
       max.open.connection: 20
       max.idle.connection: 10
+security:
+  aes.key: # Generate Key Using: openssl rand -base64 32
+    default: "vWEMYULu9XLhyGpGOrvhZ6cyi6FxYaczpGAZGQLwOZE="
 provider:
   example.one:
     base.url: "https://api.example.com/api/v1"
-    additional:
+    options:
       client.id: "example.one.id"
       client.secret: "example.one.secret"

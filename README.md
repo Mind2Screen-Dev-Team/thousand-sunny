@@ -31,6 +31,10 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 ├── gen
 │   └── repo        # Auto-generated repository code for data access.
 ├── internal        # Internal packages for application-specific functionality.
+│   ├── schema      # Collections of schema.
+│   │   └── ...     # list of schema.
+│   ├── helper      # Collections of short function for helpers.
+│   │   └── ...     # list of helpers
 │   ├── asynq       # Handles asynchronous task queues.
 │   │   ├── router      # Base Asynq routing configuration (No need to add Something here).
 │   │   ├── worker      # Specific handlers for processing workers.
@@ -80,12 +84,14 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │   ├── xmail        # Email helpers and utilities.
 │   ├── xpanic       # Panic recovery utilities for error handling.
 │   ├── xresp        # Response utilities for standardizing HTTP responses.
-│   ├── xrsa         # RSA encryption and decryption utilities.
+│   ├── xsecurity    # Security for encryption and decryption utilities.
 │   ├── xtracer      # Open-Telemtry Pkg Helper.
 │   └── xvalidate    # Validation Pkg for helper mapping / defind error.
 └── storage         # Storage for static files and logs.
     ├── assets      # Static assets like images or documents.
     │   └── ...     # Add other assets here.
+    ├── cron        # Cron configuration.
+    │   └── ...     # Add other cron configuration here.
     ├── template    # Template files.
     │   └── ...     # Add other template here.
     └── logs        # Application log files.
@@ -99,7 +105,6 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 
 Here's a quick look at what's done and what's still in progress:
 
-### Done ✅
 - 🗃️ **Base Structural Directory**: Well-organized code structure to get you started quickly.
 - 🔧 **Setup Uber Fx**: Uber Dependency injection tool setup.
 - 🔧 **Setup Uber Config**: Uber Configuration tool setup.
@@ -127,12 +132,9 @@ cd thousand-sunny
 # Install dependencies and set up the project
 make setup
 
-# Copy example config and fill the value of configuration
-# The `.env` file for deployment time and sql db migrations:
-#   + NOTE: There is a some key no need to fill a value, that is:
-#     - SERVICE_CORE_VERSION
-#     - SERVICE_ASYNQ_VERSION
-cp .example.env .env
+# Copy example config and fill the value of configuration for deployment.
+cp stack.example.env stack.asynq.env
+cp stack.example.env stack.core.env
 
 # The `config.yaml` file for application configuration.
 cp config.example.yaml config.yaml
@@ -142,52 +144,37 @@ cp config.example.yaml config.yaml
 # Run the application
 make go-run a=core
 
-# Run On PROD / LOCAL and deploy into Docker
+# Run on Docker
 
 # The `config.yaml` file for application configuration.
 cp config.example.yaml config.yaml
 
 # Make it script deployment executeable
-chmod +x ./deploy.sh
 chmod +x ./deploy.*.sh
 
-# Note For (AUTOMATICALLY) Set Version:
-# Please refer on this docs: https://semver.org/
-#   - [major]: increment by 1 major version (major reset existing minor and patch version)). [ex. before -> v1.1.1 -> after -> v2.0.0]
-#   - [minor]: increment by 1 minor version (minor reset existing patch version, and do not reset existing major version). [ex. before -> v1.1.91 -> after -> v1.2.0]
-#   - [patch]: increment by 1 patch version (patch do not reset existing major and minor version). [ex. before -> v0.1.24 -> after -> v0.1.25]
-
-# For deploy core app
-make deploy-core v=major
-make deploy-core v=minor
-make deploy-core v=patch
-
-# For deploy asynq app
-make deploy-asynq v=major
-make deploy-asynq v=minor
-make deploy-asynq v=patch
-
-# Note For (MANUAL) Set Version:
 # Version must follow the sematic versioning format 'X.Y.Z' (e.g., 1.0.0).
 # Please refer on this docs: https://semver.org/
 
-# For force re-build docker image to deploy core app, ex: 0.0.1
-make deploy-core-rebuild v=<version>
+# For deploy up
+make deploy-asynq-up v=<version>
+make deploy-core-up v=<version>
 
-# For force re-build docker image to deploy asynq app, ex: 0.0.1
-make deploy-asynq-rebuild v=<version>
+# For deploy down
+make deploy-asynq-down
+make deploy-core-down
 ```
 
 ## ⚙️ Makefile Commands
 
 The Makefile provides a set of commands to help you manage and interact with your Go project efficiently. Below is a list of the available commands:
 
-### Note:
-- Please escape strings in environment variables in file .env when handling errors, especially when using migrations.
-
 ### Setup Commands
 
 - **`make setup`**: Sets up the project by installing necessary tools like `goose` and `sqlc`.
+
+### Sqlc Commands
+
+- **`make sqlc-gen`**: Sets up the project by generating `sqlc` repositories.
 
 ### Go Commands
 
@@ -196,24 +183,9 @@ The Makefile provides a set of commands to help you manage and interact with you
 - **`make go-run a=<application> c=<configuration file>`**: Runs the specified application with configuration.
 - **`make go-build a=<application>`**: Builds the specified application.
 
-### Migration Commands
-
-- **`make migrate-up`**: Migrates the database to the most recent version.
-- **`make migrate-up-by-one`**: Migrates the database up by one version.
-- **`make migrate-down`**: Rolls back the database version by one.
-- **`make migrate-status`**: Displays the migration status of the database.
-- **`make migrate-create n=<migration_name>`**: Creates a new migration file.
-
-### Seeder Commands
-
-- **`make seeder-up`**: Runs the seeders to populate the database.
-- **`make seeder-down`**: Rolls back the seeders by one version.
-- **`make seeder-create n=<seeder_name>`**: Creates a new seeder file.
-
 ### Utility Commands
 
 - **`make print-path`**: Displays the current `PATH` environment variable.
-- **`make migrate-help`**: Provides help on migration commands.
 - **`make go-help`**: Provides help on Go commands.
 
 ### Examples
@@ -223,10 +195,8 @@ The Makefile provides a set of commands to help you manage and interact with you
 make setup
 
 # Run a Go application (example: core, asynq)
+make go-run a=asynq
 make go-run a=core
-
-# Migrate the database to the latest version
-make migrate-up
 
 ```
 

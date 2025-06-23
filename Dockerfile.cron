@@ -1,0 +1,14 @@
+# Dockerfile.cron
+FROM alpine:3.21
+
+# Install bash, curl, and busybox-extras
+RUN apk add --no-cache tzdata bash curl busybox-extras coreutils jq
+
+# Create necessary folders for crontab and logs
+RUN mkdir -p /var/log /app/scripts
+
+# Set working directory
+WORKDIR /app
+
+# Default command to run cron in foreground
+CMD ["crond", "-f", "-L", "/dev/stdout"]

@@ -1,0 +1,44 @@
+version: "2.4"
+
+services:
+  app:
+    build:
+      args:
+        APP_NAME: ${APP_DOCKER_NAME}
+        APP_PORT: ${APP_DOCKER_PORT}
+      context: .
+      dockerfile: Dockerfile
+    image: ${APP_SERVICE_NAME}:${APP_SERVICE_VERSION}
+    env_file: ./stack.core.env
+    ports:
+      - "${APP_SERVICE_PORT:-8080}:8080" # Don't Change Internal Port '8080'
+    volumes:
+      - ./storage:/app/storage
+      - ./config.yaml:/app/config.yaml:ro
+    depends_on:
+      - rod
+    networks:
+      - app_net
+    restart: unless-stopped
+
+  cron:
+    build:
+      context: .
+      dockerfile: Dockerfile.cron
+    image: cron-alpine-app:latest
+    volumes:
+      - ./storage/cron/scripts:/app/scripts
+      - ./storage/cron/crontab:/etc/crontabs/root
+      - ./storage/cron/logs:/var/log
+    env_file: ./stack.core.env
+    depends_on:
+      - app
+      - rod
+    networks:
+      - app_net
+    restart: unless-stopped
+
+networks:
+  app_net:
+    name: ${APP_NETWORK_NAME}
+    external: true

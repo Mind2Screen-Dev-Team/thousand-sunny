@@ -1,168 +1,212 @@
 #!/bin/bash
 
-# Function to check if Docker is running
+# ---------------------------------------------------------------------------
+# Function: check_docker_running
+# Description: Verifies if Docker is currently running.
+# Returns:
+#   - 0 if Docker is running.
+#   - 1 if Docker is not running.
+# ---------------------------------------------------------------------------
 check_docker_running() {
     if ! docker info >/dev/null 2>&1; then
-        echo "Warning: Docker is not running. Skipping Docker-related commands."
-        DOCKER_RUNNING=false
-    else
-        DOCKER_RUNNING=true
-    fi
-}
-
-# Source environment profiles if they exist
-source_profile() {
-    local PROFILE_FILE=$1
-    if [ -f "$PROFILE_FILE" ]; then
-        echo "Sourcing $PROFILE_FILE..."
-        source "$PROFILE_FILE"
-    else
-        echo "$PROFILE_FILE not found, skipping..."
-    fi
-}
-
-# Function to copy a config file if it doesn't exist
-copy_config_if_needed() {
-    local source_file="$1"
-    local destination_file="$2"
-    local file_permission="${3:-644}"  # Default to 644 if no permission is provided
-
-    # Check if both parameters are provided
-    if [ -z "$source_file" ] || [ -z "$destination_file" ]; then
-        echo "Usage: copy_config_if_needed <source_file> <destination_file>"
+        echo "Error: Docker is not running. Please start Docker and try again."
         return 1
     fi
-
-    echo "Checking config files..."
-
-    # If the destination file exists, skip copying
-    if [ -f "$destination_file" ]; then
-        echo "Destination file $destination_file already exists. Skipping copy."
-    else
-        # Check if the source file exists before copying
-        if [ -f "$source_file" ]; then
-            cp "$source_file" "$destination_file"  # Copy the source file to the destination
-            chmod "$file_permission" "$destination_file"  # Set appropriate file permissions
-            echo "Copied $source_file to $destination_file successfully."
-        else
-            echo "Source file $source_file does not exist."
-            return 1
-        fi
-    fi
+    return 0
 }
 
-# Check and create if the Docker network exists
+# ---------------------------------------------------------------------------
+# Function: is_old_docker
+# Description: Checks if the system is using legacy `docker-compose`
+#              instead of the modern `docker compose` plugin.
+# Returns:
+#   - 0 if legacy `docker-compose` is available (old Docker).
+#   - 1 if modern `docker compose` is available.
+# ---------------------------------------------------------------------------
+is_old_docker() {
+    if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+        return 1  # Using modern docker CLI
+    fi
+    return 0  # Legacy docker-compose available
+}
+
+# ---------------------------------------------------------------------------
+# Function: compose_exec
+# Description: Executes docker-compose commands using the appropriate
+#              binary (modern `docker compose` or legacy `docker-compose`)
+# Arguments:
+#   - All arguments are passed directly to the compose command.
+# ---------------------------------------------------------------------------
+compose_exec() {
+  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+    docker compose "$@"
+  else
+    docker-compose "$@"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Function: create_docker_network
+# Description: Ensures a Docker network exists. Creates it if missing.
+# Arguments:
+#   - $1: Name of the Docker network to check/create.
+# Notes:
+#   - Only runs if Docker is running and the network name is provided.
+# ---------------------------------------------------------------------------
 create_docker_network() {
   local network_name="$1"
 
-  # Check if Docker is running before proceeding
-  if [ "$DOCKER_RUNNING" = true ]; then
-    # Validate that a network name has been provided
-    if [ -z "$network_name" ]; then
-      echo "Error: Network name parameter missing."
-      return 1
-    fi
-
-    # Check if the Docker network exists
-    if ! docker network inspect "$network_name" >/dev/null 2>&1; then
-      echo "Network $network_name not found, creating it..."
-      docker network create --driver bridge "$network_name"
-    else
-      echo "Network $network_name already exists, skipping creation."
-    fi
-  else
+  if ! check_docker_running; then
     echo "Skipping Docker network creation as Docker is not running."
-  fi
-}
-
-# Function to get APP_ENV value from the .env file
-get_env_value() {
-  local env_file="$1"
-  local key="$2"
-  local default_value="$3"
-
-  if [ ! -f "$env_file" ]; then
-    echo "Warning: $env_file file not found. Defaulting to '$default_value'."
-    echo "$default_value"
     return 0
   fi
 
-  local value
-  value=$(grep "^$key=" "$env_file" | cut -d '=' -f2- | tr -d '"' | tr -d "'")
+  if [ -z "$network_name" ]; then
+    echo "Error: Network name parameter missing."
+    return 1
+  fi
 
-  if [ -n "$value" ]; then
-    echo "$value"
+  if ! docker network inspect "$network_name" >/dev/null 2>&1; then
+    echo "Network $network_name not found, creating it..."
+    docker network create --driver bridge "$network_name"
+    return 0
+  fi
+
+  echo "Network $network_name already exists, skipping creation."
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# Function: update_env_var
+# Description: Updates an existing key or inserts a new key=value pair
+#              into a .env file. Cross-platform (Linux/macOS) compatible.
+# Arguments:
+#   - $1: Key name to update.
+#   - $2: New value for the key.
+#   - $3: Target .env file.
+# ---------------------------------------------------------------------------
+update_env_var() {
+  local key="$1"
+  local new_value="$2"
+  local env_file="$3"
+
+  if grep -q "^$key=" "$env_file"; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+      sed -i '' -E "s|^($key=).*|\1$new_value|" "$env_file"
+    else
+      sed -i -E "s|^($key=).*|\1$new_value|" "$env_file"
+    fi
   else
-    echo "Warning: $key not set in $env_file. Defaulting to '$default_value'."
-    echo "$default_value"
+    echo "$key=$new_value" >> "$env_file"
   fi
 }
 
-# Function to rebuild a Docker image with parameters
-rebuild_image() {
-    local image_name="$1"
-    local docker_file="$2"
-
-    # Exit if required parameters are missing
-    [ -z "$image_name" ] || [ -z "$docker_file" ] && return 1
-
-    echo "Force rebuilding image: $image_name"
-
-    # Remove the Docker image
-    docker rmi -f "$image_name" || { echo "Error: Failed to remove image $image_name."; exit 1; }
-
-    # Rebuild the Docker image
-    docker build -t "$image_name" -f "$docker_file" . || { echo "Error: Failed to build Docker image."; exit 1; }
-}
-
-# Function to strip the 'v' prefix and compare two semantic versions
-version_lt() {
-    local ver1="${1#v}"
-    local ver2="${2#v}"
-    [ "$(printf '%s\n' "$ver1" "$ver2" | sort -V | head -n 1)" = "$ver1" ] && [ "$ver1" != "$ver2" ]
-}
-
-# Ensure the input version follows the vX.Y.Z sematic versioning format, (X.Y.Z) is sematic versioning and prefix "v" is just for information mean "version"
+# ---------------------------------------------------------------------------
+# Function: validate_version
+# Description: Validates that a given version string follows semantic
+#              versioning format prefixed with 'v' (e.g., v1.2.3).
+# Arguments:
+#   - $1: Version string to validate.
+# Exits:
+#   - If invalid, prints an error and exits with status 1.
+# ---------------------------------------------------------------------------
 validate_version() {
     if ! [[ "$1" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo "Error: Version must follow the sematic versioning format 'vX.Y.Z' (e.g., v1.0.0). Please refer on this docs: https://semver.org/"
+        echo "Error: Version must follow the semantic versioning format 'vX.Y.Z' (e.g., v1.0.0)."
+        echo "Please refer to the documentation: https://semver.org/"
         exit 1
     fi
 }
 
-# Function for convert text into title case.
-to_title_case() {
-  echo "$1" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2)); print}'
+# -----------------------------------------------------------------------------
+# Function: connect_containers_to_network
+# Description: Connects multiple Docker containers to a single Docker network.
+# Arguments:
+#   - $1: Single network name
+#   - $2: Comma-separated list of container names or IDs
+# -----------------------------------------------------------------------------
+connect_containers_to_network() {
+  local network="$1"
+  local containers_csv="$2"
+
+  if [ -z "$network" ]; then
+    echo "No network provided, skipping."
+    return 0
+  fi
+
+  if [ -z "$containers_csv" ]; then
+    echo "No containers provided, skipping."
+    return 0
+  fi
+
+  # Split containers CSV into an array
+  IFS=',' read -ra containers <<< "$containers_csv"
+
+  # Loop over each container and connect to the network
+  for container in "${containers[@]}"; do
+    # Skip if container is empty or unset
+    if [ -z "$container" ]; then
+      continue
+    fi
+
+    # Try to connect but don't exit on failure
+    if docker network connect "$network" "$container"; then
+      echo "Connecting docker container '$container' to network '$network'..."
+      continue
+    fi
+  done
 }
 
-# Function to update SERVICE_[APP_NAME]_VERSION in .env file based on OS
-update_service_version_in_env() {
-  local SERVICE_VERSION="$1"
-  local ENV_FILE="$2"
-  local APP_NAME="$3"
-  APP_NAME="$(echo "$APP_NAME" | tr '[:lower:]' '[:upper:]')"  # Convert to uppercase
+# -----------------------------------------------------------------------------
+# Function: disconnect_containers_from_network
+# Description: Disconnects multiple Docker containers from a single Docker network.
+# Arguments:
+#   - $1: Single network name
+#   - $2: Comma-separated list of container names or IDs
+# -----------------------------------------------------------------------------
+disconnect_containers_from_network() {
+  local network="$1"
+  local containers_csv="$2"
 
-  # Detect the operating system type
-  local OS=$(uname)
-
-  # Replace SERVICE_[APP_NAME]_VERSION value in .env file based on OS
-  if [[ "$OS" == "Darwin" ]]; then
-      # macOS (BSD sed requires -i with empty string)
-      sed -i '' "s/^SERVICE_${APP_NAME}_VERSION=\"[^\"']*\"/SERVICE_${APP_NAME}_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update $(to_title_case "$APP_NAME") Service Version in .env file."; exit 1; }
-      echo "$(to_title_case "$APP_NAME") Service Version updated to $SERVICE_VERSION in .env file (macOS)."
-
-  elif [[ "$OS" == "Linux" ]]; then
-      # Linux (GNU sed allows -i without empty string)
-      sed -i "s/^SERVICE_${APP_NAME}_VERSION=\"[^\"']*\"/SERVICE_${APP_NAME}_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update $(to_title_case "$APP_NAME") Service Version in .env file."; exit 1; }
-      echo "$(to_title_case "$APP_NAME") Service Version updated to $SERVICE_VERSION in .env file (Linux)."
-
-  elif [[ "$OS" == *"MINGW"* || "$OS" == *"MSYS"* ]]; then
-      # Windows (Git Bash or MSYS environments)
-      sed -i "s/^SERVICE_${APP_NAME}_VERSION=\"[^\"']*\"/SERVICE_${APP_NAME}_VERSION=\"$SERVICE_VERSION\"/" "$ENV_FILE" || { echo "Error: Failed to update $(to_title_case "$APP_NAME") Service Version in .env file."; exit 1; }
-      echo "$(to_title_case "$APP_NAME") Service Version updated to $SERVICE_VERSION in .env file (Windows)."
-
-  else
-      echo "Unsupported OS: $OS"
-      exit 1
+  if [ -z "$network" ]; then
+    echo "No network provided, skipping."
+    return 0
   fi
+
+  if [ -z "$containers_csv" ]; then
+    echo "No containers provided, skipping."
+    return 0
+  fi
+
+  # Split containers CSV into an array
+  IFS=',' read -ra containers <<< "$containers_csv"
+
+  # Loop over each container and disconnect from the network
+  for container in "${containers[@]}"; do
+    # Skip if container is empty or unset
+    if [ -z "$container" ]; then
+      continue
+    fi
+
+    # Try to disconnect but don't exit on failure
+    if docker network disconnect "$network" "$container"; then
+      echo "Disconnected docker container '$container' from network '$network'."
+    else
+      echo "Warning: Failed to disconnect '$container' from network '$network'."
+    fi
+  done
+}
+
+# -----------------------------------------------------------------------------
+# Function: backup_config
+# Description: Creates a timestamped backup of the config.yaml file, appending
+#              the version with dots replaced by dashes.
+# Arguments:
+#   - $1: Version string (e.g., "1.2.3")
+# -----------------------------------------------------------------------------
+backup_config() {
+    local version="$1"
+    into="storage/backup/config/config-$(date +%Y%m%d%H%M%S)-${version//./}.yaml.bk"
+    cp config.yaml "$into"
+    echo "Backup config.yaml file into $into"
 }

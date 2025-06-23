@@ -1,0 +1,41 @@
+# ┌───────────── minute (0 - 59)
+# │ ┌───────────── hour (0 - 23)
+# │ │ ┌───────────── day of month (1 - 31)
+# │ │ │ ┌───────────── month (1 - 12)
+# │ │ │ │ ┌───────────── day of week (0 - 7) (Sunday = 0 or 7)
+# │ │ │ │ │
+# │ │ │ │ │
+# * * * * *  command_to_execute
+
+# ------------------------------------------------------------------------------
+# NOTES:
+# - All command paths must be absolute (e.g. /app/scripts/my-task.sh)
+# - Commands MUST be executable (chmod +x /app/scripts/my-task.sh)
+# - To log output to a file:       >> /var/log/task.log 2>&1
+# - To log output to Docker logs (console): >> /proc/1/fd/1 2>&1 or >> /dev/stdout 2>&1
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# EXAMPLE JOBS
+# ------------------------------------------------------------------------------
+
+# Run every minute and log to Docker console
+# * * * * * /bin/sh /app/scripts/job1.sh >> /proc/1/fd/1 2>&1
+
+# Run daily at 1:30 AM and log to file
+# 30 1 * * * /bin/sh /app/scripts/backup.sh >> /var/log/backup.log 2>&1
+
+# Run every Monday at 8:00 AM and log to Docker console
+# 0 8 * * 1 /bin/sh /app/scripts/monday_task.sh >> /proc/1/fd/1 2>&1
+
+# ------------------------------------------------------------------------------
+# ADD YOUR CRON JOBS BELOW:
+# ------------------------------------------------------------------------------
+
+# Testing
+# * * * * * /bin/bash /app/scripts/test/hello_world.sh >> /var/log/hello_world.log 2>&1
+# */2 * * * * /bin/bash /app/scripts/test/pokemon.sh test_b >> /var/log/pokemon_test_response.log 2>&1
+# * * * * * /bin/bash /app/scripts/test/pokemon.sh test_a >> /var/log/pokemon_test.log 2>&1
+
+# Fetch Pikachu Each 5 minutes
+*/5 * * * * /bin/bash /app/scripts/app_api_cron_collections.sh fetch_pikachu

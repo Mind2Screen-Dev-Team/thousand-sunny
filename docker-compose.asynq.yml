@@ -1,0 +1,27 @@
+version: "2.4"
+
+services:
+  app:
+    build:
+      args:
+        APP_NAME: ${APP_DOCKER_NAME}
+        APP_PORT: ${APP_DOCKER_PORT}
+      context: .
+      dockerfile: Dockerfile
+    image: ${APP_SERVICE_NAME}:${APP_SERVICE_VERSION}
+    env_file: ./stack.asynq.env
+    ports:
+      - "${APP_SERVICE_PORT:-8081}:8081" # Don't Change Internal Port '8080'
+    volumes:
+      - ./storage:/app/storage
+      - ./config.yaml:/app/config.yaml:ro
+    depends_on:
+      - rod
+    networks:
+      - app_net
+    restart: unless-stopped
+
+networks:
+  app_net:
+    name: ${APP_NETWORK_NAME}
+    external: true
