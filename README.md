@@ -26,8 +26,9 @@ Embark on your next adventure with the Thousand Sunny! Inspired by the legendary
 │   │   └── ...     # List of migration files.
 │   ├── queries     # Custom Generator For SQLC queries for specific operations.
 │   │   └── ...     # List of sqlc generator queries.
-│   └── seeders     # Seed data for initializing or populating the database.
-│       └── ...     # List of seeder files.
+│   ├── seeders     # Seed data for initializing or populating the database.
+│   │   └── ...     # List of seeder files.
+│   └── ...         # database codes.
 ├── gen
 │   └── repo        # Auto-generated repository code for data access.
 ├── internal        # Internal packages for application-specific functionality.
