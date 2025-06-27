@@ -15,8 +15,6 @@ services:
     volumes:
       - ./storage:/app/storage
       - ./config.yaml:/app/config.yaml:ro
-    depends_on:
-      - rod
     networks:
       - app_net
     restart: unless-stopped

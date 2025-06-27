@@ -15,8 +15,6 @@ services:
     volumes:
       - ./storage:/app/storage
       - ./config.yaml:/app/config.yaml:ro
-    depends_on:
-      - rod
     networks:
       - app_net
     restart: unless-stopped
@@ -33,7 +31,6 @@ services:
     env_file: ./stack.core.env
     depends_on:
       - app
-      - rod
     networks:
       - app_net
     restart: unless-stopped

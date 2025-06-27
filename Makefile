@@ -90,7 +90,7 @@ verify-sqlc:
 ifndef SQLC_EXISTS
 	$(error "sqlc not found. Please run 'make setup' first")
 endif
-	@echo "✓ sqlc is available"
+	@echo "✅ sqlc is available"
 
 # ------------------------------
 # Go Commands Section
