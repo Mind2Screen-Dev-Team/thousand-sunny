@@ -1,7 +1,7 @@
 package dependency
 
 import (
-	"github.com/go-resty/resty/v2"
+	"resty.dev/v3"
 )
 
 func ProvideHttpClient() *resty.Client {

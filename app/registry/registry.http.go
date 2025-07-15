@@ -9,14 +9,17 @@ import (
 var (
 	Http = fx.Options(
 		fx.Module("http:server",
+			fx.Provide(dependency.ProvideHumaConfig),
+			fx.Provide(dependency.ProvideFiberConfig),
+			fx.Provide(dependency.ProvideFiber),
+			fx.Provide(dependency.ProvideHumaFiber),
 			fx.Provide(dependency.ProvideHTTPServerName),
-			fx.Provide(dependency.ProvideHTTPServer),
 		),
 	)
 
 	HttpStartUp = fx.Options(
 		fx.Module("http:server:startup",
-			fx.Invoke(dependency.InvokeHttpServer),
+			fx.Invoke(dependency.InvokeHTTPServer),
 		),
 	)
 )
