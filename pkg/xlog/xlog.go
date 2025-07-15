@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/labstack/echo/v4"
 	"github.com/rs/xid"
 	"github.com/rs/zerolog"
 	"go.opentelemetry.io/otel/trace"
@@ -17,7 +16,8 @@ func (s CtxKey) String() string {
 }
 
 const (
-	XLOG_REQ_TRACE_ID_CTX_KEY CtxKey = "XLOG_REQ_TRACE_ID_CTX_KEY"
+	XLOG_REQ_TRACE_ID_CTX_KEY  CtxKey = "XLOG_REQ_TRACE_ID_CTX_KEY"
+	XLOG_HIDE_RES_FLAG_CTX_KEY CtxKey = "XLOG_HIDE_RES_FLAG_CTX_KEY"
 )
 
 const (
@@ -31,21 +31,13 @@ var (
 	NoopLogger     = NewLogger(NoopZeroLogger)
 )
 
-// SkipLogResponse sets a flag in the Echo context to indicate that
-// the response should not be logged, either to the console or to a file.
-func SkipLogResponse(c echo.Context) {
-	c.Set("skip_log_response", true)
+func HideLogResponse(ctx context.Context) context.Context {
+	return context.WithValue(ctx, XLOG_HIDE_RES_FLAG_CTX_KEY, true)
 }
 
-func FromEcho(c echo.Context) Logger {
-	v, ok := c.Get(XLOG_KEY).(zerolog.Logger)
-	if !ok {
-		v = NoopZeroLogger
-	}
-
-	return NewLogger(
-		v.With().Any("req_trace_id", c.Get(XLOG_TRACE_ID_KEY)).Logger(),
-	)
+func GetReqTraceID(ctx context.Context) string {
+	s, _ := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(string)
+	return s
 }
 
 type Logger interface {

@@ -98,7 +98,7 @@ type DefaultValue struct {
 type BuilderFn = func(string, Filter) Builder
 
 var (
-	_FilterTypes = [...]string{
+	filterTypes = [...]string{
 		"text",
 		"number",
 		"select",
@@ -106,7 +106,7 @@ var (
 		"date",
 	}
 
-	_FilterOperations = [...]string{
+	filterOperations = [...]string{
 		"is",
 		"is_not",
 		"contains",
@@ -128,12 +128,12 @@ var (
 		"is_not_empty",
 	}
 
-	_FilterEmptyOperation = [...]string{
+	filterEmptyOperation = [...]string{
 		"is_empty",
 		"is_not_empty",
 	}
 
-	_FilterTypesFn = map[string]BuilderFn{
+	filterTypesFn = map[string]BuilderFn{
 		"text":    NewBuildText,
 		"number":  NewBuildNumber,
 		"select":  NewBuildSelect,
@@ -165,15 +165,15 @@ func (b *Build) ToExpression() (exps []exp.Expression) {
 			continue
 		}
 
-		if !slices.Contains(_FilterTypes[:], f.Type) {
+		if !slices.Contains(filterTypes[:], f.Type) {
 			continue
 		}
 
-		if !slices.Contains(_FilterOperations[:], f.Operation) {
+		if !slices.Contains(filterOperations[:], f.Operation) {
 			continue
 		}
 
-		if !slices.Contains(_FilterEmptyOperation[:], f.Operation) {
+		if !slices.Contains(filterEmptyOperation[:], f.Operation) {
 			if len(f.Values) <= 0 {
 				continue
 			}
@@ -192,7 +192,7 @@ func (b *Build) ToExpression() (exps []exp.Expression) {
 			continue
 		}
 
-		fn, ok := _FilterTypesFn[t]
+		fn, ok := filterTypesFn[t]
 		if !ok {
 			continue
 		}

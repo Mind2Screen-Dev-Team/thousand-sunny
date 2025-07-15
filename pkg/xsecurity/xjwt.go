@@ -1,4 +1,4 @@
-package xauth
+package xsecurity
 
 import (
 	"crypto/rsa"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xsecurity"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -26,21 +25,21 @@ var (
 	ErrTokenNotYetValid     = errors.New("token is not yet valid")
 )
 
-// _JWTManager handles JWT generation and validation
-type _JWTManager struct {
+// jwtManager handles JWT generation and validation
+type jwtManager struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
 	issuer     string
 }
 
-// NewJWTManager initializes a new _JWTManager
-func NewJWTManager(privateKeyPath, issuer string) (*_JWTManager, error) {
-	privateKey, err := xsecurity.LoadPrivateKey(privateKeyPath)
+// NewJWTManager initializes a new jwtManager
+func NewJWTManager(privateKeyPath, issuer string) (*jwtManager, error) {
+	privateKey, err := LoadPrivateKey(privateKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load jwt private key: %w", err)
 	}
 
-	return &_JWTManager{
+	return &jwtManager{
 		privateKey: privateKey,
 		publicKey:  &privateKey.PublicKey,
 		issuer:     issuer,
@@ -48,7 +47,7 @@ func NewJWTManager(privateKeyPath, issuer string) (*_JWTManager, error) {
 }
 
 // GenerateToken generates a new JWT token
-func (j *_JWTManager) GenerateToken(claims jwt.MapClaims, validityDuration time.Duration) (string, error) {
+func (j *jwtManager) GenerateToken(claims jwt.MapClaims, validityDuration time.Duration) (string, error) {
 	claims["iss"] = j.issuer
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Add(validityDuration).Unix()
@@ -58,7 +57,7 @@ func (j *_JWTManager) GenerateToken(claims jwt.MapClaims, validityDuration time.
 }
 
 // ValidateToken validates a JWT token and returns its claims
-func (j *_JWTManager) ValidateToken(token string) (jwt.MapClaims, error) {
+func (j *jwtManager) ValidateToken(token string) (jwt.MapClaims, error) {
 	_token, err := jwt.Parse(token, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, ErrInvalidSigningMethod
@@ -83,7 +82,7 @@ func (j *_JWTManager) ValidateToken(token string) (jwt.MapClaims, error) {
 }
 
 // ExtractClaim extracts a specific claim from the token
-func (j *_JWTManager) GetClaimBy(token, claimKey string) (any, error) {
+func (j *jwtManager) GetClaimBy(token, claimKey string) (any, error) {
 	claims, err := j.ValidateToken(token)
 	if err != nil {
 		return nil, err
@@ -98,7 +97,7 @@ func (j *_JWTManager) GetClaimBy(token, claimKey string) (any, error) {
 }
 
 // ExtractClaim extracts a specific claim from the token
-func (j *_JWTManager) GetClaims(token string) (jwt.MapClaims, error) {
+func (j *jwtManager) GetClaims(token string) (jwt.MapClaims, error) {
 	claims, err := j.ValidateToken(token)
 	if err != nil {
 		return nil, err

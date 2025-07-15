@@ -29,6 +29,12 @@ server:
     port: 8080
     address: "0.0.0.0:8080"
     domain: "http://localhost"
+    oapi:
+      title: "My Core API"
+      version: "1.0.0"
+      servers:
+        - url: "http://localhost:8080"
+          description: "Local Server"
 smtp:
   gmail:
     host: localhost
