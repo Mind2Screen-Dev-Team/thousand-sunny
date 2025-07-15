@@ -1,4 +1,4 @@
-package service_impl
+package impl
 
 import (
 	"context"
@@ -8,10 +8,11 @@ import (
 	"github.com/rs/xid"
 	"go.uber.org/fx"
 
-	repo_api "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repo/api"
-	repo_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repo/attr"
-	service_api "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/api"
-	service_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/attr"
+	repo_api "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/api"
+	repo_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/attr"
+
+	service_api "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/api"
+	service_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/attr"
 )
 
 type (

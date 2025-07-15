@@ -1,9 +1,9 @@
-package service_api
+package api
 
 import (
 	"context"
 
-	service_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/attr"
+	service_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/attr"
 )
 
 type UserServiceAPI interface {

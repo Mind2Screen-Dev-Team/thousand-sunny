@@ -1,4 +1,4 @@
-package service_attr
+package attr
 
 type (
 	UserCreate struct {
