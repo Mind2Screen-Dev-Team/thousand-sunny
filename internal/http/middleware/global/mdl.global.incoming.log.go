@@ -1,425 +1,267 @@
-package http_middleware_global
+package global
 
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"runtime/debug"
-	"slices"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xasynq"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhttp"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xpanic"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
-
+	"github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/gabriel-vasile/mimetype"
-	"github.com/hibiken/asynq"
-	"github.com/labstack/echo/v4"
-
-	chi_middleware "github.com/go-chi/chi/v5/middleware"
-	min "github.com/tdewolff/minify/v2"
-	min_json "github.com/tdewolff/minify/v2/json"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xpanic"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
 )
 
-// const DefaultMultipartMaxMemory = 100 << 20
-
-func ProvideIncomingLog(cfg config.Cfg, tracer trace.Tracer, iolog *xlog.IOLogger, debuglog *xlog.DebugLogger, async *xasynq.Asynq) IncomingLog {
+func ProvideIncomingLog(cfg config.Cfg, tracer trace.Tracer, iolog *xlog.IOLogger) IncomingLog {
 	return IncomingLog{
-		cfg:      cfg,
-		tracer:   tracer,
-		async:    async,
-		iolog:    xlog.NewLogger(iolog.Logger),
-		debuglog: xlog.NewLogger(debuglog.Logger),
+		cfg:    cfg,
+		tracer: tracer,
+		iolog:  xlog.NewLogger(iolog.Logger),
 	}
 }
 
 type IncomingLog struct {
-	cfg      config.Cfg
-	tracer   trace.Tracer
-	async    *xasynq.Asynq
-	iolog    xlog.Logger
-	debuglog xlog.Logger
+	cfg    config.Cfg
+	tracer trace.Tracer
+	iolog  xlog.Logger
 }
 
 func (IncomingLog) Name() string {
 	return "incoming.log"
 }
 
-func (IncomingLog) Order() int {
-	return 3
-}
+func (IncomingLog) App(app *fiber.App) {}
 
-func (in IncomingLog) Serve(next echo.HandlerFunc) echo.HandlerFunc {
-	return echo.HandlerFunc(func(c echo.Context) error {
-		var (
-			req     = c.Request()
-			ctx     = req.Context()
-			wg      = sync.WaitGroup{}
-			reqBody = xhttp.CopyRequestBody(req)
-			reqTime = time.Now().Format(time.RFC3339Nano)
-			rw      = bytes.Buffer{}
-			w       = c.Response().Writer
-			ww      = chi_middleware.NewWrapResponseWriter(w, req.ProtoMajor)
-		)
+func (in IncomingLog) Serve(c *fiber.Ctx) error {
+	var (
+		now    = time.Now()
+		ua     = c.Context().UserAgent()
+		ae     = c.Get("Accept-Encoding")
+		ct     = c.Get("Content-Type")
+		tid, _ = c.UserContext().Value(xlog.XLOG_REQ_TRACE_ID_CTX_KEY).(string)
 
-		ctx, span := xtracer.Start(in.tracer, ctx, "incoming log")
+		isCompress                      = in.isCompress(ae)
+		isMultipart, isMultipartEncoded = in.isMultipart(ct)
 
-		// Set Request Body
-		if len(reqBody) > 0 {
-			c.Set(xlog.XLOG_REQ_BODY_KEY, string(reqBody))
+		rawReqBody = c.BodyRaw()
+		reqBody    = make([]byte, len(rawReqBody))
+		reqSize, _ = io.Copy(io.Discard, strings.NewReader(string(rawReqBody)))
+	)
+
+	copy(reqBody, rawReqBody)
+
+	var (
+		wg        sync.WaitGroup
+		ctx, span = xtracer.Start(in.tracer, c.UserContext(), "incoming log")
+	)
+
+	var (
+		reqFormBody = xlog.IncomingLogFormData{
+			Values: make(map[string][]string),
+			Files:  make(map[string]xlog.FileInfo),
 		}
+		rawForms, err = c.MultipartForm()
+	)
+	if err == nil {
+		maps.Copy(reqFormBody.Values, rawForms.Value)
+		reqSize += in.sizeMapSliceOfString(reqFormBody.Values)
 
-		ww.Tee(&rw)
-		c.SetRequest(req.WithContext(ctx))
-		c.Response().Writer = ww
-
-		if err := next(c); err != nil {
-			return err
+		for k, h := range rawForms.File {
+			for i, v := range h {
+				reqFormBody.Files[fmt.Sprintf("%s.%d", k, i)] = xlog.FileInfo{
+					FileName:    v.Filename,
+					ContentType: v.Header.Get("Content-Type"),
+					Size:        v.Size,
+				}
+				reqSize += v.Size
+			}
 		}
+	}
 
-		req.Body = io.NopCloser(bytes.NewBuffer(reqBody))
+	var (
+		r   = c.Request()
+		ip  = c.IP()
+		ips = c.IPs()
+		uri = r.URI().FullURI()
+		mtd = r.Header.Method()
+		prt = c.Protocol()
+	)
 
-		var (
-			rCopy = xhttp.DeepCopyRequest(req)
-		)
+	var (
+		d = xlog.IncomingLogData{
+			ReqUA:       ua,
+			ReqIP:       ip,
+			ReqIPs:      ips,
+			ReqURI:      uri,
+			ReqMethod:   mtd,
+			ReqProtocol: prt,
 
-		// Add BEFORE defer/spawned goroutine to prevent early Wait() for span.End()
-		wg.Add(1)
+			ReqSize:     reqSize,
+			ReqBody:     reqBody,
+			ReqFormBody: reqFormBody,
 
-		defer func() {
+			ReqHeader: make(map[string][]string),
+			ResHeader: make(map[string][]string),
+		}
+	)
+
+	for key, value := range c.Request().Header.All() {
+		if _, ok := d.ReqHeader[string(key)]; !ok {
+			d.ReqHeader[string(key)] = make([]string, 0)
+		}
+		d.ReqHeader[string(key)] = append(d.ReqHeader[string(key)], string(value))
+	}
+
+	wg.Add(1)
+	defer func() {
+		if r := recover(); r != nil {
+			d.IsPanic = true
+			d.PanicMsg = fmt.Sprintf("%v", r)
+
 			var (
-				panicked     bool
-				recoverErr   any
-				parsedStacks = make([]xpanic.Stack, 0)
+				s  = debug.Stack()
+				b  = bytes.NewBuffer(s)
+				ss = xpanic.ParseStack(b)
 			)
 
-			if r := recover(); r != nil && r != http.ErrAbortHandler {
-				// assign
-				panicked = true
-				recoverErr = r
+			b.Reset()
 
-				stacks := debug.Stack()
-				parsedStacks = xpanic.ParseStack(bytes.NewReader(stacks))
+			json.NewEncoder(b).Encode(ss)
+			d.PanicStack = b.Bytes()
+		}
 
-				// Only try writing error response if not already written
-				if !c.Response().Committed {
-					c.JSON(http.StatusInternalServerError, map[string]any{
-						"code": http.StatusInternalServerError,
-						"msg":  http.StatusText(http.StatusInternalServerError),
-						"data": nil,
-					})
+		if d.IsPanic {
+			var (
+				code = http.StatusInternalServerError
+				msg  = http.StatusText(code)
+				resp = xresp.GeneralResponseError{
+					Code: code,
+					Msg:  msg,
+					Err: &xresp.ErrorModel{
+						Title:  "panic error",
+						Detail: d.PanicMsg,
+					},
+					TraceID: tid,
 				}
-			}
+			)
+			json.
+				NewEncoder(c.Response().BodyWriter()).
+				Encode(resp)
+		}
 
-			go func() {
-				defer wg.Done()
-				in.incomingLogging(ctx, c, rCopy, ww, &rw, reqTime, panicked, recoverErr, parsedStacks)
-			}()
+		var (
+			res     = c.Response()
+			code    = res.StatusCode()
+			buffRes = &bytes.Buffer{}
+			_       = res.BodyWriteTo(buffRes)
+		)
+
+		for key, value := range res.Header.All() {
+			if _, ok := d.ResHeader[string(key)]; !ok {
+				d.ResHeader[string(key)] = make([]string, 0)
+			}
+			d.ResHeader[string(key)] = append(d.ResHeader[string(key)], string(value))
+		}
+
+		d.ResStatus = code
+		d.ResBody = buffRes.Bytes()
+		d.ResSize = int64(buffRes.Len())
+
+		d.TimeStart = now
+		d.TimeEnd = time.Now().Add(time.Since(now))
+
+		d.IsHideRes, _ = ctx.Value(xlog.XLOG_HIDE_RES_FLAG_CTX_KEY).(bool)
+		d.ReqTraceID = tid
+
+		d.IsCompressed = isCompress
+		d.IsMultipart = isMultipart
+		d.IsMultipartEncoded = isMultipartEncoded
+
+		go func() {
+			defer wg.Done()
+			in.log(ctx, d)
 		}()
 
 		// Wait for logging and end span in a blocking goroutine
 		go func() {
 			wg.Wait()
 			span.End()
+			buffRes.Reset()
 		}()
-
-		return nil
-	})
-}
-
-func (in IncomingLog) incomingLogging(
-	// general
-	ctx context.Context,
-	c echo.Context,
-
-	// general params
-	r *http.Request,
-	ww chi_middleware.WrapResponseWriter,
-	resbody *bytes.Buffer,
-	reqtime string,
-
-	// panic params
-	panicked bool,
-	recorverErr any,
-	stacks []xpanic.Stack,
-) {
-	var skipRes bool
-	if v, ok := c.Get("skip_log_response").(bool); ok {
-		skipRes = v
-	}
-
-	var (
-		isGzip = strings.Contains(c.Request().Header.Get(echo.HeaderAcceptEncoding), "gzip")
-		bw     bytes.Buffer
-		rw     bytes.Buffer
-
-		min            = min.New()
-		reqRawBytes, _ = io.ReadAll(r.Body)
-		reqBody        = io.NopCloser(bytes.NewReader(reqRawBytes))
-		resMim         = mimetype.Detect(resbody.Bytes())
-
-		parsedBody, contentSize = in.parseRequest(r, reqBody)
-		resFilename             = in.getFilenameFromHeader(ww.Header().Get("Content-Disposition"))
-		_                       = in.minifyResponse(skipRes, isGzip, min, resMim, &rw, resbody, resFilename)
-	)
-
-	defer func() {
-		// remove all multipart from copied request
-		if r.MultipartForm != nil {
-			r.MultipartForm.RemoveAll()
-		}
-
-		// copied body reset
-		bw.Reset()
-
-		// copied response reset
-		rw.Reset()
-
-		// request reset
-		reqBody.Close()
-
-		// response reset
-		resbody.Reset()
 	}()
 
-	var (
-		contentType           = strings.ToLower(r.Header.Get("Content-Type"))
-		isReqMultipartEncoded = strings.HasPrefix(contentType, "application/x-www-form-urlencoded")
-		isReqMultipartData    = strings.HasPrefix(contentType, "multipart/form-data")
-	)
-
-	if (isReqMultipartEncoded || isReqMultipartData) || len(reqRawBytes) <= 0 {
-		reqRawBytes = nil
-	}
-
-	var (
-		reqTime, _ = time.Parse(time.RFC3339Nano, reqtime)
-		fields     = []any{
-			// set to ignore list keys by group key name
-			xlog.IGNORE_KEY, "incoming.log",
-
-			// request
-			"req_trace_id", c.Get(xlog.XLOG_TRACE_ID_KEY),
-			"req_time", reqtime,
-			"req_remote_address", r.RemoteAddr,
-			"req_path", r.URL.Path,
-			"req_header", r.Header,
-			"req_proto", r.Proto,
-			"req_method", r.Method,
-			"req_user_agent", r.UserAgent(),
-			"req_body_raw", reqRawBytes,
-			"req_body_parsed", parsedBody,
-			"req_bytes_in", contentSize,
-
-			// response
-			"res_header", ww.Header(),
-			"res_status", http.StatusText(ww.Status()),
-			"res_status_code", ww.Status(),
-			"res_body", rw.String(),
-			"res_bytes_out", ww.BytesWritten(),
-			"res_latency", time.Since(reqTime).String(),
-		}
-	)
-
-	if resFilename != "" {
-		fields = append(fields, "res_filename", resFilename)
-	}
-
-	if panicked {
-		fields = append(fields, "panic_recover_err", recorverErr)
-		fields = append(fields, "panic_stack", stacks)
-	}
-
-	in.iolog.Info(ctx, "incoming request", fields...)
-
-	// # Notify Process Incoming Log
-	ioLogCfg, ok := in.cfg.Log.LogType["io"]
-	if !ok || !ioLogCfg.Notify.Enabled {
-		return
-	}
-
-	m := make(map[string]any)
-	for i := 0; i < len(fields); i += 2 {
-		if isHasKV := i+1 < len(fields); !isHasKV {
-			continue
-		}
-
-		key, ok := fields[i].(string)
-		if !ok {
-			continue
-		}
-
-		val := fields[i+1]
-		if slices.Contains([]string{"err", "error"}, key) {
-			key = "err"
-			val = fmt.Sprintf("%+v", val)
-		}
-		m[key] = val
-	}
-
-	in.notify(ctx, ioLogCfg, m)
+	return c.Next()
 }
 
-func (in *IncomingLog) notify(ctx context.Context, ioLogCfg config.LogType, m map[string]any) {
-	var (
-		b, _ = json.Marshal(m)
-		name = xasynq.BuildWorkerRouteName(in.cfg.App.Env, "notify:incoming:log")
-	)
-
-	var (
-		retention = time.Duration(ioLogCfg.Notify.Retention)
-		task      = asynq.NewTask(name, b, asynq.Queue(name), asynq.Retention(retention*time.Second))
-		info, err = in.async.Client.Enqueue(task)
-	)
-	if err != nil {
-		if ioLogCfg.Notify.Debug {
-			in.debuglog.Error(ctx, "error send notification incoming log into asynq", "info", info, "error", err)
-		}
-		return
+func (IncomingLog) sizeMapSliceOfString(m map[string][]string) int64 {
+	var n int64
+	for _, v := range m {
+		n += int64(len(v))
 	}
-
-	if ioLogCfg.Notify.Debug {
-		in.debuglog.Debug(ctx, "send notification incoming log into asynq", "info", info)
-	}
+	return n
 }
 
-func (IncomingLog) getFilenameFromHeader(d string) string {
-	const key = "filename="
-	idx := strings.Index(d, key)
-	if idx == -1 {
-		return ""
-	}
-	return strings.Trim(d[idx+len(key):], "\"")
+func (IncomingLog) isCompress(ae string) bool {
+	return strings.Contains(ae, "gzip") || strings.Contains(ae, "deflate") || strings.Contains(ae, "brotli")
 }
 
-func (in IncomingLog) minifyResponse(skipRes bool, isGzip bool, min *min.M, mim *mimetype.MIME, w io.Writer, res *bytes.Buffer, filename string) error {
-	if skipRes {
-		return nil
-	}
-
-	if isGzip {
-		var (
-			enc    = base64.NewEncoder(base64.RawURLEncoding, w)
-			_, err = res.WriteTo(enc)
-		)
-
-		defer enc.Close() // ensure flush even on early return
-
-		if err != nil && !errors.Is(err, io.EOF) {
-			return err
-		}
-
-		return nil
-	}
-
-	if mim.Is("application/json") {
-		return min_json.Minify(min, w, res, nil)
-	}
-
-	if mim.Is("text/plain") && filename == "" {
-		_, err := res.WriteTo(w)
-		if err != nil && !errors.Is(err, io.EOF) {
-			return err
-		}
-	}
-
-	return nil
+func (IncomingLog) isMultipart(ct string) (isMultipart, isMultipartEncoded bool) {
+	return strings.HasPrefix(ct, "multipart/form-data"), strings.HasPrefix(ct, "application/x-www-form-urlencoded")
 }
 
-func (in IncomingLog) parseRequest(req *http.Request, r io.Reader) (any, int64) {
+func (in IncomingLog) log(ctx context.Context, d xlog.IncomingLogData) {
 	var (
-		reqBody any
-		total   int64
+		fields = []any{
+			"reqTraceId", d.ReqTraceID,
+			"reqStartTime", d.TimeStart.Format(time.RFC3339Nano),
+			"reqEndTime", d.TimeEnd.Format(time.RFC3339Nano),
+			"reqIp", d.ReqIP,
+			"reqForwardIps", d.ReqIPs,
+			"reqUri", d.ReqURI,
+			"reqHeader", d.ReqHeader,
+			"reqProto", d.ReqProtocol,
+			"reqMethod", d.ReqMethod,
+			"reqUserAgent", d.ReqUA,
+			"reqBytesIn", d.ReqSize,
+			"resHeader", d.ResHeader,
+			"resStatus", d.ResStatus,
+			"resBytesOut", d.ResSize,
+			"resLatency", d.TimeEnd.Sub(d.TimeStart).String(),
+		}
 	)
 
-	if req.ContentLength > 0 {
-		total = req.ContentLength
+	if d.IsMultipart || d.IsMultipartEncoded {
+		fields = append(fields, "reqFormBody", d.ReqFormBody)
+	} else if len(d.ReqBody) > 0 {
+		fields = append(fields, "reqRawBody", d.ReqBody)
 	}
 
-	var (
-		contentType           = strings.ToLower(req.Header.Get("Content-Type"))
-		isReqJson             = strings.HasPrefix(contentType, "application/json")
-		isReqMultipartEncoded = strings.HasPrefix(contentType, "application/x-www-form-urlencoded")
-		isReqMultipartData    = strings.HasPrefix(contentType, "multipart/form-data")
-	)
-
-	if isReqJson {
-		if err := json.NewDecoder(r).Decode(&reqBody); err != nil {
-			return nil, total
+	var isPrintableRes bool
+	for _, v := range d.ResHeader["Content-Type"] {
+		if strings.Contains(v, "application/json") || strings.Contains(v, "text/plain") {
+			isPrintableRes = true
 		}
-
-		_total, _ := io.Copy(io.Discard, r)
-		if _total > 0 {
-			total = _total
-		}
-
-		return reqBody, total
 	}
 
-	if isReqMultipartData || isReqMultipartEncoded {
-		if req.MultipartForm == nil {
-			return nil, total
-		}
-
-		var (
-			_total int64
-			mr, _  = req.MultipartReader()
-		)
-		for {
-			if mr == nil {
-				break
-			}
-
-			np, err := mr.NextPart()
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			if err != nil {
-				return nil, 0
-			}
-
-			size, _ := io.Copy(io.Discard, np)
-			_total += size
-		}
-
-		if _total > 0 {
-			total = _total
-		}
-
-		// Extract form fields
-		forms := make(map[string][]string)
-		for key, values := range req.MultipartForm.Value {
-			forms[key] = values
-		}
-
-		files := make(map[string]xhttp.FileInfo)
-		for key, fileHeaders := range req.MultipartForm.File {
-			for idx, fileHeader := range fileHeaders {
-				// Read file metadata
-				fileInfo := xhttp.FileInfo{
-					FileName:    fileHeader.Filename,
-					ContentType: fileHeader.Header.Get("Content-Type"),
-					Size:        fileHeader.Size,
-				}
-
-				files[fmt.Sprintf("%s.%d", key, idx)] = fileInfo
-			}
-		}
-
-		return map[string]any{"forms": forms, "files": files}, total
+	if !d.IsHideRes && isPrintableRes {
+		fields = append(fields, "resBody", d.ResBody)
 	}
 
-	return nil, total
+	if d.IsPanic {
+		fields = append(fields, "panicMsg", d.PanicMsg)
+		fields = append(fields, "panicStack", d.PanicStack)
+	}
+
+	in.iolog.Info(ctx, "incoming log request", fields...)
 }

@@ -1,23 +1,24 @@
-package http_middleware_global
+package global
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
-	"net/http"
+	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 
-	chi_middleware "github.com/go-chi/chi/v5/middleware"
-
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/helper"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhttp"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/util"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xsecurity"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
 )
 
@@ -35,95 +36,120 @@ func (Cache) Name() string {
 	return "cache"
 }
 
-func (s Cache) Order() int {
-	return 4
-}
+func (Cache) App(app *fiber.App) {}
 
-func (s Cache) Serve(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		var (
-			req      = c.Request()
-			ctx      = req.Context()
-			encoding = req.Header.Get("Accept-Encoding")
-			reqBody  = xhttp.CopyRequestBody(req)
-			hash256  = helper.HashSHA256(req.Method + "|" + req.RequestURI + "|" + string(reqBody))
-			isGzip   = strings.Contains(encoding, "gzip")
+func (s Cache) Serve(c *fiber.Ctx) error {
+	var (
+		rawReqBody = c.BodyRaw()
+		reqBody    = make([]byte, len(rawReqBody))
+	)
+	copy(reqBody, rawReqBody)
 
-			cacheType = func() string {
-				if isGzip {
-					return "gzip"
-				}
-				return "plain"
-			}()
+	var (
+		ctx            = c.UserContext()
+		acceptEncoding = c.Get("Accept-Encoding")
+		reqUrl, _      = url.Parse(string(c.Request().RequestURI()))
+		hexHash256     = xsecurity.HexHashSHA256(fmt.Sprintf("%s|%s|%s", c.Method(), reqUrl.String(), string(reqBody)))
+		cacheType      = "plain"
+		isCompressed   = strings.Contains(acceptEncoding, "gzip") ||
+			strings.Contains(acceptEncoding, "deflate") ||
+			strings.Contains(acceptEncoding, "br")
+	)
 
-			cacheKey = fmt.Sprintf(
-				"api_res_cache:%s:method:%s:path:%s:hash_req_data:%s:%s",
-				s.cfg.App.Env,
-				req.Method,
-				helper.GetSnakeCaseKey(req),
-				hash256,
-				cacheType,
-			)
-			cacheLogFlagKey = cacheKey + ":log_flag"
-
-			span trace.Span
-		)
-
-		ctx, span = xtracer.Start(s.tracer, ctx, "getter / setter response cache")
-		defer span.End()
-
-		// Check Redis for cache
-		if cached, err := s.client.Get(ctx, cacheKey).Bytes(); err == nil {
-			if val, err := s.client.Get(ctx, cacheLogFlagKey).Result(); err == nil && val == "1" {
-				xlog.SkipLogResponse(c)
-			}
-
-			if isGzip {
-				c.Response().Header().Set(echo.HeaderContentEncoding, "gzip")
-			}
-
-			c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-			c.Response().WriteHeader(http.StatusOK)
-			_, err := c.Response().Write(cached)
-			return err
-		}
-
-		var (
-			buff = &bytes.Buffer{}
-			ww   = chi_middleware.NewWrapResponseWriter(c.Response().Writer, req.ProtoMajor)
-		)
-
-		ww.Tee(buff)
-		c.Response().Writer = ww
-		c.Response().After(func() {
-			if buff != nil {
-				buff.Reset()
-			}
-		})
-
-		if err := next(c); err != nil {
-			return err
-		}
-
-		// Only cache if explicitly enabled
-		var (
-			ttl          = 30 * time.Second
-			xcache       = c.Response().Header().Get("X-Cache")
-			xcacheExp, _ = strconv.ParseInt(c.Response().Header().Get("X-Cache-Exp"), 10, 64)
-		)
-
-		if xcacheExp > 0 {
-			ttl = time.Duration(xcacheExp) * time.Second
-		}
-
-		if xcache == "true" {
-			s.client.Set(ctx, cacheKey, buff.Bytes(), ttl).Err()
-			// Check if handler wants to log even from cache
-			if v, ok := c.Get("skip_log_response").(bool); ok && v {
-				s.client.Set(ctx, cacheLogFlagKey, "1", ttl)
-			}
-		}
-
-		return nil // already written to client
+	if isCompressed {
+		cacheType = acceptEncoding
 	}
+
+	var (
+		cacheKey = fmt.Sprintf(
+			"api_res_cache:%s:method:%s:path:%s:hash_req_data:%s:%s",
+			s.cfg.App.Env,
+			c.Method(),
+			util.GetSnakeCaseKeyURL(reqUrl),
+			hexHash256,
+			cacheType,
+		)
+		cacheLogFlagKey = cacheKey + ":hide_res_log"
+		cacheHeaderKey  = cacheKey + ":headers"
+	)
+
+	ctx, span := xtracer.Start(s.tracer, ctx, "cache http response api")
+	defer span.End()
+
+	if cached, err := s.client.Get(ctx, cacheKey).Bytes(); err == nil {
+		if val, err := s.client.Get(ctx, cacheLogFlagKey).Result(); err == nil && val == "1" {
+			ctx = context.WithValue(ctx, xlog.XLOG_HIDE_RES_FLAG_CTX_KEY, true)
+			c.SetUserContext(ctx)
+		}
+
+		if val, err := s.client.Get(ctx, cacheHeaderKey).Bytes(); err == nil && len(val) > 0 {
+			var m map[string][]string
+			if err := json.Unmarshal(val, &m); err == nil {
+				for k, s := range m {
+					for i, v := range s {
+						if i == 0 {
+							c.Set(k, v)
+						} else {
+							c.Append(k, v)
+						}
+					}
+				}
+			}
+		}
+
+		if isCompressed {
+			c.Set("Content-Encoding", acceptEncoding)
+		}
+
+		c.Status(fiber.StatusOK)
+		return c.Send(cached)
+	}
+
+	c.SetUserContext(ctx)
+
+	if err := c.Next(); err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+	c.Response().BodyWriteTo(&buf)
+
+	defer buf.Reset()
+
+	// Filter headers to cache
+	ignores := []string{"X-Cache", "X-Cache-Exp"}
+	headers := make(map[string][]string)
+	for key, value := range c.Response().Header.All() {
+		if slices.Contains(ignores, string(key)) {
+			continue
+		}
+		headers[string(key)] = append(headers[string(key)], string(value))
+	}
+
+	// Cache control
+	ttl := 30 * time.Second // default
+	xcache := c.Get("X-Cache")
+	if expStr := c.Get("X-Cache-Exp"); expStr != "" {
+		if exp, err := strconv.ParseInt(expStr, 10, 64); err == nil && exp > 0 {
+			ttl = time.Duration(exp) * time.Second
+		}
+	}
+
+	if xcache == "true" {
+		_ = s.client.Set(ctx, cacheKey, buf.Bytes(), ttl).Err()
+
+		// log flag
+		if v, ok := ctx.Value(xlog.XLOG_HIDE_RES_FLAG_CTX_KEY).(bool); ok && v {
+			_ = s.client.Set(ctx, cacheLogFlagKey, "1", ttl).Err()
+		}
+
+		// header cache
+		if len(headers) > 0 {
+			if hBytes, err := json.Marshal(headers); err == nil {
+				_ = s.client.Set(ctx, cacheHeaderKey, hBytes, ttl).Err()
+			}
+		}
+	}
+
+	return nil
 }

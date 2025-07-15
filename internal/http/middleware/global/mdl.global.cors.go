@@ -1,8 +1,8 @@
-package http_middleware_global
+package global
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func ProvideCORS() CORS {
@@ -15,10 +15,8 @@ func (CORS) Name() string {
 	return "cors"
 }
 
-func (CORS) Order() int {
-	return 1
-}
+func (CORS) App(app *fiber.App) {}
 
-func (CORS) Serve(next echo.HandlerFunc) echo.HandlerFunc {
-	return middleware.CORS()(next)
+func (CORS) Serve(c *fiber.Ctx) error {
+	return cors.New()(c)
 }
