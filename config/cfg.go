@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 
+	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/config"
 )
 
@@ -74,6 +75,14 @@ type Server struct {
 	Address    string            `yaml:"address"`
 	Domain     string            `yaml:"domain"`
 	Additional map[string]string `yaml:"additional"`
+	OAPI       ServerOpenAPI     `yaml:"oapi"`
+}
+
+type ServerOpenAPI struct {
+	Title       string         `yaml:"title"`
+	Version     string         `yaml:"version"`
+	Description string         `yaml:"description"`
+	Server     []*huma.Server `yaml:"servers"`
 }
 
 type SMTP struct {

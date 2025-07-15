@@ -1,13 +1,12 @@
-package helper
+package util
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
 	"math/big"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 	"unicode"
@@ -68,9 +67,12 @@ func GetSnakeCaseKey(r *http.Request) string {
 	return strings.Join(segments, "_")
 }
 
-func HashSHA256(input string) string {
-	hash := sha256.Sum256([]byte(input))
-	return hex.EncodeToString(hash[:])
+func GetSnakeCaseKeyURL(u *url.URL) string {
+	segments := strings.Split(strings.Trim(u.Path, "/"), "/")
+	for i, s := range segments {
+		segments[i] = toSnakeCase(s)
+	}
+	return strings.Join(segments, "_")
 }
 
 func PgTimestamptz(t time.Time, v bool) pgtype.Timestamptz {
