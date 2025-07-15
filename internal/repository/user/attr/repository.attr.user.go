@@ -1,4 +1,4 @@
-package repo_attr
+package attr
 
 type (
 	User struct {

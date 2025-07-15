@@ -1,9 +1,9 @@
-package repo_api
+package api
 
 import (
 	"context"
 
-	repo_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repo/attr"
+	repo_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/attr"
 )
 
 type UserRepoAPI interface {
