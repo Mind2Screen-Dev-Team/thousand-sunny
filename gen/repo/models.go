@@ -5,27 +5,13 @@
 package repo
 
 import (
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Inventory struct {
-	PlayerID int64     `json:"player_id"`
-	ItemID   uuid.UUID `json:"item_id"`
-}
-
-type Item struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Value int32     `json:"value"`
-}
-
-type Player struct {
+type ExampleUser struct {
 	ID        int32              `json:"id"`
 	Name      string             `json:"name"`
 	Level     int32              `json:"level"`
-	Class     string             `json:"class"`
-	Gold      int64              `json:"gold"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
