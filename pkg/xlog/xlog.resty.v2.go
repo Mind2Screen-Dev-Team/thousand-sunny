@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-type RestyLogger struct {
+type RestyV2Logger struct {
 	Log Logger
 }
 
-func NewRestyLogger(log Logger) *RestyLogger {
-	return &RestyLogger{log}
+func NewRestyV2Logger(log Logger) *RestyV2Logger {
+	return &RestyV2Logger{log}
 }
 
-func (l *RestyLogger) Errorf(format string, v ...any) {
+func (l *RestyV2Logger) Errorf(format string, v ...any) {
 	var (
 		ctx     = context.Background()
 		fields  = make([]any, 0)
@@ -23,13 +23,13 @@ func (l *RestyLogger) Errorf(format string, v ...any) {
 	)
 
 	fields = append(fields,
-		"resty_raw_log", logText,
+		"restyRawLog", logText,
 	)
 
 	l.Log.Error(ctx, "resty api log", fields...)
 }
 
-func (l *RestyLogger) Warnf(format string, v ...any) {
+func (l *RestyV2Logger) Warnf(format string, v ...any) {
 	var (
 		ctx       = context.Background()
 		fields    = make([]any, 0)
@@ -38,14 +38,14 @@ func (l *RestyLogger) Warnf(format string, v ...any) {
 	)
 
 	fields = append(fields,
-		"resty_raw_log", logText,
-		"resty_parsed_log", parsed,
+		"restyRawLog", logText,
+		"restyParsedLog", parsed,
 	)
 
 	l.Log.Warn(ctx, "resty api log", fields...)
 }
 
-func (l *RestyLogger) Debugf(format string, v ...any) {
+func (l *RestyV2Logger) Debugf(format string, v ...any) {
 	var (
 		ctx       = context.Background()
 		fields    = make([]any, 0)
@@ -54,8 +54,8 @@ func (l *RestyLogger) Debugf(format string, v ...any) {
 	)
 
 	fields = append(fields,
-		"resty_raw_log", logText,
-		"resty_parsed_log", parsed,
+		"restyRawLog", logText,
+		"restyParsedLog", parsed,
 	)
 
 	l.Log.Debug(ctx, "resty api log", fields...)
