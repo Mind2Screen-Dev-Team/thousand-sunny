@@ -7,6 +7,8 @@ package repo
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createExampleUser = `-- name: CreateExampleUser :one
@@ -32,7 +34,7 @@ const findExampleUserByID = `-- name: FindExampleUserByID :one
 SELECT id, name, level, created_at, updated_at FROM example_users WHERE id = $1
 `
 
-func (q *Queries) FindExampleUserByID(ctx context.Context, id int32) (ExampleUser, error) {
+func (q *Queries) FindExampleUserByID(ctx context.Context, id uuid.UUID) (ExampleUser, error) {
 	row := q.db.QueryRow(ctx, findExampleUserByID, id)
 	var i ExampleUser
 	err := row.Scan(
@@ -97,8 +99,8 @@ UPDATE example_users SET level = $1 WHERE id = $2
 `
 
 type UpdateExampleUserLevelParams struct {
-	Level int32 `json:"level"`
-	ID    int32 `json:"id"`
+	Level int32     `json:"level"`
+	ID    uuid.UUID `json:"id"`
 }
 
 func (q *Queries) UpdateExampleUserLevel(ctx context.Context, arg UpdateExampleUserLevelParams) error {

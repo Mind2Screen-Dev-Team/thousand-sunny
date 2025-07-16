@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE example_users(
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY,
   name VARCHAR NOT NULL,
   level INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,

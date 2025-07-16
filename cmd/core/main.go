@@ -38,6 +38,7 @@ func main() {
 		middleware.PrivateModules,
 
 		// HTTP
+		registry.CoreServer,
 		registry.Http,
 		registry.HttpStartUp,
 

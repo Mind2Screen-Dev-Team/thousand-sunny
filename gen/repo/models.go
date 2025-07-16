@@ -5,11 +5,12 @@
 package repo
 
 import (
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type ExampleUser struct {
-	ID        int32              `json:"id"`
+	ID        uuid.UUID          `json:"id"`
 	Name      string             `json:"name"`
 	Level     int32              `json:"level"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
