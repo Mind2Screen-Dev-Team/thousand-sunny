@@ -35,18 +35,6 @@ server:
       servers:
         - url: "http://localhost:8080"
           description: "Local Server"
-  example:
-    name: "example-core-svc"
-    host: "0.0.0.0"
-    port: 8888
-    address: "0.0.0.0:8888"
-    domain: "http://localhost"
-    oapi:
-      title: "My Core Example API"
-      version: "1.0.0"
-      servers:
-        - url: "http://localhost:8888"
-          description: "Example Local Server"
 smtp:
   gmail:
     host: localhost

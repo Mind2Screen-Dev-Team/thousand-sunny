@@ -20,10 +20,6 @@ func ProvideHTTPServerName(c config.Cfg) config.Server {
 	return c.Server["http"]
 }
 
-func ProvideHTTPExampleServerName(c config.Cfg) config.Server {
-	return c.Server["example"]
-}
-
 type InvokeHTTPServerParam struct {
 	fx.In
 
