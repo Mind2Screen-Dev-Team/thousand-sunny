@@ -6,44 +6,70 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 
-	repo_api "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/api"
-	repo_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/attr"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/api"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/attr"
 )
 
 type (
-	UserRepoParamFx struct {
+	ExampleUserRepoParamFx struct {
 		fx.In
 
 		RDB *redis.Client
 	}
 
-	UserImplRepoFx struct {
-		p UserRepoParamFx
+	ExampleUserImplRepoFx struct {
+		p ExampleUserRepoParamFx
 	}
 )
 
-func NewUserCURDRepo(p UserRepoParamFx) (repo_api.UserRepoAPI, error) {
+func NewExampleUserRepo(p ExampleUserRepoParamFx) (api.ExampleUserRepoAPI, error) {
 	if p.RDB == nil {
 		return nil, errors.New("field 'RDB' with type '*redis.Client' is not provided")
 	}
 
-	return &UserImplRepoFx{p}, nil
+	return &ExampleUserImplRepoFx{p}, nil
 }
 
-func (r *UserImplRepoFx) Create(ctx context.Context, user repo_attr.User) error {
-	key := fmt.Sprintf("user:%s", user.ID)
+func (r *ExampleUserImplRepoFx) Create(ctx context.Context, user attr.ExampleUser) (*attr.ExampleUser, error) {
+	key := fmt.Sprintf("user:%s", user.ID.String())
 	data, err := json.Marshal(user)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return r.p.RDB.Set(ctx, key, data, 0).Err()
+
+	if user.CreatedAt.IsZero() {
+		user.CreatedAt = time.Now()
+	}
+	if user.UpdatedAt.IsZero() {
+		user.UpdatedAt = time.Now()
+	}
+
+	return &user, r.p.RDB.Set(ctx, key, data, 0).Err()
 }
 
-func (r *UserImplRepoFx) ReadAll(ctx context.Context, limit int, offset int) ([]repo_attr.User, error) {
+func (r *ExampleUserImplRepoFx) Read(ctx context.Context, id string) (*attr.ExampleUser, error) {
+	key := fmt.Sprintf("user:%s", id)
+	data, err := r.p.RDB.Get(ctx, key).Result()
+	if err == redis.Nil {
+		return nil, fmt.Errorf("user with ID %s not found", id)
+	} else if err != nil {
+		return nil, err
+	}
+
+	var user attr.ExampleUser
+	if err := json.Unmarshal([]byte(data), &user); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *ExampleUserImplRepoFx) ReadAll(ctx context.Context, limit int, offset int) ([]attr.ExampleUser, error) {
 	keys, err := r.p.RDB.Keys(ctx, "user:*").Result()
 	if err != nil {
 		return nil, err
@@ -54,7 +80,7 @@ func (r *UserImplRepoFx) ReadAll(ctx context.Context, limit int, offset int) ([]
 
 	start := offset
 	if start > len(keys) {
-		return []repo_attr.User{}, nil
+		return []attr.ExampleUser{}, nil
 	}
 
 	end := offset + limit
@@ -62,7 +88,7 @@ func (r *UserImplRepoFx) ReadAll(ctx context.Context, limit int, offset int) ([]
 		end = len(keys)
 	}
 
-	var users []repo_attr.User
+	var users []attr.ExampleUser
 	for _, key := range keys[start:end] {
 		data, err := r.p.RDB.Get(ctx, key).Result()
 		if err == redis.Nil {
@@ -71,7 +97,7 @@ func (r *UserImplRepoFx) ReadAll(ctx context.Context, limit int, offset int) ([]
 			return nil, err
 		}
 
-		var user repo_attr.User
+		var user attr.ExampleUser
 		if err := json.Unmarshal([]byte(data), &user); err != nil {
 			return nil, err
 		}
@@ -81,32 +107,40 @@ func (r *UserImplRepoFx) ReadAll(ctx context.Context, limit int, offset int) ([]
 	return users, nil
 }
 
-func (r *UserImplRepoFx) Read(ctx context.Context, id string) (*repo_attr.User, error) {
-	key := fmt.Sprintf("user:%s", id)
-	data, err := r.p.RDB.Get(ctx, key).Result()
-	if err == redis.Nil {
-		return nil, fmt.Errorf("user with ID %s not found", id)
-	} else if err != nil {
+func (r *ExampleUserImplRepoFx) Update(ctx context.Context, user attr.ExampleUser) (*attr.ExampleUser, error) {
+	d, err := r.Read(ctx, user.ID.String())
+	if err != nil {
 		return nil, err
 	}
 
-	var user repo_attr.User
-	if err := json.Unmarshal([]byte(data), &user); err != nil {
-		return nil, err
+	user.CreatedAt = d.CreatedAt
+	if user.UpdatedAt.IsZero() {
+		user.UpdatedAt = time.Now()
 	}
-	return &user, nil
-}
 
-func (r *UserImplRepoFx) Update(ctx context.Context, user repo_attr.User) error {
 	key := fmt.Sprintf("user:%s", user.ID)
 	data, err := json.Marshal(user)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("%s:%w", "repository failed to marshal", err)
 	}
-	return r.p.RDB.Set(ctx, key, data, 0).Err()
+
+	if err := r.p.RDB.Set(ctx, key, data, 0).Err(); err != nil {
+		return nil, fmt.Errorf("%s:%w", "repository failed to save to redis", err)
+	}
+
+	return &user, nil
 }
 
-func (r *UserImplRepoFx) Delete(ctx context.Context, id string) error {
+func (r *ExampleUserImplRepoFx) Delete(ctx context.Context, id string) (*attr.ExampleUser, error) {
+	d, err := r.Read(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
 	key := fmt.Sprintf("user:%s", id)
-	return r.p.RDB.Del(ctx, key).Err()
+	if err := r.p.RDB.Del(ctx, key).Err(); err != nil {
+		return nil, err
+	}
+
+	return d, err
 }
