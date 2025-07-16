@@ -39,16 +39,13 @@ func (h HealthHandlerFx) Operation() huma.Operation {
 		OperationID:   "api-check-health",
 		Path:          "/api/v1/health",
 		Method:        http.MethodGet,
-		Summary:       "Check Service Health",
+		Summary:       "Service Health",
 		Description:   "Returns status ok if the service is healthy",
 		DefaultStatus: http.StatusOK,
-		Tags:          []string{"Internals"},
-		Middlewares:   huma.Middlewares{
-			// h.p.AuthJWT.Serve,
-		},
+		Tags:          []string{"Liveness"},
 		Responses: map[string]*huma.Response{
 			strconv.Itoa(http.StatusOK): {
-				Description: "Successful health check response",
+				Description: "Successful response",
 				Content: map[string]*huma.MediaType{
 					"application/json": {
 						Schema: &huma.Schema{
@@ -65,7 +62,7 @@ func (h HealthHandlerFx) Operation() huma.Operation {
 				},
 			},
 			strconv.Itoa(http.StatusInternalServerError): {
-				Description: "Failed health check response",
+				Description: "Failed response",
 				Content: map[string]*huma.MediaType{
 					"application/json": {
 						Schema: &huma.Schema{

@@ -3,12 +3,13 @@ package handler
 import (
 	"go.uber.org/fx"
 
-	handler_health "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/handler/health"
+	hdr_health "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/handler/health"
+	hdr_user "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/handler/user"
 )
 
 var (
 	Modules = fx.Module("http:handler:modules",
-		handler_health.HealthHandlerModuleFx,
-		// add more handler here
+		hdr_health.HealthHandlerModuleFx,
+		hdr_user.ExampleUserModules,
 	)
 )
