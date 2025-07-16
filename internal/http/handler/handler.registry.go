@@ -9,7 +9,7 @@ import (
 
 var (
 	Modules = fx.Module("http:handler:modules",
-		hdr_health.HealthHandlerModuleFx,
-		hdr_user.ExampleUserModules,
+		hdr_health.HealthHandlerModules,
+		hdr_user.ExampleUserHandlerModules,
 	)
 )

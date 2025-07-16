@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ExampleUserModules = fx.Options(
+	ExampleUserHandlerModules = fx.Options(
 		ExampleUserCreateHandlerModuleFx,
 		ExampleUserReadHandlerModuleFx,
 		ExampleUserReadAllHandlerModuleFx,

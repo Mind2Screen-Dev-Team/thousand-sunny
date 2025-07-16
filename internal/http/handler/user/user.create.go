@@ -17,6 +17,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/attr"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
 )
 
 var ExampleUserCreateHandlerModuleFx = fx.Options(
@@ -72,6 +73,37 @@ func (h ExampleUserCreateHandlerFx) Operation() huma.Operation {
 								UpdatedAt: time.Now().Add(5 * time.Hour),
 							},
 							Err:     nil,
+							TraceID: xid.New().String(),
+						},
+					},
+				},
+			},
+			strconv.Itoa(http.StatusUnprocessableEntity): {
+				Description: "Validation failed response",
+				Content: map[string]*huma.MediaType{
+					"application/json": {
+						Schema: &huma.Schema{
+							Ref: "schemas/GeneralResponseError",
+						},
+						Example: xresp.GeneralResponseError{
+							Code: http.StatusUnprocessableEntity,
+							Msg:  http.StatusText(http.StatusUnprocessableEntity),
+							Data: nil,
+							Err: &xresp.ErrorModel{
+								Detail: "validation failed",
+								Errors: []*huma.ErrorDetail{
+									{
+										Message:  "expected number >= 18",
+										Location: "body.age",
+										Value:    11,
+									},
+									{
+										Message:  "expected length >= 5",
+										Location: "body.name",
+										Value:    "John",
+									},
+								},
+							},
 							TraceID: xid.New().String(),
 						},
 					},
