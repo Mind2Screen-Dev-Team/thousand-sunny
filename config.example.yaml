@@ -30,8 +30,23 @@ server:
     address: "0.0.0.0:8080"
     domain: "http://localhost"
     oapi:
-      title: "My Core API"
-      version: "1.0.0"
+      info:
+        title: "My Core API"
+        version: "1.0.0"
+        description: | 
+          Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
+          Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. 
+          It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. 
+          It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and 
+          more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        termsOfService: https://www.example.com/tos
+        contact:
+          name: API Support
+          url: https://www.example.com/support
+          email: support@example.com
+        license:
+          name: MIT
+          url: https://mit-license.org
       servers:
         - url: "http://localhost:8080"
           description: "Local Server"

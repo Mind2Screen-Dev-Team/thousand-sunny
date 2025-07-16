@@ -79,10 +79,8 @@ type Server struct {
 }
 
 type ServerOpenAPI struct {
-	Title       string         `yaml:"title"`
-	Version     string         `yaml:"version"`
-	Description string         `yaml:"description"`
-	Server     []*huma.Server `yaml:"servers"`
+	Info   *huma.Info     `yaml:"info"`
+	Server []*huma.Server `yaml:"servers"`
 }
 
 type SMTP struct {

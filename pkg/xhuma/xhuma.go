@@ -10,6 +10,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
 )
 
+// Repalce Existing Huma New Error
 func init() {
 	huma.NewError = func(status int, msg string, errs ...error) huma.StatusError {
 		details := make([]*huma.ErrorDetail, len(errs))
