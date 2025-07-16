@@ -167,10 +167,11 @@ func (in IncomingLog) Serve(c *fiber.Ctx) error {
 		}
 
 		var (
-			res     = c.Response()
-			code    = res.StatusCode()
-			buffRes = &bytes.Buffer{}
-			_       = res.BodyWriteTo(buffRes)
+			res             = c.Response()
+			code            = res.StatusCode()
+			buffRes         = &bytes.Buffer{}
+			_               = res.BodyWriteTo(buffRes)
+			buffBytesRes, _ = c.Response().BodyUncompressed()
 		)
 
 		for key, value := range res.Header.All() {
@@ -181,7 +182,7 @@ func (in IncomingLog) Serve(c *fiber.Ctx) error {
 		}
 
 		d.ResStatus = code
-		d.ResBody = buffRes.Bytes()
+		d.ResBody = buffBytesRes
 		d.ResSize = int64(buffRes.Len())
 
 		d.TimeStart = now
