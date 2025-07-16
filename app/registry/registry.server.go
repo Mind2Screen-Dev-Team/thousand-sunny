@@ -12,7 +12,7 @@ var (
 			fx.Provide(dependency.ProvideHTTPServerName),
 		),
 	)
-	
+
 	ExampleServer = fx.Options(
 		fx.Module("config:example:server",
 			fx.Provide(dependency.ProvideHTTPExampleServerName),

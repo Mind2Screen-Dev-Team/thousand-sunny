@@ -13,7 +13,6 @@ var (
 			fx.Provide(dependency.ProvideFiberConfig),
 			fx.Provide(dependency.ProvideFiber),
 			fx.Provide(dependency.ProvideHumaFiber),
-			fx.Provide(dependency.ProvideHTTPServerName),
 		),
 	)
 
