@@ -16,7 +16,9 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/constant"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/util"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xfiber"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xsecurity"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
@@ -39,6 +41,10 @@ func (Cache) Name() string {
 func (Cache) App(app *fiber.App) {}
 
 func (s Cache) Serve(c *fiber.Ctx) error {
+	if next, ok := xfiber.SkipPath(c, constant.FiberSkipablePathFromMiddleware[:]...); ok {
+		return next()
+	}
+
 	var (
 		rawReqBody = c.BodyRaw()
 		reqBody    = make([]byte, len(rawReqBody))

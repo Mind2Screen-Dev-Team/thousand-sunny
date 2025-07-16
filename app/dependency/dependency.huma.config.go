@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware/global"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/danielgtaylor/huma/v2"
 	_ "github.com/danielgtaylor/huma/v2/formats/cbor"
@@ -14,10 +15,7 @@ func ProvideHumaConfig(s config.Server) huma.Config {
 		schemaPrefix = "#/components/schemas/"
 		schemasPath  = "/schemas"
 		registry     = huma.NewMapRegistry(schemaPrefix, huma.DefaultSchemaNamer)
-	)
-
-	return huma.Config{
-		OpenAPI: &huma.OpenAPI{
+		oapi         = huma.OpenAPI{
 			OpenAPI: "3.1.0",
 			Info: &huma.Info{
 				Title:       s.OAPI.Title,
@@ -28,7 +26,14 @@ func ProvideHumaConfig(s config.Server) huma.Config {
 				Schemas: registry,
 			},
 			Servers: s.OAPI.Server,
-		},
+		}
+	)
+
+	// Register Fiber Monitor Metric into OAPI
+	global.RegisterMonitorOAPI(&oapi)
+
+	return huma.Config{
+		OpenAPI:       &oapi,
 		OpenAPIPath:   "/openapi",
 		DocsPath:      "/docs",
 		SchemasPath:   schemasPath,

@@ -17,6 +17,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/constant"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xfiber"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xpanic"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
@@ -44,6 +46,10 @@ func (IncomingLog) Name() string {
 func (IncomingLog) App(app *fiber.App) {}
 
 func (in IncomingLog) Serve(c *fiber.Ctx) error {
+	if next, ok := xfiber.SkipPath(c, constant.FiberSkipablePathFromMiddleware[:]...); ok {
+		return next()
+	}
+
 	var (
 		now    = time.Now()
 		ua     = c.Context().UserAgent()

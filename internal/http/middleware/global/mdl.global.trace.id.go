@@ -3,6 +3,8 @@ package global
 import (
 	"context"
 
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/constant"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xfiber"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
 	"github.com/gofiber/fiber/v2"
@@ -27,6 +29,10 @@ func (TraceID) Name() string {
 }
 
 func (t TraceID) Serve(c *fiber.Ctx) error {
+	if next, ok := xfiber.SkipPath(c, constant.FiberSkipablePathFromMiddleware[:]...); ok {
+		return next()
+	}
+
 	var (
 		ctx  = c.UserContext()
 		id   = xid.New()
