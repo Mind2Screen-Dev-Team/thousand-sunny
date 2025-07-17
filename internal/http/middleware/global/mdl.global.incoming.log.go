@@ -145,6 +145,8 @@ func (in IncomingLog) Serve(c *fiber.Ctx) error {
 
 			json.NewEncoder(b).Encode(ss)
 			d.PanicStack = b.Bytes()
+
+			b.Reset()
 		}
 
 		if d.IsPanic {
@@ -161,16 +163,13 @@ func (in IncomingLog) Serve(c *fiber.Ctx) error {
 					TraceID: tid,
 				}
 			)
-			json.
-				NewEncoder(c.Response().BodyWriter()).
-				Encode(resp)
+			c.Response().Header.Add(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+			json.NewEncoder(c.Response().BodyWriter()).Encode(resp)
 		}
 
 		var (
 			res             = c.Response()
 			code            = res.StatusCode()
-			buffRes         = &bytes.Buffer{}
-			_               = res.BodyWriteTo(buffRes)
 			buffBytesRes, _ = c.Response().BodyUncompressed()
 		)
 
@@ -183,7 +182,7 @@ func (in IncomingLog) Serve(c *fiber.Ctx) error {
 
 		d.ResStatus = code
 		d.ResBody = buffBytesRes
-		d.ResSize = int64(buffRes.Len())
+		d.ResSize = int64(len(buffBytesRes))
 
 		d.TimeStart = now
 		d.TimeEnd = time.Now().Add(time.Since(now))
@@ -204,9 +203,10 @@ func (in IncomingLog) Serve(c *fiber.Ctx) error {
 		go func() {
 			wg.Wait()
 			span.End()
-			buffRes.Reset()
 		}()
 	}()
+
+	c.SetUserContext(ctx)
 
 	return c.Next()
 }
