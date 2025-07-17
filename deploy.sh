@@ -21,9 +21,9 @@ if [ ! -f "stack.core.env" ]; then
   exit 1
 fi
 
-# Validate required asynq env file
-if [ ! -f "stack.asynq.env" ]; then
-  echo "Error: File env does not exist: stack.asynq.env" >&2
+# Validate required async env file
+if [ ! -f "stack.async.env" ]; then
+  echo "Error: File env does not exist: stack.async.env" >&2
   exit 1
 fi
 

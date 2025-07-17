@@ -38,7 +38,7 @@ go.work.sum
 # env stack files
 stack.env
 stack.core.env
-stack.asynq.env
+stack.async.env
 
 # Binnary
 bin/*
@@ -46,7 +46,7 @@ bin/*
 
 # Need Ignore File Configuration
 config.yaml
-config.asynq.yaml
+config.async.yaml
 config.core.yaml
 
 # Backup Config Dir

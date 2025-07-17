@@ -58,7 +58,7 @@ func InvokeHTTPServer(p InvokeHTTPServerParam) {
 		},
 		OnStop: func(ctx context.Context) error {
 			defer logger.Info(ctx, "http server stopped", "address", cfg.Address)
-			if err := p.FiberApp.Shutdown(); err != nil && !errors.Is(err, net.ErrClosed) {
+			if err := p.FiberApp.ShutdownWithContext(ctx); err != nil && !errors.Is(err, net.ErrClosed) {
 				return err
 			}
 			return nil

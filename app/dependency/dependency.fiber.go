@@ -60,34 +60,32 @@ func ProvideFiber(p ProvideFiberFxParam) *fiber.App {
 	return app
 }
 
-func ProvideFiberConfig(c config.Cfg, logger *xlog.DebugLogger) fiber.Config {
+func ProvideFiberConfig(c config.Cfg, l *xlog.DebugLogger) fiber.Config {
 	var (
 		ctx = context.Background()
-		log = xlog.NewLogger(logger.Logger)
+		log = xlog.NewLogger(l.Logger)
 	)
 
 	var (
-		serverCfg = c.Server["http"]
-		fiberCfg  = fiber.Config{
-			Prefork:               true,
+		svr = c.Server["http"]
+		add = svr.Additional
+		fbr = fiber.Config{
 			ReduceMemoryUsage:     true,
 			DisableStartupMessage: true,
 		}
-
-		add = serverCfg.Additional
 	)
 
 	if dur, ok := parseDurrationConfig(ctx, log, add, "idle.timeout"); ok {
-		fiberCfg.IdleTimeout = dur
+		fbr.IdleTimeout = dur
 	}
 	if dur, ok := parseDurrationConfig(ctx, log, add, "write.timeout"); ok {
-		fiberCfg.WriteTimeout = dur
+		fbr.WriteTimeout = dur
 	}
 	if dur, ok := parseDurrationConfig(ctx, log, add, "read.timeout"); ok {
-		fiberCfg.ReadTimeout = dur
+		fbr.ReadTimeout = dur
 	}
 
-	return fiberCfg
+	return fbr
 }
 
 func parseDurrationConfig(ctx context.Context, log xlog.Logger, config map[string]string, key string) (time.Duration, bool) {

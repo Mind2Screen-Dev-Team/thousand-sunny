@@ -1,9 +1,9 @@
 .PHONY: help setup sqlc-gen go-help go-tidy go-run go-build print-path \
         deploy-help deploy-core-up deploy-core-down \
-        deploy-asynq-up deploy-asynq-down \
-        deploy-core-down-clean deploy-asynq-down-clean \
-        deploy-asynq-logs deploy-core-logs \
-        disconnect-core-dependency disconnect-asynq-dependency
+        deploy-async-up deploy-async-down \
+        deploy-core-down-clean deploy-async-down-clean \
+        deploy-async-logs deploy-core-logs \
+        disconnect-core-dependency disconnect-async-dependency
 
 # ------------------------------
 # Binary Availability Checks
@@ -136,7 +136,7 @@ go-build: verify-go
 deploy-help:
 	@echo "Docker Deployment Commands"
 	@echo ""
-	@echo "Usage: make deploy-[asynq|core]-[up|down] v=<version>"
+	@echo "Usage: make deploy-[async|core]-[up|down] v=<version>"
 	@echo ""
 	@echo "Paramater:"
 	@echo "       f=1 -> follow-logs"
@@ -144,15 +144,15 @@ deploy-help:
 	@echo ""
 	@echo "Examples:"
 	@echo "  make deploy-core-up v=0.0.1"
-	@echo "  make deploy-asynq-down"
+	@echo "  make deploy-async-down"
 	@echo "  make deploy-core-logs"
-	@echo "  make deploy-asynq-logs f=1"
+	@echo "  make deploy-async-logs f=1"
 
-deploy-asynq-up:
+deploy-async-up:
 	@[ -n "$(v)" ] || { echo "Error: v is not set."; exit 1; }
 	@echo "Validating version: $(v)"
 	@echo "$(v)" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: Version must follow 'vX.Y.Z' or 'X.Y.Z'. See https://semver.org"; exit 1; }
-	@./deploy.sh stack.asynq.env $(v)
+	@./deploy.sh stack.async.env $(v)
 
 deploy-core-up:
 	@[ -n "$(v)" ] || { echo "Error: v is not set."; exit 1; }
@@ -160,17 +160,17 @@ deploy-core-up:
 	@echo "$(v)" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: Version must follow 'vX.Y.Z' or 'X.Y.Z'. See https://semver.org"; exit 1; }
 	@./deploy.sh stack.core.env $(v)
 
-deploy-asynq-down:
-	@./deploy.sh stack.asynq.env down
+deploy-async-down:
+	@./deploy.sh stack.async.env down
 
 deploy-core-down:
 	@./deploy.sh stack.core.env down
 
-deploy-asynq-down-clean:
-	@echo "WARNING: This action will DOWN and CLEAN the asynq stack! This is dangerous and irreversible."
-	@read -p "Are you sure you want to down-clean Asynq stack? (y/N): " ans; \
+deploy-async-down-clean:
+	@echo "WARNING: This action will DOWN and CLEAN the async stack! This is dangerous and irreversible."
+	@read -p "Are you sure you want to down-clean async stack? (y/N): " ans; \
 	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
-		./deploy.sh stack.asynq.env down-clean; \
+		./deploy.sh stack.async.env down-clean; \
 	else \
 		echo "Aborted."; \
 	fi
@@ -184,14 +184,14 @@ deploy-core-down-clean:
 		echo "Aborted."; \
 	fi
 
-deploy-asynq-logs:
-	@f=$(f) ./deploy.sh stack.asynq.env logs
+deploy-async-logs:
+	@f=$(f) ./deploy.sh stack.async.env logs
 
 deploy-core-logs:
 	@f=$(f) ./deploy.sh stack.core.env logs
 
-disconnect-asynq-dependency:
-	@./deploy.sh stack.asynq.env dc-ctr
+disconnect-async-dependency:
+	@./deploy.sh stack.async.env dc-ctr
 
 disconnect-core-dependency:
 	@./deploy.sh stack.core.env dc-ctr

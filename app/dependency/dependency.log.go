@@ -45,7 +45,7 @@ func RotateLog() {
 }
 
 func ProvideDebugLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *xlog.DebugLogger {
-
+	pid := os.Getpid()
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "debug")
 
@@ -93,6 +93,7 @@ func ProvideDebugLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider)
 		xlog.SetField("app_env", c.App.Env),
 		xlog.SetField("app_server", s.Name),
 		xlog.SetField("app_log", "debug:logger"),
+		xlog.SetField("app_pid", pid),
 	)
 
 	_DebugLogger = &debugLog
@@ -101,7 +102,7 @@ func ProvideDebugLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider)
 }
 
 func ProvideIoLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *xlog.IOLogger {
-
+	pid := os.Getpid()
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "io")
 
@@ -149,6 +150,7 @@ func ProvideIoLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *x
 		xlog.SetField("app_env", c.App.Env),
 		xlog.SetField("app_server", s.Name),
 		xlog.SetField("app_log", "io:logger"),
+		xlog.SetField("app_pid", pid),
 	)
 
 	_IOLogger = &ioLog
@@ -157,6 +159,7 @@ func ProvideIoLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *x
 }
 
 func ProvideTrxLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *xlog.TrxLogger {
+	pid := os.Getpid()
 	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
 	basePath = strings.ReplaceAll(basePath, "{log.type}", "trx")
 	basePath = strings.Join([]string{basePath, "{trx.client}"}, "/")
@@ -212,6 +215,7 @@ func ProvideTrxLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *
 			xlog.SetField("app_env", c.App.Env),
 			xlog.SetField("app_server", s.Name),
 			xlog.SetField("app_log", fmt.Sprintf("trx:logger:%s", key)),
+			xlog.SetField("app_pid", pid),
 		)
 	}
 

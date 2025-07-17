@@ -150,7 +150,6 @@ type Log struct {
 
 type LogType struct {
 	Disabled bool       `yaml:"disabled"`
-	Notify   LogNotify  `yaml:"notify"`
 	Otel     LogOtel    `yaml:"otel"`
 	Console  LogConsole `yaml:"console"`
 	File     LogFile    `yaml:"file"`
