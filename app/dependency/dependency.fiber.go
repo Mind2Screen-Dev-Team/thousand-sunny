@@ -45,8 +45,8 @@ func ProvideFiber(p ProvideFiberFxParam) *fiber.App {
 		)
 
 		var (
-			aa = middleware.GlobalMiddlewareOrder[a]
-			bb = middleware.GlobalMiddlewareOrder[b]
+			aa = middleware.GlobalOrder[a]
+			bb = middleware.GlobalOrder[b]
 		)
 
 		return aa < bb
