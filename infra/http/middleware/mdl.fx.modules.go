@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	GlobalOrder = map[string]int{
+	GlobalOrders = map[string]int{
 		"otel.http":    1,
 		"trace.id":     2,
 		"helmet":       3,
