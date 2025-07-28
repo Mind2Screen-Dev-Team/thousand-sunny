@@ -8,8 +8,8 @@ import (
 
 var (
 	GlobalOrder = map[string]int{
-		"otel.http":    0,
-		"trace.id":     1,
+		"otel.http":    1,
+		"trace.id":     2,
 		"helmet":       3,
 		"cors":         4,
 		"incoming.log": 5,
