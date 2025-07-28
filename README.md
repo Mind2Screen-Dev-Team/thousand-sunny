@@ -1,224 +1,209 @@
+# 🏴‍☠️ *Thousand Sunny* – Project Skeleton
 
-# 🏴‍☠️ _Thousand Sunny_ 🏴‍☠️ - Project Skeleton
+Set sail on your next adventure with **Thousand Sunny**!
+Inspired by the legendary ship from *One Piece*, this Go project skeleton is built for **speed, flexibility, and scalability**. Whether you're building small tools or large-scale applications, Thousand Sunny provides the foundation to power your journey.
 
-Embark on your next adventure with the Thousand Sunny! Inspired by the legendary ship from One Piece, this Go project skeleton is designed for speed, flexibility, and scalability. Whether you’re building small tools or large applications, the Thousand Sunny will guide your journey to success.
+![Thousand Sunny](./storage/assets/thousand-sunny.png "Thousand Sunny")
 
-![Thousand-Sunny-Image](./storage/assets/thousand-sunny.png "Thousand Sunny")
+---
 
 ## 🗂 Project Structure
 
 ```bash
 ├── app
-│   ├── dependency  # External dependencies or libraries used across the application.
-│   │   └── ...     # Create Dependency Here.
-│   ├── module      # Application-specific modules encapsulating core features.
-│   │   └── ...     # Create Module Here.
-│   └── registry    # Manages the initialization and registration of application components.
-│       └── ...     # Create Registry Here.
-├── bin             # Compiled binaries or executables for the application.
+│   ├── dependency  # Shared external dependencies and libraries.
+│   └── injector    # Handles initialization and registration of dependencies.
+├── bin             # Compiled binaries or executables.
 ├── cmd
-│   ├── asynq       # Main entry point for the 'asynq' application.
 │   └── core        # Main entry point for the 'core' application.
-├── config          # Configuration files for managing application settings.
-├── constant        # Application-wide constants to avoid hardcoding values.
+├── config          # Configuration files for application settings.
+├── constant        # Centralized constants to avoid hardcoding.
 ├── database
-│   ├── migrations  # Database schema migrations for version control.
-│   │   └── ...     # List of migration files.
-│   ├── queries     # Custom Generator For SQLC queries for specific operations.
-│   │   └── ...     # List of sqlc generator queries.
-│   ├── seeders     # Seed data for initializing or populating the database.
-│   │   └── ...     # List of seeder files.
-│   └── ...         # database codes.
+│   ├── migrations  # Schema migrations (version-controlled).
+│   ├── queries     # SQLC query generators for custom DB operations.
+│   └── seeders     # Seed data for initial or demo setups.
 ├── gen
-│   └── repo        # Auto-generated repository code for data access.
-├── internal        # Internal packages for application-specific functionality.
-│   ├── schema      # Collections of schema.
-│   │   └── ...     # list of schema.
-│   ├── helper      # Collections of short function for helpers.
-│   │   └── ...     # list of helpers
-│   ├── asynq       # Handles asynchronous task queues.
-│   │   ├── router      # Base Asynq routing configuration (No need to add Something here).
-│   │   ├── worker      # Specific handlers for processing workers.
-│   │   │   └── ...     # Other Worker Routing Handlers.
-│   │   └── scheduler   # Specific handlers for processing schedulers.
-│   │       └── ...     # Other Scheduler Routing Handlers.
-│   ├── http        # HTTP server and related components.
-│   │   ├── handler
-│   │   │   ├── health  # Example. Handlers for health-related endpoints.
-│   │   │   ├── user    # Example. Handlers for user-related endpoints.
-│   │   │   └── ...     # Other Routing Handlers.
-│   │   ├── middleware  # HTTP middleware for request processing.
-│   │   │   ├── global  # Middleware applied to all requests globally.
-│   │   │   │   └── ... # Other Global Middleware.
-│   │   │   └── private # Middleware for restricted/private routes.
-│   │   │       └── ... # Other Private Middleware.
-│   │   └── router      # Base HTTP routing configuration (No need to add Something here).
-│   ├── schema       # Defind Schema Database Object Table and column.
-│   ├── provider     # External Provider Data access layer.
-│   │   ├── api      # External Provider interfaces for APIs.
-│   │   │   └── ...  # Other API External Provider.
-│   │   ├── attr     # External Providers for handling attributes.
-│   │   │   └── ...  # Other Attribute External Provider.
-│   │   └── impl     # Implementation of repository interfaces.
-│   │       └── ...  # Other Implementaion External Provider.
-│   ├── repo         # Data access layer.
-│   │   ├── api      # Repository interfaces for APIs.
-│   │   │   └── ...  # Other API Repository.
-│   │   ├── attr     # Repositories for handling attributes.
-│   │   │   └── ...  # Other Attribute Repository.
-│   │   └── impl     # Implementation of repository interfaces.
-│   │       └── ...  # Other Implementaion Repository.
-│   └── service      # Business logic layer.
-│       ├── api      # API-specific services.
-│       │   └── ...  # Other API Service.
-│       ├── attr     # Services for managing attributes.
-│       │   └── ...  # Other Attribute Service.
-│       └── impl     # Implementation of service interfaces.
-│           └── ...  # Other Implementaion Service.
-├── pkg             # Utility and reusable packages.
-│   ├── xasynq       # Asynq sever helpers and utilities.
-│   ├── xauth        # Authentication helpers and utilities.
-│   ├── xecho        # Extensions for the Echo web framework.
-│   ├── xfilter      # Utilities for filtering data in requests.
-│   ├── xhttp        # General HTTP helpers and utilities.
+│   └── repo        # Auto-generated repository code for database access.
+├── internal        # Internal packages (application-specific).
+│   ├── <domain>            # Domain modules.
+│   │   ├── <sub-domain>    # Sub-domains within a domain.
+│   │   │   ├── <domain>.<sub-domain>.<task-name>.handler.go  # Endpoint handlers.
+│   │   │   ├── <domain>.<sub-domain>.repo.go                 # Data access layer.
+│   │   │   ├── <domain>.<sub-domain>.service.go              # Business logic.
+│   │   │   └── <domain>.<sub-domain>.fx.module.go            # Uber Fx modules.
+│   │   ├── <domain>.<task-name>.handler.go                   # Endpoint handlers.
+│   │   ├── <domain>.repo.go                                  # Data access layer.
+│   │   ├── <domain>.service.go                               # Business logic.
+│   │   └── <domain>.fx.modules.go                            # Uber Fx modules.
+│   └── fx.modules  # Global Uber Fx module definitions.
+├── pkg             # Reusable libraries and utility packages.
+│   ├── xfiber       # Fiber server helpers and middleware.
+│   ├── xfilter      # Data filtering helpers.
+│   ├── xhuma        # Extensions for Huma (API framework).
 │   ├── xlog         # Logging utilities.
-│   ├── xmail        # Email helpers and utilities.
-│   ├── xpanic       # Panic recovery utilities for error handling.
-│   ├── xresp        # Response utilities for standardizing HTTP responses.
-│   ├── xsecurity    # Security for encryption and decryption utilities.
-│   ├── xtracer      # Open-Telemtry Pkg Helper.
-│   └── xvalidate    # Validation Pkg for helper mapping / defind error.
-└── storage         # Storage for static files and logs.
-    ├── assets      # Static assets like images or documents.
-    │   └── ...     # Add other assets here.
-    ├── cron        # Cron configuration.
-    │   └── ...     # Add other cron configuration here.
-    ├── template    # Template files.
-    │   └── ...     # Add other template here.
-    └── logs        # Application log files.
-        └── <server.name> # Based `config.yaml` on server section.
+│   ├── xmail        # Email helpers.
+│   ├── xpanic       # Panic recovery utilities.
+│   ├── xresp        # Standardized HTTP response utilities.
+│   ├── xsecurity    # Encryption/decryption utilities.
+│   ├── xtracer      # OpenTelemetry tracing helpers.
+│   ├── xutil        # Generic helper functions.
+│   └── xvalidate    # Validation helpers (with error mapping).
+└── storage
+    ├── assets      # Static assets (images, documents, etc.).
+    ├── backup      # Backup data.
+    ├── cron        # Cron job configurations.
+    ├── template    # Templates (emails, configs, etc.).
+    └── logs
+        └── <server.name> # Log folders (based on `config.yaml` server name).
             ├── debug     # Debug-level logs.
-            ├── io        # Input/output (incoming logs) operation logs.
-            └── trx       # Transaction logs for auditing or debugging.
+            ├── io        # Input/output logs.
+            └── trx       # Transaction/audit logs.
 ```
+
+---
 
 ## 📋 Features
 
-Here's a quick look at what's done and what's still in progress:
+What’s included:
 
-- 🗃️ **Base Structural Directory**: Well-organized code structure to get you started quickly.
-- 🔧 **Setup Uber Fx**: Uber Dependency injection tool setup.
-- 🔧 **Setup Uber Config**: Uber Configuration tool setup.
-- 📦 **SQLC Repositories Generator**: Repository generator tools.
-- 🌐 **Asynq Redis Queue Worker and Scheduler Handler and Router Loader**: Load and manage routes effortlessly.
-- 🌐 **HTTP Handler and Router Loader**: Load and manage routes effortlessly.
-- 📜 **DTO Validation**: Validate incoming data with ease.
-- 📦 **DB Migrations and Seeders**: Database migration and seeding tools.
-- 📄 **Logging**: Integrated logging for better observability.
-- 📑 **Makefile Runner**: Simple command runners for building and testing.
-- 🐳 **Docker Integration**: Containerize the application.
-- 🌐 **Open-Telemetry**: Add Tracer, Metric and Logs Configuration.
+* 🗃️ **Base Project Structure** – Ready-to-use modular Go skeleton.
+* 🔧 **Uber Fx Integration** – Dependency injection made easy.
+* 🔧 **Uber Config Integration** – Centralized configuration management.
+* 📦 **SQLC Repositories** – Auto-generated database repositories.
+* 🌐 **HTTP Handlers & Router Loader** – Easy route registration and management.
+* 📜 **DTO Validation** – Validate incoming payloads with custom rules.
+* 📦 **Migrations & Seeders** – DB migration and seeding support.
+* 📄 **Logging** – Structured logging for observability.
+* 📑 **Makefile Support** – Simplified build and run commands.
+* 🐳 **Docker Ready** – Containerized setup for development and production.
+* 🌐 **OpenTelemetry** – Tracing, metrics, and logs support.
 
-## 📦 Installation and Setup
+---
 
-To get started, follow these steps:
+## 🚀 Getting Started
+
+Clone the repository and set up your environment:
 
 ```bash
 # Clone the repository
 git clone git@github.com:Mind2Screen-Dev-Team/thousand-sunny.git
 
-# Navigate to the project directory
 cd thousand-sunny
 
-# Install dependencies and set up the project
+# Install dependencies and prepare tools
 make setup
 
-# Copy example config and fill the value of configuration for deployment.
-cp stack.example.env stack.asynq.env
+# Copy and configure environment variables
 cp stack.example.env stack.core.env
 
-# The `config.yaml` file for application configuration.
+# Copy application configuration
 cp config.example.yaml config.yaml
+```
 
-# Run LOCAL for simplify step
+### Running Locally
 
-# Run the application
+```bash
+# Start the application locally
 make go-run a=core
+```
 
-# Run on Docker
+### Running with Docker
 
-# The `config.yaml` file for application configuration.
+```bash
+# Copy configuration
 cp config.example.yaml config.yaml
 
-# Make it script deployment executeable
+# Make deploy scripts executable
 chmod +x ./deploy.*.sh
 
-# Version must follow the sematic versioning format 'X.Y.Z' (e.g., 1.0.0).
-# Please refer on this docs: https://semver.org/
-
-# For deploy up
-make deploy-asynq-up v=<version>
+# Deploy (version must follow semantic versioning: X.Y.Z)
 make deploy-core-up v=<version>
 
-# For deploy down
-make deploy-asynq-down
+# Stop services
 make deploy-core-down
 ```
 
+---
+
 ## ⚙️ Makefile Commands
 
-The Makefile provides a set of commands to help you manage and interact with your Go project efficiently. Below is a list of the available commands:
-
-### Setup Commands
-
-- **`make setup`**: Sets up the project by installing necessary tools like `goose` and `sqlc`.
-
-### Sqlc Commands
-
-- **`make sqlc-gen`**: Sets up the project by generating `sqlc` repositories.
-
-### Go Commands
-
-- **`make go-tidy`**: Cleans up the `go.mod` file by removing unnecessary dependencies.
-- **`make go-run a=<application>`**: Runs the specified application.
-- **`make go-run a=<application> c=<configuration file>`**: Runs the specified application with configuration.
-- **`make go-build a=<application>`**: Builds the specified application.
-
-### Utility Commands
-
-- **`make print-path`**: Displays the current `PATH` environment variable.
-- **`make go-help`**: Provides help on Go commands.
-
-### Examples
+Some useful commands:
 
 ```bash
-# Setup your project workspace
+# Install tools (sqlc, goose, etc.)
 make setup
 
-# Run a Go application (example: core, asynq)
-make go-run a=asynq
+# Generate SQLC repositories
+make sqlc-gen
+
+# Run a Go service
 make go-run a=core
 
+# Run with specific config
+make go-run a=core c=config.yaml
+
+# Build the application
+make go-build a=core
+
+# Clean up go.mod
+make go-tidy
+
+# Print PATH variable
+make print-path
 ```
 
-These commands make it easy to manage your Go application, including its dependencies, database migrations, and proto file generation.
+## ⚙️ Git-Export Makefile Command:
+
+The command below helps you generate a JSON file, which can then be analyzed by AI to produce a detailed summary.
+
+```bash
+# Make git-export scripts executable
+chmod +x ./git-export.script.sh
+
+# Show help
+make go-help
+
+# Export all commits (no filters)
+make git-export
+
+# Export last 5 commits
+make git-export-last N=5
+
+# Export commits within a date range
+make git-export-range SINCE=2025-07-01 UNTIL=2025-07-28
+
+# Clean up exported JSONs
+make git-export-clean
+```
+
+---
 
 ## 📖 Documentation
 
-For detailed documentation and advanced usage, please refer to the [Wiki](https://github.com/Mind2Screen-Dev-Team/thousand-sunny) page.
+Full documentation and examples can be found in the [Wiki](https://github.com/Mind2Screen-Dev-Team/thousand-sunny).
+
+---
 
 ## 📜 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**.
+See [LICENSE](LICENSE) for details.
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Feel free to submit issues, fork the repository, and send pull requests.
+We welcome contributions!
+Fork the repository, open issues, and submit pull requests.
 
-## 🌟 Show Your Support
+---
 
-Give a ⭐️ if you like this project!
+## 🌟 Support
+
+If you like this project, **give it a star** ⭐ to show your support!
+
+---
 
 ## 📧 Contact
 
-For more information or support, you can reach out to us.
+For questions or support, please contact the maintainers via the repository.

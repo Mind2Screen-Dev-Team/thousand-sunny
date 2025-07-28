@@ -38,7 +38,6 @@ go.work.sum
 # env stack files
 stack.env
 stack.core.env
-stack.async.env
 
 # Binnary
 bin/*
@@ -46,9 +45,11 @@ bin/*
 
 # Need Ignore File Configuration
 config.yaml
-config.async.yaml
 config.core.yaml
 
 # Backup Config Dir
 storage/backup/config/*
 !storage/backup/config/.gitkeep
+
+# Ignore all exported commit JSON files
+git-export-commits-*.json

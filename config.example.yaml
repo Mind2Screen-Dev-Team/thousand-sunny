@@ -14,12 +14,6 @@ otel:
       ignore.attr.keys:
         incoming.log: ["req_user_agent", "req_header", "req_body_raw", "req_body_parsed", "res_header", "res_body", "panic_recover_err", "panic_stack"]
 server:
-  async:
-    name: "async-svc"
-    host: "0.0.0.0"
-    port: 8081
-    address: "0.0.0.0:8081"
-    domain: "http://localhost"
   http:
     name: "core-svc"
     host: "0.0.0.0"

@@ -58,6 +58,17 @@ setup: verify-go
 	@go install github.com/pressly/goose/v3/cmd/goose@latest || { echo 'Error: goose installation failed.'; exit 1; }
 	@echo "- Installing Sqlc (codegen tool)"
 	@go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest || { echo 'Error: sqlc installation failed.'; exit 1; }
+	@echo "- Checking jq (JSON processor)"
+	@if ! command -v jq >/dev/null 2>&1; then \
+		echo "  jq not found, installing..."; \
+		if [ "$$(uname)" = "Darwin" ]; then \
+			brew install jq || { echo 'Error: Failed to install jq with brew.'; exit 1; }; \
+		else \
+			sudo apt-get update && sudo apt-get install -y jq || { echo 'Error: Failed to install jq with apt.'; exit 1; }; \
+		fi \
+	else \
+		echo "  jq already installed."; \
+	fi
 	@echo "- Installed tools in $(GOPATH_BIN):"
 	@ls $(GOPATH_BIN) || { echo 'Error: Failed to list tools in GOPATH/bin.'; exit 1; }
 	@echo "\n✅ Setup completed successfully"
@@ -195,3 +206,39 @@ disconnect-async-dependency:
 
 disconnect-core-dependency:
 	@./deploy.sh stack.core.env dc-ctr
+
+# Variables (can be overridden)
+SINCE ?=
+UNTIL ?=
+LIMIT ?=
+N ?=
+
+SCRIPT := git-export.script.sh
+TIMESTAMP := $(shell date +%s)
+OUTPUT := git-export-commits-$(TIMESTAMP).json
+
+# Export all commits (with optional filters)
+git-export-all:
+	@echo "Exporting commits to $(OUTPUT)..."
+	@bash $(SCRIPT) $(if $(SINCE),--since=$(SINCE)) $(if $(UNTIL),--until=$(UNTIL)) $(if $(LIMIT),--limit=$(LIMIT)) > $(OUTPUT)
+	@echo "Done. Output saved to $(OUTPUT)."
+
+# Export last N commits (e.g., make git-export-last N=5)
+git-export-last:
+	@if [ -z "$(N)" ]; then echo "Usage: make git-export-last N=5"; exit 1; fi
+	@echo "Exporting last $(N) commits to $(OUTPUT)..."
+	@bash $(SCRIPT) --limit=$(N) > $(OUTPUT)
+	@echo "Done. Output saved to $(OUTPUT)."
+
+# Export commits within a date range
+# Usage: make git-export-range SINCE=YYYY-MM-DD UNTIL=YYYY-MM-DD
+git-export-range:
+	@if [ -z "$(SINCE)" ] || [ -z "$(UNTIL)" ]; then echo "Usage: make git-export-range SINCE=YYYY-MM-DD UNTIL=YYYY-MM-DD"; exit 1; fi
+	@echo "Exporting commits from $(SINCE) to $(UNTIL) to $(OUTPUT)..."
+	@bash $(SCRIPT) --since=$(SINCE) --until=$(UNTIL) > $(OUTPUT)
+	@echo "Done. Output saved to $(OUTPUT)."
+
+# Clean all exported JSON files
+git-export-clean:
+	@rm -f git-export-commits-*.json
+	@echo "Removed all exported JSON files."

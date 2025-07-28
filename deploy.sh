@@ -21,12 +21,6 @@ if [ ! -f "stack.core.env" ]; then
   exit 1
 fi
 
-# Validate required async env file
-if [ ! -f "stack.async.env" ]; then
-  echo "Error: File env does not exist: stack.async.env" >&2
-  exit 1
-fi
-
 # Ensure config file exists
 if [ ! -f "config.yaml" ]; then
   echo "Error: File config does not exist: config.yaml" >&2
