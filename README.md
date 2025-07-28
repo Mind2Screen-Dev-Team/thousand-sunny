@@ -22,7 +22,6 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 │   ├── migrations  # Schema migrations (version-controlled).
 │   ├── queries     # SQLC query generators for custom DB operations.
 │   └── seeders     # Seed data for initial or demo setups.
-├── docs            # Auto-generated OpenAPI specs (openapi.yaml/json) and static docs.
 ├── gen
 │   └── repo        # Auto-generated repository code for database access.
 ├── internal        # Internal packages (application-specific).
@@ -145,9 +144,6 @@ Some useful commands:
 ```bash
 # Install tools (sqlc, goose, etc.)
 make setup
-
-# Generate SQLC repositories
-make sqlc-gen
 
 # Run a Go service
 make go-run a=core
