@@ -4,49 +4,45 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/app/dependency"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/app/registry"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/app/injector"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/handler"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/provider"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/infra/http/middleware"
 )
 
 func main() {
 	fx.New(
 		// Main
-		registry.Fx,
-		registry.GlobalConfig,
-		registry.GlobalLogger,
-		registry.GlobalEmail,
-		registry.OtelSetup,
+		injector.Fx,
+		injector.GlobalConfig,
+		injector.GlobalLogger,
+		injector.GlobalEmail,
+		injector.OtelSetup,
 
 		// Cache
-		registry.Cache,
-		registry.CacheStartUp,
+		injector.Cache,
+		injector.CacheStartUp,
 
 		// Database
-		registry.Database,
-		registry.DatabaseStartUp,
+		injector.Database,
+		injector.DatabaseStartUp,
 
 		// Repo SQLC Generator
-		registry.RepoGenerationSqlc,
+		injector.RepoGenerationSqlc,
 
 		// HTTP Middleware
 		middleware.GlobalModules,
 		middleware.PrivateModules,
 
 		// HTTP
-		registry.CoreServer,
-		registry.Http,
-		registry.HttpStartUp,
+		injector.CoreServer,
+		injector.Http,
+		injector.HttpStartUp,
 
-		// Modules
-		provider.Modules,
-		repository.Modules,
-		service.Modules,
-		handler.Modules,
+		// Internal Modules
+		internal.RepoModules,
+		internal.ServiceModules,
+		internal.HandlerModules,
 	).Run()
 
 	defer dependency.RotateLog()
