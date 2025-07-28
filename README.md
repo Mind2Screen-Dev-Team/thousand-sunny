@@ -1,6 +1,6 @@
 # 🏴‍☠️ *Thousand Sunny* – Project Skeleton
 
-Set sail on your next adventure with **Thousand Sunny**!
+Set sail on your next adventure with **Thousand Sunny**!  
 Inspired by the legendary ship from *One Piece*, this Go project skeleton is built for **speed, flexibility, and scalability**. Whether you're building small tools or large-scale applications, Thousand Sunny provides the foundation to power your journey.
 
 ![Thousand Sunny](./storage/assets/thousand-sunny.png "Thousand Sunny")
@@ -22,6 +22,7 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 │   ├── migrations  # Schema migrations (version-controlled).
 │   ├── queries     # SQLC query generators for custom DB operations.
 │   └── seeders     # Seed data for initial or demo setups.
+├── docs            # Auto-generated OpenAPI specs (openapi.yaml/json) and static docs.
 ├── gen
 │   └── repo        # Auto-generated repository code for database access.
 ├── internal        # Internal packages (application-specific).
@@ -39,7 +40,7 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 ├── pkg             # Reusable libraries and utility packages.
 │   ├── xfiber       # Fiber server helpers and middleware.
 │   ├── xfilter      # Data filtering helpers.
-│   ├── xhuma        # Extensions for Huma (API framework).
+│   ├── xhuma        # Extensions for Huma (OpenAPI framework integration).
 │   ├── xlog         # Logging utilities.
 │   ├── xmail        # Email helpers.
 │   ├── xpanic       # Panic recovery utilities.
@@ -58,25 +59,23 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
             ├── debug     # Debug-level logs.
             ├── io        # Input/output logs.
             └── trx       # Transaction/audit logs.
-```
+````
 
 ---
 
 ## 📋 Features
 
-What’s included:
-
-* 🗃️ **Base Project Structure** – Ready-to-use modular Go skeleton.
-* 🔧 **Uber Fx Integration** – Dependency injection made easy.
-* 🔧 **Uber Config Integration** – Centralized configuration management.
-* 📦 **SQLC Repositories** – Auto-generated database repositories.
-* 🌐 **HTTP Handlers & Router Loader** – Easy route registration and management.
-* 📜 **DTO Validation** – Validate incoming payloads with custom rules.
-* 📦 **Migrations & Seeders** – DB migration and seeding support.
-* 📄 **Logging** – Structured logging for observability.
-* 📑 **Makefile Support** – Simplified build and run commands.
-* 🐳 **Docker Ready** – Containerized setup for development and production.
-* 🌐 **OpenTelemetry** – Tracing, metrics, and logs support.
+* 🗃️ **Base Project Structure** – Modular Go skeleton.
+* 🌐 **Huma Framework** – Auto-generates **OpenAPI** specifications.
+* 📜 **Live Docs at `/docs`** – Interactive Swagger-style UI.
+* 📂 **Exportable OpenAPI Specs** – Downloadable from:
+  * `http://<host>:<port>/openapi.yaml`
+  * `http://<host>:<port>/openapi.json`
+* 🔧 **Uber Fx & Config Integration** – Simplified dependency and config management.
+* 📦 **SQLC Repositories** – Auto-generated DB repositories.
+* 📜 **DTO Validation** – Structured payload validation.
+* 🐳 **Docker-Ready** – Containerized for dev/prod.
+* 🌐 **OpenTelemetry** – Observability with traces, metrics, and logs.
 
 ---
 
@@ -122,6 +121,20 @@ make deploy-core-up v=<version>
 # Stop services
 make deploy-core-down
 ```
+
+---
+
+Then Access It:
+* **With Interactive Documentation:**
+  - `http://<host>:<port>/docs`
+
+* **OpenAPI Specification (YAML):**
+  - `http://<host>:<port>/openapi.yaml`
+
+* **OpenAPI Specification (JSON):**
+  - `http://<host>:<port>/openapi.json`
+
+The `/docs` UI is powered by Huma and reads from the same OpenAPI schema.
 
 ---
 
@@ -180,30 +193,5 @@ make git-export-clean
 
 ## 📖 Documentation
 
-Full documentation and examples can be found in the [Wiki](https://github.com/Mind2Screen-Dev-Team/thousand-sunny).
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License**.
-See [LICENSE](LICENSE) for details.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions!
-Fork the repository, open issues, and submit pull requests.
-
----
-
-## 🌟 Support
-
-If you like this project, **give it a star** ⭐ to show your support!
-
----
-
-## 📧 Contact
-
-For questions or support, please contact the maintainers via the repository.
+For advanced guides, see the [Wiki](https://github.com/Mind2Screen-Dev-Team/thousand-sunny).
+To integrate these OpenAPI specs with external tools (e.g., codegen for clients), use the `/openapi.yaml` or `/openapi.json` endpoints directly.
