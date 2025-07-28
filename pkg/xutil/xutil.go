@@ -1,4 +1,4 @@
-package util
+package xutil
 
 import (
 	"errors"
@@ -20,21 +20,21 @@ const (
 
 // default page: 1
 // default size: 25
-func CalcOffsetLimit(page, size, default_page, default_size int) (offset, limit int) {
-	if default_page <= 0 {
-		default_page = 1
+func CalcOffsetLimit(page, size, defaultPage, defaultSize int) (offset, limit int) {
+	if defaultPage <= 0 {
+		defaultPage = 1
 	}
 
-	if default_size <= 0 {
-		default_size = 25
+	if defaultSize <= 0 {
+		defaultSize = 25
 	}
 
 	if page <= 0 {
-		page = default_page // default to first page
+		page = defaultPage // default to first page
 	}
 
 	if size <= 0 {
-		size = default_size // default page size
+		size = defaultSize // default page size
 	}
 
 	offset = (page - 1) * size
@@ -157,9 +157,7 @@ type MonthRange struct {
 }
 
 func GenerateMonthlyRanges(startDateStr string, loc *time.Location, max int) ([]MonthRange, error) {
-	const layout = "2006-01-02"
-
-	startDate, err := time.ParseInLocation(layout, startDateStr, loc)
+	startDate, err := time.ParseInLocation(DATE_LAYOUT, startDateStr, loc)
 	if err != nil {
 		return nil, err
 	}
@@ -230,10 +228,7 @@ func numericZero() pgtype.Numeric {
 func ChunkSlice[T any](input []T, chunkSize int) [][]T {
 	var chunks [][]T
 	for i := 0; i < len(input); i += chunkSize {
-		end := i + chunkSize
-		if end > len(input) {
-			end = len(input)
-		}
+		end := min(i + chunkSize, len(input))
 		chunks = append(chunks, input[i:end])
 	}
 	return chunks

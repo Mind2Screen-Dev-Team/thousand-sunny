@@ -2,7 +2,7 @@ package dependency
 
 import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware/global"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/infra/http/middleware"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/danielgtaylor/huma/v2"
 	_ "github.com/danielgtaylor/huma/v2/formats/cbor"
@@ -24,7 +24,7 @@ func ProvideHumaConfig(s config.Server) huma.Config {
 	)
 
 	// Register Fiber Monitor Metric into OAPI
-	global.RegisterMonitorOAPI(&oapi)
+	middleware.RegisterMiddlewareMonitorOAPI(&oapi)
 
 	return huma.Config{
 		OpenAPI:       &oapi,

@@ -39,14 +39,14 @@ func init() {
 	}
 }
 
-type HandlerRegistry interface {
+type HandlerRegister interface {
 	Register(api huma.API)
 }
 
 func AnnotateHandlerAs(f any) any {
 	return fx.Annotate(
 		f,
-		fx.As(new(HandlerRegistry)),
+		fx.As(new(HandlerRegister)),
 		fx.ResultTags(`group:"global:http:handler"`),
 	)
 }

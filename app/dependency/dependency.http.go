@@ -29,11 +29,11 @@ type InvokeHTTPServerParam struct {
 	Server config.Server
 	Tracer trace.Tracer
 
-	FiberApp *fiber.App
 	HumaAPI  huma.API
+	FiberApp *fiber.App
 	Log      *xlog.DebugLogger
 
-	Handlers []xhuma.HandlerRegistry `group:"global:http:handler"`
+	Handlers []xhuma.HandlerRegister `group:"global:http:handler"`
 }
 
 func InvokeHTTPServer(p InvokeHTTPServerParam) {

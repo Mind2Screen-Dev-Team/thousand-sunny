@@ -16,7 +16,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/infra/http/middleware"
 )
 
 func ProvideHumaFiber(a *fiber.App, c huma.Config) huma.API {

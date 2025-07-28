@@ -1,4 +1,4 @@
-package registry
+package injector
 
 import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"

@@ -1,4 +1,4 @@
-package registry
+package injector
 
 import (
 	"go.uber.org/fx"

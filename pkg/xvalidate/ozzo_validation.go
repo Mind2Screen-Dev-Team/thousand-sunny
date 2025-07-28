@@ -32,7 +32,6 @@ func WrapperValidation(err error) error {
 		for field, validationErr := range es {
 			errs[field] = UnwrapErrorJSON(validationErr.Error())
 		}
-
 		return errs
 	}
 
@@ -41,11 +40,9 @@ func WrapperValidation(err error) error {
 
 func UnwrapErrorJSON(errStr string) any {
 	var result map[string]any
-
 	if err := json.Unmarshal([]byte(errStr), &result); err == nil {
 		return result
 	}
-
 	return errStr
 }
 
