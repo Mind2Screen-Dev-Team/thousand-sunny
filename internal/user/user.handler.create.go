@@ -12,46 +12,37 @@ import (
 	"github.com/rs/xid"
 	"go.uber.org/fx"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware/private"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/api"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/attr"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
 )
 
-var ExampleUserUpdateHandlerModuleFx = fx.Options(
-	fx.Provide(xhuma.AnnotateHandlerAs(NewExampleUserUpdateHandlerFx)),
-)
-
-type ExampleUserUpdateHandlerParamFx struct {
+type ExampleUserCreateHandlerParamFx struct {
 	fx.In
 
-	AuthJWT   *private.AuthJWT
-	ExUserSvc api.ExampleUserServiceAPI
+	ExUserSvc ExampleUserServiceAPI
 	LogDebug  *xlog.DebugLogger
 }
 
-type ExampleUserUpdateHandlerFx struct {
-	p      ExampleUserUpdateHandlerParamFx
+type ExampleUserCreateHandlerFx struct {
+	p      ExampleUserCreateHandlerParamFx
 	logger xlog.Logger
 }
 
-func NewExampleUserUpdateHandlerFx(p ExampleUserUpdateHandlerParamFx) ExampleUserUpdateHandlerFx {
-	return ExampleUserUpdateHandlerFx{p: p, logger: xlog.NewLogger(p.LogDebug.Logger)}
+func NewCreateHandlerFx(p ExampleUserCreateHandlerParamFx) ExampleUserCreateHandlerFx {
+	return ExampleUserCreateHandlerFx{p: p, logger: xlog.NewLogger(p.LogDebug.Logger)}
 }
 
-func (h ExampleUserUpdateHandlerFx) Register(api huma.API) {
+func (h ExampleUserCreateHandlerFx) Register(api huma.API) {
 	huma.Register(api, h.Operation(), h.Serve)
 }
 
-func (h ExampleUserUpdateHandlerFx) Operation() huma.Operation {
+func (h ExampleUserCreateHandlerFx) Operation() huma.Operation {
 	return huma.Operation{
-		OperationID:   "api-update-user",
-		Path:          "/api/v1/user/{id}",
-		Method:        http.MethodPut,
-		Summary:       "Update User",
-		Description:   "Updates an existing user's information based on the provided data. Returns the updated user's data or an error if the user is not found or the request is invalid.",
+		OperationID:   "api-create-user",
+		Path:          "/api/v1/user",
+		Method:        http.MethodPost,
+		Summary:       "Create New User",
+		Description:   "Creates a new user with the provided information and returns the created user's data or an error.",
 		DefaultStatus: http.StatusOK,
 		Tags:          []string{"Users"},
 		Responses: map[string]*huma.Response{
@@ -60,12 +51,12 @@ func (h ExampleUserUpdateHandlerFx) Operation() huma.Operation {
 				Content: map[string]*huma.MediaType{
 					"application/json": {
 						Schema: &huma.Schema{
-							Ref: "schemas/ExampleUserUpdateResponseBody",
+							Ref: "schemas/ExampleUserCreateResponseBody",
 						},
-						Example: ExampleUserUpdateResponseBody{
+						Example: ExampleUserCreateResponseBody{
 							Code: http.StatusOK,
 							Msg:  "ok",
-							Data: &ExampleUserUpdateResponseData{
+							Data: &ExampleUserCreateResponseData{
 								ID:        uuid.Must(uuid.NewV7()),
 								Name:      "Johnny",
 								Age:       18,
@@ -116,7 +107,7 @@ func (h ExampleUserUpdateHandlerFx) Operation() huma.Operation {
 						Schema: &huma.Schema{
 							Ref: "schemas/GeneralResponseError",
 						},
-						Example: ExampleUserUpdateResponseBody{
+						Example: ExampleUserCreateResponseBody{
 							Code:    http.StatusInternalServerError,
 							Msg:     http.StatusText(http.StatusInternalServerError),
 							Data:    nil,
@@ -130,31 +121,30 @@ func (h ExampleUserUpdateHandlerFx) Operation() huma.Operation {
 	}
 }
 
-func (h ExampleUserUpdateHandlerFx) Serve(ctx context.Context, in *ExampleUserUpdateRequestInput) (out *ExampleUserUpdateResponseOutput, err error) {
-	d, err := h.p.ExUserSvc.Update(ctx, attr.ExampleUser{
-		ID:   in.ID,
+func (h ExampleUserCreateHandlerFx) Serve(ctx context.Context, in *ExampleUserCreateRequestInput) (out *ExampleUserCreateResponseOutput, err error) {
+	d, err := h.p.ExUserSvc.Create(ctx, ExampleUser{
 		Name: in.Body.Name,
 		Age:  in.Body.Age,
 	})
 	if err != nil {
-		h.logger.Error(ctx, "failed to update user", "input", in, "err", fmt.Sprintf("%+v", err))
-		return nil, huma.Error500InternalServerError("failed to update user", err)
+		h.logger.Error(ctx, "failed to create new user", "input", in, "err", fmt.Sprintf("%+v", err))
+		return nil, huma.Error500InternalServerError("failed to create new user", err)
 	}
 
 	var (
-		body = ExampleUserUpdateResponseBody{
+		body = ExampleUserCreateResponseBody{
 			Code: http.StatusOK,
 			Msg:  "ok",
-			Data: &ExampleUserUpdateResponseData{
+			Data: &ExampleUserCreateResponseData{
 				ID:        d.ID,
 				Name:      d.Name,
 				Age:       d.Age,
-				CreatedAt: d.UpdatedAt,
+				CreatedAt: d.CreatedAt,
 				UpdatedAt: d.UpdatedAt,
 			},
 		}
 
-		resp = ExampleUserUpdateResponseOutput{
+		resp = ExampleUserCreateResponseOutput{
 			Status: http.StatusOK,
 			Body:   body,
 		}

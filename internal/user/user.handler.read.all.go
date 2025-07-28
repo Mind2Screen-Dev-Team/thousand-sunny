@@ -12,21 +12,13 @@ import (
 	"github.com/rs/xid"
 	"go.uber.org/fx"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware/private"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/api"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
-)
-
-var ExampleUserReadAllHandlerModuleFx = fx.Options(
-	fx.Provide(xhuma.AnnotateHandlerAs(NewExampleUserReadAllHandlerFx)),
 )
 
 type ExampleUserReadAllHandlerParamFx struct {
 	fx.In
 
-	AuthJWT   *private.AuthJWT
-	ExUserSvc api.ExampleUserServiceAPI
+	ExUserSvc ExampleUserServiceAPI
 	LogDebug  *xlog.DebugLogger
 }
 
@@ -35,7 +27,7 @@ type ExampleUserReadAllHandlerFx struct {
 	logger xlog.Logger
 }
 
-func NewExampleUserReadAllHandlerFx(p ExampleUserReadAllHandlerParamFx) ExampleUserReadAllHandlerFx {
+func NewReadAllHandlerFx(p ExampleUserReadAllHandlerParamFx) ExampleUserReadAllHandlerFx {
 	return ExampleUserReadAllHandlerFx{p: p, logger: xlog.NewLogger(p.LogDebug.Logger)}
 }
 
@@ -114,13 +106,7 @@ func (h ExampleUserReadAllHandlerFx) Serve(ctx context.Context, in *ExampleUserR
 
 	dd := make([]ExampleUserReadAllResponseData, len(d))
 	for i, v := range d {
-		dd[i] = ExampleUserReadAllResponseData{
-			ID:        v.ID,
-			Name:      v.Name,
-			Age:       v.Age,
-			CreatedAt: v.CreatedAt,
-			UpdatedAt: v.UpdatedAt,
-		}
+		dd[i] = ExampleUserReadAllResponseData(v)
 	}
 
 	var (

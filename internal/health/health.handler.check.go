@@ -5,21 +5,17 @@ import (
 	"net/http"
 	"strconv"
 
-	http_middleware_private "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware/private"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/rs/xid"
 	"go.uber.org/fx"
-)
 
-var HealthHandlerModuleFx = fx.Options(
-	fx.Provide(xhuma.AnnotateHandlerAs(NewHealthHandlerFx)),
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/infra/http/middleware"
 )
 
 type HealthHandlerParamFx struct {
 	fx.In
 
-	AuthJWT *http_middleware_private.AuthJWT
+	PrivateAuthJWT *middleware.PrivateAuthJWT
 }
 
 type HealthHandlerFx struct {

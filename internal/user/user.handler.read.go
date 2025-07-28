@@ -12,21 +12,13 @@ import (
 	"github.com/rs/xid"
 	"go.uber.org/fx"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware/private"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/api"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
-)
-
-var ExampleUserReadHandlerModuleFx = fx.Options(
-	fx.Provide(xhuma.AnnotateHandlerAs(NewExampleUserReadHandlerFx)),
 )
 
 type ExampleUserReadHandlerParamFx struct {
 	fx.In
 
-	AuthJWT   *private.AuthJWT
-	ExUserSvc api.ExampleUserServiceAPI
+	ExUserSvc ExampleUserServiceAPI
 	LogDebug  *xlog.DebugLogger
 }
 
@@ -35,7 +27,7 @@ type ExampleUserReadHandlerFx struct {
 	logger xlog.Logger
 }
 
-func NewExampleUserReadHandlerFx(p ExampleUserReadHandlerParamFx) ExampleUserReadHandlerFx {
+func NewReadHandlerFx(p ExampleUserReadHandlerParamFx) ExampleUserReadHandlerFx {
 	return ExampleUserReadHandlerFx{p: p, logger: xlog.NewLogger(p.LogDebug.Logger)}
 }
 

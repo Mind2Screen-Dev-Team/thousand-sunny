@@ -1,4 +1,4 @@
-package impl
+package user
 
 import (
 	"context"
@@ -8,20 +8,22 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
-
-	repo_api "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/api"
-	repo_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/attr"
-
-	svc_api "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/api"
-	svc_attr "github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/attr"
 )
+
+type ExampleUserServiceAPI interface {
+	Create(ctx context.Context, user ExampleUser) (*ExampleUser, error)
+	Read(ctx context.Context, id string) (*ExampleUser, error)
+	ReadAll(ctx context.Context, limit int, offset int) ([]ExampleUser, error)
+	Update(ctx context.Context, user ExampleUser) (*ExampleUser, error)
+	Delete(ctx context.Context, id string) (*ExampleUser, error)
+}
 
 type (
 	ExampleUserServiceParamFx struct {
 		fx.In
 
 		RDB             *redis.Client
-		ExampleUserRepo repo_api.ExampleUserRepoAPI `optional:"false"`
+		ExampleUserRepo ExampleUserRepoAPI `optional:"false"`
 	}
 
 	ExampleUserImplServiceFx struct {
@@ -29,15 +31,15 @@ type (
 	}
 )
 
-func NewExampleUserService(p ExampleUserServiceParamFx) (svc_api.ExampleUserServiceAPI, error) {
+func NewService(p ExampleUserServiceParamFx) (ExampleUserServiceAPI, error) {
 	if p.ExampleUserRepo == nil {
 		return nil, errors.New("failed to load user curd repo")
 	}
 	return &ExampleUserImplServiceFx{p}, nil
 }
 
-func (s *ExampleUserImplServiceFx) Create(ctx context.Context, user svc_attr.ExampleUserCreate) (*svc_attr.ExampleUser, error) {
-	d := repo_attr.ExampleUser{
+func (s *ExampleUserImplServiceFx) Create(ctx context.Context, user ExampleUser) (*ExampleUser, error) {
+	d := ExampleUser{
 		ID:        uuid.Must(uuid.NewV7()),
 		Name:      user.Name,
 		Age:       user.Age,
@@ -50,7 +52,7 @@ func (s *ExampleUserImplServiceFx) Create(ctx context.Context, user svc_attr.Exa
 		return nil, err
 	}
 
-	return &svc_attr.ExampleUser{
+	return &ExampleUser{
 		ID:        r.ID,
 		Name:      r.Name,
 		Age:       r.Age,
@@ -59,13 +61,13 @@ func (s *ExampleUserImplServiceFx) Create(ctx context.Context, user svc_attr.Exa
 	}, nil
 }
 
-func (s *ExampleUserImplServiceFx) Read(ctx context.Context, id string) (*svc_attr.ExampleUser, error) {
+func (s *ExampleUserImplServiceFx) Read(ctx context.Context, id string) (*ExampleUser, error) {
 	r, err := s.p.ExampleUserRepo.Read(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &svc_attr.ExampleUser{
+	return &ExampleUser{
 		ID:        r.ID,
 		Age:       r.Age,
 		Name:      r.Name,
@@ -74,15 +76,15 @@ func (s *ExampleUserImplServiceFx) Read(ctx context.Context, id string) (*svc_at
 	}, nil
 }
 
-func (s *ExampleUserImplServiceFx) ReadAll(ctx context.Context, limit int, offset int) ([]svc_attr.ExampleUser, error) {
+func (s *ExampleUserImplServiceFx) ReadAll(ctx context.Context, limit int, offset int) ([]ExampleUser, error) {
 	r, err := s.p.ExampleUserRepo.ReadAll(ctx, limit, offset)
 	if err != nil {
-		return make([]svc_attr.ExampleUser, 0), err
+		return make([]ExampleUser, 0), err
 	}
 
-	result := make([]svc_attr.ExampleUser, len(r))
+	result := make([]ExampleUser, len(r))
 	for i := range r {
-		result[i] = svc_attr.ExampleUser{
+		result[i] = ExampleUser{
 			ID:        r[i].ID,
 			Name:      r[i].Name,
 			Age:       r[i].Age,
@@ -94,8 +96,8 @@ func (s *ExampleUserImplServiceFx) ReadAll(ctx context.Context, limit int, offse
 	return result, nil
 }
 
-func (s *ExampleUserImplServiceFx) Update(ctx context.Context, user svc_attr.ExampleUser) (*svc_attr.ExampleUser, error) {
-	d := repo_attr.ExampleUser{
+func (s *ExampleUserImplServiceFx) Update(ctx context.Context, user ExampleUser) (*ExampleUser, error) {
+	d := ExampleUser{
 		ID:        user.ID,
 		Name:      user.Name,
 		Age:       user.Age,
@@ -108,7 +110,7 @@ func (s *ExampleUserImplServiceFx) Update(ctx context.Context, user svc_attr.Exa
 		return nil, err
 	}
 
-	return &svc_attr.ExampleUser{
+	return &ExampleUser{
 		ID:        r.ID,
 		Name:      r.Name,
 		Age:       r.Age,
@@ -117,13 +119,13 @@ func (s *ExampleUserImplServiceFx) Update(ctx context.Context, user svc_attr.Exa
 	}, nil
 }
 
-func (s *ExampleUserImplServiceFx) Delete(ctx context.Context, id string) (*svc_attr.ExampleUser, error) {
+func (s *ExampleUserImplServiceFx) Delete(ctx context.Context, id string) (*ExampleUser, error) {
 	r, err := s.p.ExampleUserRepo.Delete(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &svc_attr.ExampleUser{
+	return &ExampleUser{
 		ID:        r.ID,
 		Name:      r.Name,
 		Age:       r.Age,

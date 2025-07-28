@@ -1,4 +1,4 @@
-package impl
+package user
 
 import (
 	"context"
@@ -10,10 +10,15 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
-
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/api"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/repository/user/attr"
 )
+
+type ExampleUserRepoAPI interface {
+	Create(ctx context.Context, user ExampleUser) (*ExampleUser, error)
+	Read(ctx context.Context, id string) (*ExampleUser, error)
+	ReadAll(ctx context.Context, limit int, offset int) ([]ExampleUser, error)
+	Update(ctx context.Context, user ExampleUser) (*ExampleUser, error)
+	Delete(ctx context.Context, id string) (*ExampleUser, error)
+}
 
 type (
 	ExampleUserRepoParamFx struct {
@@ -27,7 +32,7 @@ type (
 	}
 )
 
-func NewExampleUserRepo(p ExampleUserRepoParamFx) (api.ExampleUserRepoAPI, error) {
+func NewRepo(p ExampleUserRepoParamFx) (ExampleUserRepoAPI, error) {
 	if p.RDB == nil {
 		return nil, errors.New("field 'RDB' with type '*redis.Client' is not provided")
 	}
@@ -35,7 +40,7 @@ func NewExampleUserRepo(p ExampleUserRepoParamFx) (api.ExampleUserRepoAPI, error
 	return &ExampleUserImplRepoFx{p}, nil
 }
 
-func (r *ExampleUserImplRepoFx) Create(ctx context.Context, user attr.ExampleUser) (*attr.ExampleUser, error) {
+func (r *ExampleUserImplRepoFx) Create(ctx context.Context, user ExampleUser) (*ExampleUser, error) {
 	key := fmt.Sprintf("user:%s", user.ID.String())
 	data, err := json.Marshal(user)
 	if err != nil {
@@ -52,7 +57,7 @@ func (r *ExampleUserImplRepoFx) Create(ctx context.Context, user attr.ExampleUse
 	return &user, r.p.RDB.Set(ctx, key, data, 0).Err()
 }
 
-func (r *ExampleUserImplRepoFx) Read(ctx context.Context, id string) (*attr.ExampleUser, error) {
+func (r *ExampleUserImplRepoFx) Read(ctx context.Context, id string) (*ExampleUser, error) {
 	key := fmt.Sprintf("user:%s", id)
 	data, err := r.p.RDB.Get(ctx, key).Result()
 	if err == redis.Nil {
@@ -61,7 +66,7 @@ func (r *ExampleUserImplRepoFx) Read(ctx context.Context, id string) (*attr.Exam
 		return nil, err
 	}
 
-	var user attr.ExampleUser
+	var user ExampleUser
 	if err := json.Unmarshal([]byte(data), &user); err != nil {
 		return nil, err
 	}
@@ -69,7 +74,7 @@ func (r *ExampleUserImplRepoFx) Read(ctx context.Context, id string) (*attr.Exam
 	return &user, nil
 }
 
-func (r *ExampleUserImplRepoFx) ReadAll(ctx context.Context, limit int, offset int) ([]attr.ExampleUser, error) {
+func (r *ExampleUserImplRepoFx) ReadAll(ctx context.Context, limit int, offset int) ([]ExampleUser, error) {
 	keys, err := r.p.RDB.Keys(ctx, "user:*").Result()
 	if err != nil {
 		return nil, err
@@ -80,7 +85,7 @@ func (r *ExampleUserImplRepoFx) ReadAll(ctx context.Context, limit int, offset i
 
 	start := offset
 	if start > len(keys) {
-		return []attr.ExampleUser{}, nil
+		return []ExampleUser{}, nil
 	}
 
 	end := offset + limit
@@ -88,7 +93,7 @@ func (r *ExampleUserImplRepoFx) ReadAll(ctx context.Context, limit int, offset i
 		end = len(keys)
 	}
 
-	var users []attr.ExampleUser
+	var users []ExampleUser
 	for _, key := range keys[start:end] {
 		data, err := r.p.RDB.Get(ctx, key).Result()
 		if err == redis.Nil {
@@ -97,7 +102,7 @@ func (r *ExampleUserImplRepoFx) ReadAll(ctx context.Context, limit int, offset i
 			return nil, err
 		}
 
-		var user attr.ExampleUser
+		var user ExampleUser
 		if err := json.Unmarshal([]byte(data), &user); err != nil {
 			return nil, err
 		}
@@ -107,7 +112,7 @@ func (r *ExampleUserImplRepoFx) ReadAll(ctx context.Context, limit int, offset i
 	return users, nil
 }
 
-func (r *ExampleUserImplRepoFx) Update(ctx context.Context, user attr.ExampleUser) (*attr.ExampleUser, error) {
+func (r *ExampleUserImplRepoFx) Update(ctx context.Context, user ExampleUser) (*ExampleUser, error) {
 	d, err := r.Read(ctx, user.ID.String())
 	if err != nil {
 		return nil, err
@@ -131,7 +136,7 @@ func (r *ExampleUserImplRepoFx) Update(ctx context.Context, user attr.ExampleUse
 	return &user, nil
 }
 
-func (r *ExampleUserImplRepoFx) Delete(ctx context.Context, id string) (*attr.ExampleUser, error) {
+func (r *ExampleUserImplRepoFx) Delete(ctx context.Context, id string) (*ExampleUser, error) {
 	d, err := r.Read(ctx, id)
 	if err != nil {
 		return nil, err

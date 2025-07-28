@@ -12,21 +12,13 @@ import (
 	"github.com/rs/xid"
 	"go.uber.org/fx"
 
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/http/middleware/private"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal/service/user/api"
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
-)
-
-var ExampleUserDeleteHandlerModuleFx = fx.Options(
-	fx.Provide(xhuma.AnnotateHandlerAs(NewExampleUserDeleteHandlerFx)),
 )
 
 type ExampleUserDeleteHandlerParamFx struct {
 	fx.In
 
-	AuthJWT   *private.AuthJWT
-	ExUserSvc api.ExampleUserServiceAPI
+	ExUserSvc ExampleUserServiceAPI
 	LogDebug  *xlog.DebugLogger
 }
 
@@ -35,7 +27,7 @@ type ExampleUserDeleteHandlerFx struct {
 	logger xlog.Logger
 }
 
-func NewExampleUserDeleteHandlerFx(p ExampleUserDeleteHandlerParamFx) ExampleUserDeleteHandlerFx {
+func NewDeleteHandlerFx(p ExampleUserDeleteHandlerParamFx) ExampleUserDeleteHandlerFx {
 	return ExampleUserDeleteHandlerFx{p: p, logger: xlog.NewLogger(p.LogDebug.Logger)}
 }
 
@@ -96,7 +88,7 @@ func (h ExampleUserDeleteHandlerFx) Operation() huma.Operation {
 		},
 	}
 }
-
+		
 func (h ExampleUserDeleteHandlerFx) Serve(ctx context.Context, in *ExampleUserDeleteRequestInput) (out *ExampleUserDeleteResponseOutput, err error) {
 	d, err := h.p.ExUserSvc.Delete(ctx, in.ID.String())
 	if err != nil {

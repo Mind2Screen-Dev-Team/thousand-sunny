@@ -1,4 +1,4 @@
-package attr
+package user
 
 import (
 	"time"

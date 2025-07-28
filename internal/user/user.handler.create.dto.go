@@ -32,3 +32,4 @@ type (
 	}
 	ExampleUserCreateResponseBody xresp.GeneralResponse[*ExampleUserCreateResponseData, any]
 )
+							
