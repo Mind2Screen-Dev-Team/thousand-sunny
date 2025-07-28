@@ -38,4 +38,4 @@
 # * * * * * /bin/bash /app/scripts/test/pokemon.sh test_a >> /var/log/pokemon_test.log 2>&1
 
 # Fetch Pikachu Each 5 minutes
-*/5 * * * * /bin/bash /app/scripts/app_api_cron_collections.sh fetch_pikachu
+# */5 * * * * /bin/bash /app/scripts/app_api_cron_collections.sh fetch_pikachu

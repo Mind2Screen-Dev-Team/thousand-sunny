@@ -9,9 +9,9 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   exit 0
 fi
 
-# Load shared helper functions
-if ! source deploy.helper.sh; then
-  echo "Error: Failed to source deploy.helper.sh"
+# Load shared script functions
+if ! source deploy.script.sh; then
+  echo "Error: Failed to source deploy.script.sh"
   exit 1
 fi
 
