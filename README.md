@@ -24,11 +24,12 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 │   ├── migrations  # Schema migrations (version-controlled).
 │   ├── queries     # SQLC query generators for custom DB operations.
 │   └── seeders     # Seed data for initial or demo setups.
-├── gen
+├── gen             # Generation packages
 │   ├── sqlc        # Auto-generated SQLC repository code for database access.
 │   └── gorm        # Auto-generated GORM repository code for database access.
 │       ├── model   # Auto-generated GORM models.
 │       └── query   # Auto-generated GORM query code.
+├── infra           # Infrastructure packages
 ├── internal        # Internal packages (application-specific).
 │   ├── <domain>            # Domain modules.
 │   │   ├── <sub-domain>    # Sub-domains within a domain.
