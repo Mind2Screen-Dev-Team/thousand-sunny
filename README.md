@@ -1,4 +1,4 @@
-# �‍☠️ *Thousand Sunny* – Project Skeleton
+# 🏴‍☠️ *Thousand Sunny* – Project Skeleton
 
 Set sail on your next adventure with **Thousand Sunny**!  
 Inspired by the legendary ship from *One Piece*, this Go project skeleton is built for **speed, flexibility, and scalability**. Whether you're building small tools or large-scale applications, Thousand Sunny provides the foundation to power your journey.
@@ -89,7 +89,7 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 
 ```bash
 git clone git@github.com:Mind2Screen-Dev-Team/thousand-sunny.git
-cd github.com/Mind2Screen-Dev-Team/thousand-sunny-be
+cd thousand-sunny
 
 # Install tools and dependencies (Goose, jq, etc.)
 make setup
@@ -143,7 +143,8 @@ make gorm-gen
 
 ---
 
-### Git Export (with lowercase vars)
+### Git Export (with lowercase vars) for 
+#### This will help you to summarize `Commit / Merge / Pull Request` into AI like ChatGPT.
 
 ```bash
 # Export all commits (filters: s=since, u=until, l=limit)
