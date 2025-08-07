@@ -149,8 +149,8 @@ make gorm-gen
 
 ---
 
-### Git Export (with lowercase vars) for 
-#### This will help you to summarize `Commit / Merge / Pull Request` into AI like ChatGPT.
+### Git Export
+#### This will help you to summarize `Commit / Merge / Pull Request` feed a commit changes into AI like ChatGPT.
 
 ```bash
 # Export all commits (filters: s=since, u=until, l=limit)
