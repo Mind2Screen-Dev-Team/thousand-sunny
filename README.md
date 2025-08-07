@@ -32,14 +32,14 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 ├── internal        # Internal packages (application-specific).
 │   ├── <domain>            # Domain modules.
 │   │   ├── <sub-domain>    # Sub-domains within a domain.
-│   │   │   ├── <domain>.<sub-domain>.<action>.handler.go  # Endpoint handlers.
+│   │   │   ├── <domain>.<sub-domain>.<action>.handler.go     # Endpoint handlers.
 │   │   │   ├── <domain>.<sub-domain>.repo.go                 # Data access layer.
 │   │   │   ├── <domain>.<sub-domain>.service.go              # Business logic.
-│   │   │   └── <domain>.<sub-domain>.fx.modules.go            # Uber Fx modules.
+│   │   │   └── <domain>.<sub-domain>.fx.modules.go           # Uber Fx modules.
 │   │   ├── <domain>.<action>.handler.go                   # Endpoint handlers.
-│   │   ├── <domain>.repo.go                                  # Data access layer.
-│   │   ├── <domain>.service.go                               # Business logic.
-│   │   └── <domain>.fx.modules.go                            # Uber Fx modules.
+│   │   ├── <domain>.repo.go                               # Data access layer.
+│   │   ├── <domain>.service.go                            # Business logic.
+│   │   └── <domain>.fx.modules.go                         # Uber Fx modules.
 │   └── fx.modules  # Global Uber Fx module definitions.
 ├── pkg             # Reusable libraries and utility packages.
 │   ├── xfiber       # Fiber server helpers and middleware.
