@@ -25,6 +25,8 @@ func main() {
 
 		// Database
 		injector.Database,
+		injector.GormDatabase,
+		injector.GormGenDatabase,
 		injector.DatabaseStartUp,
 
 		// Repo SQLC Generator

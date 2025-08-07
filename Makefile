@@ -1,9 +1,11 @@
-.PHONY: help setup sqlc-gen go-help go-tidy go-run go-build print-path \
-        deploy-help deploy-core-up deploy-core-down \
-        deploy-async-up deploy-async-down \
-        deploy-core-down-clean deploy-async-down-clean \
-        deploy-async-logs deploy-core-logs \
-        disconnect-core-dependency disconnect-async-dependency
+.PHONY: help setup verify-go sqlc-gen go-help go-tidy go-run go-build gorm-gen sqlc-gen \
+        print-path deploy-help deploy-core-up deploy-core-down \
+        deploy-core-down-clean deploy-core-logs disconnect-core-dependency \
+        git-export-all git-export-last git-export-range git-export-clean \
+        migrate-help migrate-up migrate-down migrate-status migrate-reset \
+        migrate-up-to migrate-down-to \
+        seed-up seed-down seed-status seed-reset \
+        seed-up-to seed-down-to
 
 # ------------------------------
 # Binary Availability Checks
@@ -29,27 +31,64 @@ endif
 # ------------------------------
 # Help Section
 # ------------------------------
-
 help:
-	@echo "Application Available Commands"
+	@echo "Available Commands:"
 	@echo ""
-	@echo "Usage: make [command]"
+	@echo "Setup:"
+	@echo "  make setup                      Install required tools (Goose, jq)"
+	@echo "  make print-path                 Show GOPATH and toolchain versions"
 	@echo ""
-	@echo "Commands:"
-	@echo "  setup                      Install required tools"
-	@echo "  sqlc-gen                   Run sqlc code generation"
-	@echo "  go-help                    Show Go-related commands"
-	@echo "  deploy-help                Show Docker deployment commands"
-	@echo "  print-path                 Print current GOPATH and PATH"
+	@echo "Go Development:"
+	@echo "  make go-tidy                    Tidy and clean Go dependencies"
+	@echo "  make go-run a=<app>             Run Go app from ./cmd/<app> (use c=<cfg> for config)"
+	@echo "  make go-build a=<app>           Build Go app to ./bin/<app>"
+	@echo "  make sqlc-gen                   Generate SQLC repositories"
+	@echo "  make gorm-gen                   Generate GORM models/queries via ./cmd/gorm"
+	@echo ""
+	@echo "Database Migrations (Goose):"
+	@echo "  make migrate-up                   Apply all migrations"
+	@echo "  make migrate-down                 Roll back last migration"
+	@echo "  make migrate-status               Show migration status"
+	@echo "  make migrate-reset                Roll back ALL migrations"
+	@echo "  make migrate-up-to v=<version>    Migrate up to a specific version"
+	@echo "  make migrate-down-to v=<version>  Roll back down to a specific version"
+	@echo "  make migrate-create n=<name>      Create new migration (default: .sql)"
+	@echo "  make migrate-fix                  Fix migration filenames"
+	@echo ""
+	@echo "Database Seeders (Goose):"
+	@echo "  make seed-up                      Apply all seeders"
+	@echo "  make seed-down                    Roll back last seeder"
+	@echo "  make seed-status                  Show seeder status"
+	@echo "  make seed-reset                   Roll back ALL seeders"
+	@echo "  make seed-up-to v=<version>       Apply seeders up to version"
+	@echo "  make seed-down-to v=<version>     Roll back seeders down to version"
+	@echo "  make seed-create n=<name>         Create new seeder (default: .sql)"
+	@echo "  make seed-fix                     Fix seeder filenames"
+	@echo ""
+	@echo "Docker Deployment:"
+	@echo "  make deploy-core-up v=<ver>     Deploy core stack (version X.Y.Z)"
+	@echo "  make deploy-core-down           Stop core stack"
+	@echo "  make deploy-core-down-clean     Stop & clean core stack (DANGEROUS)"
+	@echo "  make deploy-core-logs [f=1]     Tail logs (f=1 to follow)"
+	@echo "  make disconnect-core-dependency Disconnect dependencies (core)"
+	@echo ""
+	@echo "Git Export:"
+	@echo "  make git-export-all [s=YYYY-MM-DD u=YYYY-MM-DD l=N]"
+	@echo "  make git-export-last N=5"
+	@echo "  make git-export-range s=YYYY-MM-DD u=YYYY-MM-DD"
+	@echo "  make git-export-clean"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make setup"
-	@echo "  make sqlc-gen"
 	@echo "  make go-run a=core"
-	@echo "  make deploy-core-up v=0.0.1"
+	@echo "  make gorm-gen"
+	@echo "  make migrate-up"
+	@echo "  make migrate-up-to v=20250728120000"
+	@echo "  make seed-down-to v=20250728100000"
+	@echo "  make deploy-core-up v=1.2.3"
 
 # ------------------------------
-# Project Setup with Enhanced Checks
+# Setup Section
 # ------------------------------
 
 setup: verify-go
@@ -73,47 +112,40 @@ setup: verify-go
 	@ls $(GOPATH_BIN) || { echo 'Error: Failed to list tools in GOPATH/bin.'; exit 1; }
 	@echo "\n✅ Setup completed successfully"
 
-# Verify Go is installed
-verify-go:
-	$(call check-binary,go)
-
-# ------------------------------
-# Development Tools Section
-# ------------------------------
-
-print-path: verify-go
-	@echo "Development Environment:"
-	@echo "GOPATH:    $(GOPATH)"
-	@echo "GOPATH_BIN: $(GOPATH_BIN)"
-	@echo "PATH:      $(PATH)"
-	@echo "\nTool Versions:"
-	@go version || true
-	@sqlc version || true
-
-# SQL Code Generation with verification
 sqlc-gen: verify-sqlc
 	@echo "Generating SQL code..."
 	@sqlc generate
 	@echo "✅ SQL code generation completed"
 
-# Verify sqlc is installed
 verify-sqlc:
 ifndef SQLC_EXISTS
 	$(error "sqlc not found. Please run 'make setup' first")
 endif
 	@echo "✅ sqlc is available"
 
+verify-go:
+	$(call check-binary,go)
+
 # ------------------------------
-# Go Commands Section
+# Go Development Section
 # ------------------------------
 
+print-path: verify-go
+	@echo "Development Environment:"
+	@echo "GOPATH:     $(GOPATH)"
+	@echo "GOPATH_BIN: $(GOPATH_BIN)"
+	@echo "PATH:       $(PATH)"
+	@echo "\nTool Versions:"
+	@go version || true
+	@sqlc version || true
+
 go-help: verify-go
-	@echo "Go Commands"
-	@echo ""
-	@echo "Usage:"
-	@echo "  make go-tidy"
-	@echo "  make go-run a=<app> [c=<config>]"
-	@echo "  make go-build a=<app>"
+	@echo "Go Commands:"
+	@echo "  make go-tidy             - Tidy and clean dependencies"
+	@echo "  make go-run a=<app>      - Run app in ./cmd/<app>"
+	@echo "  make go-build a=<app>    - Build app to ./bin/<app>"
+	@echo "  make sqlc-gen            - Generate SQLC repositories"
+	@echo "  make gorm-gen            - Generate GORM models/queries"
 	@echo ""
 
 go-tidy: verify-go
@@ -139,31 +171,29 @@ go-build: verify-go
 	@go build -o ./bin/$(a) ./cmd/$(a)
 	@echo "✅ Built application: ./bin/$(a)"
 
+gorm-gen: verify-go
+	@echo "Generating GORM models/queries..."
+	@go run ./cmd/gorm
+	@echo "✅ GORM generation completed"
+
+gorm-gen-clean: verify-go
+	@echo "Deleting GORM models/queries..."
+	@rm -rf ./gen/gorm
+	@echo "✅ Delete GORM generation completed"
+
 # ------------------------------
-# Docker Deployment Section 
-# (Remains unchanged from original)
+# Docker Deployment Section (unchanged)
 # ------------------------------
 
 deploy-help:
 	@echo "Docker Deployment Commands"
 	@echo ""
-	@echo "Usage: make deploy-[async|core]-[up|down] v=<version>"
-	@echo ""
-	@echo "Paramater:"
-	@echo "       f=1 -> follow-logs"
-	@echo "       f=0 -> not-follow-logs (default)"
+	@echo "Usage: make deploy-[core]-[up|down] v=<version>"
+	@echo "  f=1 -> follow-logs (default f=0)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make deploy-core-up v=0.0.1"
-	@echo "  make deploy-async-down"
-	@echo "  make deploy-core-logs"
-	@echo "  make deploy-async-logs f=1"
-
-deploy-async-up:
-	@[ -n "$(v)" ] || { echo "Error: v is not set."; exit 1; }
-	@echo "Validating version: $(v)"
-	@echo "$(v)" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: Version must follow 'vX.Y.Z' or 'X.Y.Z'. See https://semver.org"; exit 1; }
-	@./deploy.sh stack.async.env $(v)
+	@echo "  make deploy-core-logs f=1"
 
 deploy-core-up:
 	@[ -n "$(v)" ] || { echo "Error: v is not set."; exit 1; }
@@ -171,74 +201,161 @@ deploy-core-up:
 	@echo "$(v)" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Error: Version must follow 'vX.Y.Z' or 'X.Y.Z'. See https://semver.org"; exit 1; }
 	@./deploy.sh stack.core.env $(v)
 
-deploy-async-down:
-	@./deploy.sh stack.async.env down
-
 deploy-core-down:
 	@./deploy.sh stack.core.env down
 
-deploy-async-down-clean:
-	@echo "WARNING: This action will DOWN and CLEAN the async stack! This is dangerous and irreversible."
-	@read -p "Are you sure you want to down-clean async stack? (y/N): " ans; \
-	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
-		./deploy.sh stack.async.env down-clean; \
-	else \
-		echo "Aborted."; \
-	fi
-
 deploy-core-down-clean:
-	@echo "WARNING: This action will DOWN and CLEAN the core stack! This is dangerous and irreversible."
-	@read -p "Are you sure you want to down-clean Core stack? (y/N): " ans; \
+	@echo "WARNING: This will DOWN and CLEAN the core stack! This is irreversible."
+	@read -p "Are you sure? (y/N): " ans; \
 	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
 		./deploy.sh stack.core.env down-clean; \
 	else \
 		echo "Aborted."; \
 	fi
 
-deploy-async-logs:
-	@f=$(f) ./deploy.sh stack.async.env logs
-
 deploy-core-logs:
 	@f=$(f) ./deploy.sh stack.core.env logs
-
-disconnect-async-dependency:
-	@./deploy.sh stack.async.env dc-ctr
 
 disconnect-core-dependency:
 	@./deploy.sh stack.core.env dc-ctr
 
+# ------------------------------
+# Git Export Section (unchanged)
+# ------------------------------
+
 # Variables (can be overridden)
-SINCE ?=
-UNTIL ?=
-LIMIT ?=
-N ?=
+s ?=     # since
+u ?=     # until
+l ?=     # limit
+n ?=     # last N commits
 
 SCRIPT := git-export.script.sh
 TIMESTAMP := $(shell date +%s)
 OUTPUT := git-export-commits-$(TIMESTAMP).json
 
-# Export all commits (with optional filters)
 git-export-all:
 	@echo "Exporting commits to $(OUTPUT)..."
-	@bash $(SCRIPT) $(if $(SINCE),--since=$(SINCE)) $(if $(UNTIL),--until=$(UNTIL)) $(if $(LIMIT),--limit=$(LIMIT)) > $(OUTPUT)
+	@bash $(SCRIPT) $(if $(s),--since=$(s)) $(if $(u),--until=$(u)) $(if $(l),--limit=$(l)) > $(OUTPUT)
 	@echo "Done. Output saved to $(OUTPUT)."
 
-# Export last N commits (e.g., make git-export-last N=5)
 git-export-last:
-	@if [ -z "$(N)" ]; then echo "Usage: make git-export-last N=5"; exit 1; fi
-	@echo "Exporting last $(N) commits to $(OUTPUT)..."
-	@bash $(SCRIPT) --limit=$(N) > $(OUTPUT)
+	@if [ -z "$(n)" ]; then echo "Usage: make git-export-last n=5"; exit 1; fi
+	@echo "Exporting last $(n) commits to $(OUTPUT)..."
+	@bash $(SCRIPT) --limit=$(n) > $(OUTPUT)
 	@echo "Done. Output saved to $(OUTPUT)."
 
-# Export commits within a date range
-# Usage: make git-export-range SINCE=YYYY-MM-DD UNTIL=YYYY-MM-DD
 git-export-range:
-	@if [ -z "$(SINCE)" ] || [ -z "$(UNTIL)" ]; then echo "Usage: make git-export-range SINCE=YYYY-MM-DD UNTIL=YYYY-MM-DD"; exit 1; fi
-	@echo "Exporting commits from $(SINCE) to $(UNTIL) to $(OUTPUT)..."
-	@bash $(SCRIPT) --since=$(SINCE) --until=$(UNTIL) > $(OUTPUT)
+	@if [ -z "$(s)" ] || [ -z "$(u)" ]; then echo "Usage: make git-export-range s=YYYY-MM-DD u=YYYY-MM-DD"; exit 1; fi
+	@echo "Exporting commits from $(s) to $(u) to $(OUTPUT)..."
+	@bash $(SCRIPT) --since=$(s) --until=$(u) > $(OUTPUT)
 	@echo "Done. Output saved to $(OUTPUT)."
 
-# Clean all exported JSON files
 git-export-clean:
 	@rm -f git-export-commits-*.json
 	@echo "Removed all exported JSON files."
+
+# ------------------------------
+# Database Migration (Goose CLI)
+# ------------------------------
+
+define MIGRATE_CMD
+	@if [ -z "$(c)" ]; then \
+		go run ./cmd/migrate migration $(1); \
+	else \
+		go run ./cmd/migrate migration -cfg=$(c) $(1); \
+	fi
+endef
+
+define SEED_CMD
+	@if [ -z "$(c)" ]; then \
+		go run ./cmd/migrate seeder $(1); \
+	else \
+		go run ./cmd/migrate seeder -cfg=$(c) $(1); \
+	fi
+endef
+
+migrate-help:
+	@echo "Database Migration Commands (via Fx + Goose)"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make migrate-up                   Apply all migrations"
+	@echo "  make migrate-down                 Roll back last migration"
+	@echo "  make migrate-status               Show migration status"
+	@echo "  make migrate-reset                Roll back ALL migrations"
+	@echo "  make migrate-up-to v=<version>    Migrate up to a specific version"
+	@echo "  make migrate-down-to v=<version>  Roll back down to a specific version"
+	@echo "  make migrate-create n=<name>      Create new migration (default: .sql)"
+	@echo "  make migrate-fix                  Fix migration filenames"
+	@echo ""
+	@echo "Seeder Commands:"
+	@echo "  make seed-up                      Apply all seeders"
+	@echo "  make seed-down                    Roll back last seeder"
+	@echo "  make seed-status                  Show seeder status"
+	@echo "  make seed-reset                   Roll back ALL seeders"
+	@echo "  make seed-up-to v=<version>       Apply seeders up to version"
+	@echo "  make seed-down-to v=<version>     Roll back seeders down to version"
+	@echo "  make seed-create n=<name>         Create new seeder (default: .sql)"
+	@echo "  make seed-fix                     Fix seeder filenames"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make migrate-up"
+	@echo "  make migrate-up-to v=20250728120000"
+	@echo "  make seed-down-to v=20250728110000"
+	@echo "  make migrate-create n=create_users_table"
+	@echo "  make seed-create n=init_data"
+
+# Migration commands
+migrate-up:
+	$(call MIGRATE_CMD,up)
+
+migrate-down:
+	$(call MIGRATE_CMD,down)
+
+migrate-status:
+	$(call MIGRATE_CMD,status)
+
+migrate-reset:
+	$(call MIGRATE_CMD,reset)
+
+migrate-up-to:
+	@[ -n "$(v)" ] || { echo "Error: v is required (e.g., make migrate-up-to v=20250728120000)"; exit 1; }
+	$(call MIGRATE_CMD,up-to $(v))
+
+migrate-down-to:
+	@[ -n "$(v)" ] || { echo "Error: v is required (e.g., make migrate-down-to v=20250728120000)"; exit 1; }
+	$(call MIGRATE_CMD,down-to $(v))
+
+migrate-create:
+	@[ -n "$(n)" ] || { echo "Error: name is required (e.g., make migrate-create n=create_users_table)"; exit 1; }
+	$(call MIGRATE_CMD,create $(n))
+
+migrate-fix:
+	$(call MIGRATE_CMD,fix)
+
+# Seeder commands
+seed-up:
+	$(call SEED_CMD,up)
+
+seed-down:
+	$(call SEED_CMD,down)
+
+seed-status:
+	$(call SEED_CMD,status)
+
+seed-reset:
+	$(call SEED_CMD,reset)
+
+seed-up-to:
+	@[ -n "$(v)" ] || { echo "Error: v is required (e.g., make seed-up-to v=20250728120000)"; exit 1; }
+	$(call SEED_CMD,up-to $(v))
+
+seed-down-to:
+	@[ -n "$(v)" ] || { echo "Error: v is required (e.g., make seed-down-to v=20250728120000)"; exit 1; }
+	$(call SEED_CMD,down-to $(v))
+
+seed-create:
+	@[ -n "$(n)" ] || { echo "Error: name is required (e.g., make seed-create n=init_data)"; exit 1; }
+	$(call SEED_CMD,create $(n))
+
+seed-fix:
+	$(call SEED_CMD,fix)

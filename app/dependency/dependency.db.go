@@ -8,13 +8,23 @@ import (
 
 	"database/sql"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/fx"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/gen/gorm/query"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 )
+
+func ProvideGormQuery(db *gorm.DB) *query.Query {
+	return query.Use(db)
+}
 
 func ProvidePostgres(c config.Cfg, s config.Server, d *xlog.DebugLogger, lc fx.Lifecycle) (*pgxpool.Pool, error) {
 	var (
@@ -96,6 +106,64 @@ func ProvidePostgresSQLDB(c config.Cfg, s config.Server, pool *pgxpool.Pool, lc 
 	lc.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {
 			return db.Close()
+		},
+	})
+
+	return db, nil
+}
+
+// ProvideGormPostgres provides a *gorm.DB for ORM usage
+type ProvideGormPostgresParamFx struct {
+	fx.In
+
+	Cfg       config.Cfg
+	Server    config.Server
+	SqlDB     *sql.DB
+	Lifecycle fx.Lifecycle
+
+	DebugLog *xlog.DebugLogger `optional:"true"`
+}
+
+func ProvideGormPostgres(p ProvideGormPostgresParamFx) (*gorm.DB, error) {
+	p.Server.Name = fmt.Sprintf("%s-gorm-db", p.Server.Name)
+
+	var (
+		cfg        = p.Cfg.DB["postgres"]
+		gormLogger = logger.Default
+	)
+
+	// Configure GORM logger (optional: Silent for less noise)
+	if p.DebugLog != nil {
+		gormLogger = xlog.NewGormLogger(
+			xlog.NewLogger(p.DebugLog.Logger),
+			logger.Warn,
+			200*time.Millisecond,
+		)
+	}
+
+	db, err := gorm.Open(postgres.New(postgres.Config{Conn: p.SqlDB}), &gorm.Config{Logger: gormLogger})
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the underlying *sql.DB for pooling and lifecycle management
+	sdb, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	sdb.SetMaxOpenConns(cfg.Options.MaxOpenConnection)
+	sdb.SetMaxIdleConns(cfg.Options.MaxIdleConnection)
+	sdb.SetConnMaxLifetime(time.Duration(cfg.Options.MaxConnectionLifetime) * time.Second)
+
+	// Verify connection
+	if err := sdb.Ping(); err != nil {
+		return nil, err
+	}
+
+	p.Lifecycle.Append(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			return sdb.Close()
 		},
 	})
 

@@ -13,6 +13,18 @@ var (
 		),
 	)
 
+	GormDatabase = fx.Options(
+		fx.Module("dependency:database:gorm",
+			fx.Provide(dependency.ProvideGormPostgres),
+		),
+	)
+
+	GormGenDatabase = fx.Options(
+		fx.Module("dependency:database:gorm:gen:query",
+			fx.Provide(dependency.ProvideGormQuery),
+		),
+	)
+
 	DatabaseStartUp = fx.Options(
 		fx.Module("dependency:database:startup",
 			fx.Invoke(dependency.InvokePostgres),

@@ -12,11 +12,25 @@ import (
 	"unicode"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
 	DATE_LAYOUT = "2006-01-02"
 )
+
+func SnakeToCamel(s string) string {
+	c := cases.Title(language.English)
+	parts := strings.Split(s, "_")
+	result := parts[0]
+	for i := 1; i < len(parts); i++ {
+		if parts[i] != "" {
+			result += c.String(parts[i])
+		}
+	}
+	return result
+}
 
 // default page: 1
 // default size: 25
@@ -228,7 +242,7 @@ func numericZero() pgtype.Numeric {
 func ChunkSlice[T any](input []T, chunkSize int) [][]T {
 	var chunks [][]T
 	for i := 0; i < len(input); i += chunkSize {
-		end := min(i + chunkSize, len(input))
+		end := min(i+chunkSize, len(input))
 		chunks = append(chunks, input[i:end])
 	}
 	return chunks

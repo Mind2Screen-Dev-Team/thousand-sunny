@@ -1,4 +1,4 @@
-# 🏴‍☠️ *Thousand Sunny* – Project Skeleton
+# �‍☠️ *Thousand Sunny* – Project Skeleton
 
 Set sail on your next adventure with **Thousand Sunny**!  
 Inspired by the legendary ship from *One Piece*, this Go project skeleton is built for **speed, flexibility, and scalability**. Whether you're building small tools or large-scale applications, Thousand Sunny provides the foundation to power your journey.
@@ -15,7 +15,9 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 │   └── injector    # Handles initialization and registration of dependencies.
 ├── bin             # Compiled binaries or executables.
 ├── cmd
-│   └── core        # Main entry point for the 'core' application.
+│   ├── core        # Main entry point for the 'core' application.
+│   ├── gorm        # GORM model/query generator.
+│   └── migrate     # Goose migration/seeder CLI runner.
 ├── config          # Configuration files for application settings.
 ├── constant        # Centralized constants to avoid hardcoding.
 ├── database
@@ -23,15 +25,18 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 │   ├── queries     # SQLC query generators for custom DB operations.
 │   └── seeders     # Seed data for initial or demo setups.
 ├── gen
-│   └── repo        # Auto-generated repository code for database access.
+│   ├── sqlc        # Auto-generated SQLC repository code for database access.
+│   └── gorm
+│       ├── model   # Auto-generated GORM models.
+│       └── query   # Auto-generated GORM query code.
 ├── internal        # Internal packages (application-specific).
 │   ├── <domain>            # Domain modules.
 │   │   ├── <sub-domain>    # Sub-domains within a domain.
-│   │   │   ├── <domain>.<sub-domain>.<task-name>.handler.go  # Endpoint handlers.
+│   │   │   ├── <domain>.<sub-domain>.<action>.handler.go  # Endpoint handlers.
 │   │   │   ├── <domain>.<sub-domain>.repo.go                 # Data access layer.
 │   │   │   ├── <domain>.<sub-domain>.service.go              # Business logic.
-│   │   │   └── <domain>.<sub-domain>.fx.module.go            # Uber Fx modules.
-│   │   ├── <domain>.<task-name>.handler.go                   # Endpoint handlers.
+│   │   │   └── <domain>.<sub-domain>.fx.modules.go            # Uber Fx modules.
+│   │   ├── <domain>.<action>.handler.go                   # Endpoint handlers.
 │   │   ├── <domain>.repo.go                                  # Data access layer.
 │   │   ├── <domain>.service.go                               # Business logic.
 │   │   └── <domain>.fx.modules.go                            # Uber Fx modules.
@@ -64,15 +69,17 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 
 ## 📋 Features
 
-* 🗃️ **Base Project Structure** – Modular Go skeleton.
+* 🗃️ **Modular Go Structure** – Clean architecture.
 * 🌐 **Huma Framework** – Auto-generates **OpenAPI** specifications.
-* 📜 **Live Docs at `/docs`** – Interactive Swagger-style UI.
-* 📂 **Exportable OpenAPI Specs** – Downloadable from:
+* 📜 **Live Docs at `/docs`** – Interactive Swagger UI.
+* 📂 **OpenAPI Specs** – Download at:
+
   * `http://<host>:<port>/openapi.yaml`
   * `http://<host>:<port>/openapi.json`
-* 🔧 **Uber Fx & Config Integration** – Simplified dependency and config management.
-* 📦 **SQLC Repositories** – Auto-generated DB repositories.
-* 📜 **DTO Validation** – Structured payload validation.
+* 🔧 **Uber Fx & Config** – Dependency management.
+* 📦 **SQLC Gen** – SQLC DB code generation.
+* 📦 **GORM Gen** – GORM DB code generation.
+* 🐘 **Goose Migrations & Seeders** – Easy DB version control.
 * 🐳 **Docker-Ready** – Containerized for dev/prod.
 * 🌐 **OpenTelemetry** – Observability with traces, metrics, and logs.
 
@@ -80,114 +87,86 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 
 ## 🚀 Getting Started
 
-Clone the repository and set up your environment:
-
 ```bash
-# Clone the repository
 git clone git@github.com:Mind2Screen-Dev-Team/thousand-sunny.git
+cd github.com/Mind2Screen-Dev-Team/thousand-sunny-be
 
-cd thousand-sunny
-
-# Install dependencies and prepare tools
+# Install tools and dependencies (Goose, jq, etc.)
 make setup
 
-# Copy and configure environment variables
+# Copy env & config
 cp stack.example.env stack.core.env
-
-# Copy application configuration
 cp config.example.yaml config.yaml
 ```
 
-### Running Locally
+### Run Locally
 
 ```bash
-# Start the application locally
 make go-run a=core
 ```
 
-### Running with Docker
+### Run By Docker
 
 ```bash
-# Copy configuration
-cp config.example.yaml config.yaml
+# X.Y.Z = Sematic Version, ex: 1.2.3, 0.2.3, 0.0.3
+make deploy-core-up v=X.Y.Z
+```
 
-# Make deploy scripts executable
-chmod +x ./deploy.*.sh
+### Generate GORM Models & Queries
 
-# Deploy (version must follow semantic versioning: X.Y.Z)
-make deploy-core-up v=<version>
-
-# Stop services
-make deploy-core-down
+```bash
+make gorm-gen
 ```
 
 ---
 
-Then Access It:
-* **With Interactive Documentation:**
-  - `http://<host>:<port>/docs`
+### Database Migrations & Seeders (Quick Reference)
 
-* **OpenAPI Specification (YAML):**
-  - `http://<host>:<port>/openapi.yaml`
-
-* **OpenAPI Specification (JSON):**
-  - `http://<host>:<port>/openapi.json`
-
-The `/docs` UI is powered by Huma and reads from the same OpenAPI schema.
+| Command                        | Description                                               |
+| ------------------------------ | --------------------------------------------------------- |
+| `make migrate-up`              | Apply all new migrations                                  |
+| `make migrate-down`            | Rollback the last migration                               |
+| `make migrate-up-to v=1234`    | Migrate **up** to version `1234` (use `v=` param)         |
+| `make migrate-down-to v=1234`  | Rollback **down** to version `1234` (use `v=` param)      |
+| `make migrate-status`          | Show migration status                                     |
+| `make migrate-version`         | Print current DB version                                  |
+| `make migrate-create n=xyz`    | Create a new migration file with name `datetime_xyz.sql`  |
+| `make migrate-fix`             | Fix migration filenames (zero-padding)                    |
+| `make seed-up`                 | Apply all new seeders                                     |
+| `make seed-down`               | Rollback the last seeder                                  |
+| `make seed-up-to v=1234`       | Seed **up** to version `1234` (use `v=` param)            |
+| `make seed-down-to v=1234`     | Rollback **down** to version `1234` (use `v=` param)      |
+| `make seed-status`             | Show seeder status                                        |
+| `make seed-version`            | Print current seeder version                              |
+| `make seed-create n=xyz`       | Create a new seeder file with name `datetime_xyz.sql`     |
+| `make seed-fix`                | Fix seeder filenames (zero-padding)                       |
 
 ---
 
-## ⚙️ Makefile Commands
-
-Some useful commands:
+### Git Export (with lowercase vars)
 
 ```bash
-# Install tools (sqlc, goose, etc.)
-make setup
+# Export all commits (filters: s=since, u=until, l=limit)
+make git-export-all s=2025-07-01 u=2025-07-28 l=10
 
-# Run a Go service
-make go-run a=core
+# Export last N commits
+make git-export-last n=5
 
-# Run with specific config
-make go-run a=core c=config.yaml
+# Export commits by date range
+make git-export-range s=2025-07-01 u=2025-07-28
 
-# Build the application
-make go-build a=core
-
-# Clean up go.mod
-make go-tidy
-
-# Print PATH variable
-make print-path
-```
-
-## ⚙️ Git-Export Makefile Command:
-
-The command below helps you generate a JSON file, which can then be analyzed by AI to produce a detailed summary.
-
-```bash
-# Make git-export scripts executable
-chmod +x ./git-export.script.sh
-
-# Show help
-make go-help
-
-# Export all commits (no filters)
-make git-export
-
-# Export last 5 commits
-make git-export-last N=5
-
-# Export commits within a date range
-make git-export-range SINCE=2025-07-01 UNTIL=2025-07-28
-
-# Clean up exported JSONs
+# Clean exported JSON files
 make git-export-clean
 ```
 
 ---
 
+### Access Docs
+
+* Docs UI: `http://<host>:<port>/docs`
+* OpenAPI YAML: `http://<host>:<port>/openapi.yaml`
+* OpenAPI JSON: `http://<host>:<port>/openapi.json`
+
 ## 📖 Documentation
 
-For advanced guides, see the [Wiki](https://github.com/Mind2Screen-Dev-Team/thousand-sunny).
-To integrate these OpenAPI specs with external tools (e.g., codegen for clients), use the `/openapi.yaml` or `/openapi.json` endpoints directly.
+For advanced guides, see the Wiki. To integrate these OpenAPI specs with external tools (e.g., codegen for clients), use the `/openapi.yaml` or `/openapi.json` endpoints directly.

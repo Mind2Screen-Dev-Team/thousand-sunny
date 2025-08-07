@@ -1,7 +1,7 @@
 package injector
 
 import (
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/gen/repo"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/gen/sqlc"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/fx"
 )
@@ -9,10 +9,10 @@ import (
 var (
 	RepoGenerationSqlc = fx.Options(
 		fx.Module("dependency:database:sqlc:repo",
-			fx.Provide(func(db *pgxpool.Pool) repo.DBTX {
+			fx.Provide(func(db *pgxpool.Pool) sqlc.DBTX {
 				return db
 			}),
-			fx.Provide(repo.New),
+			fx.Provide(sqlc.New),
 		),
 	)
 )

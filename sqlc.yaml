@@ -6,8 +6,8 @@ sql:
     gen:
       go:
         emit_json_tags: true
-        package: "repo"
-        out: "gen/repo"
+        package: "sqlc"
+        out: "gen/sqlc"
         sql_package: "pgx/v5"
         overrides:
           - db_type: "uuid"
