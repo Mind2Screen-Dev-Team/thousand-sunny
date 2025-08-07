@@ -69,7 +69,7 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 
 ## 📋 Features
 
-* 🗃️ **Modular Go Structure** – Clean architecture.
+* 🗃️ **Modular Go Structure** – Onion Architecture with Clean Architecture principles and strong DDD influence.
 * 🌐 **Huma Framework** – Auto-generates **OpenAPI** specifications.
 * 📜 **Live Docs at `/docs`** – Interactive Swagger UI.
 * 📂 **OpenAPI Specs** – Download at:
