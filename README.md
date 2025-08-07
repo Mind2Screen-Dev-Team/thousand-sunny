@@ -108,6 +108,10 @@ make go-run a=core
 ### Run By Docker
 
 ```bash
+# Make it Executeable deploy script
+chmod +x deploy.script.sh
+chmod +x deploy.sh
+
 # X.Y.Z = Sematic Version, ex: 1.2.3, 0.2.3, 0.0.3
 make deploy-core-up v=X.Y.Z
 ```
@@ -153,6 +157,9 @@ make gorm-gen
 #### This will help you to summarize `Commit / Merge / Pull Request` feed a commit changes into AI like ChatGPT.
 
 ```bash
+# Make it Executeable git-export script
+chmod +x git-export.script.sh
+
 # Export all commits (filters: s=since, u=until, l=limit)
 make git-export-all s=2025-07-01 u=2025-07-28 l=10
 
