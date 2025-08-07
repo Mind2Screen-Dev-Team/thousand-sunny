@@ -26,7 +26,7 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 │   └── seeders     # Seed data for initial or demo setups.
 ├── gen
 │   ├── sqlc        # Auto-generated SQLC repository code for database access.
-│   └── gorm
+│   └── gorm        # Auto-generated GORM repository code for database access.
 │       ├── model   # Auto-generated GORM models.
 │       └── query   # Auto-generated GORM query code.
 ├── internal        # Internal packages (application-specific).
