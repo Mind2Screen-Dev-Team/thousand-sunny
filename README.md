@@ -112,7 +112,13 @@ make go-run a=core
 make deploy-core-up v=X.Y.Z
 ```
 
-### Generate GORM Models & Queries
+### Generate Code Repository Queries by SQLC
+
+```bash
+make sqlc-gen
+```
+
+### Generate ORM Models & Queries by GORM
 
 ```bash
 make gorm-gen
