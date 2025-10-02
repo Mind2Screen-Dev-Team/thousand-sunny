@@ -185,3 +185,6 @@ make git-export-clean
 ## 📖 Documentation
 
 For advanced guides, see the Wiki. To integrate these OpenAPI specs with external tools (e.g., codegen for clients), use the `/openapi.yaml` or `/openapi.json` endpoints directly.
+
+## 📖 Contact
+visit our website, [mindtoscreen.com](https://mindtoscreen.com/).
