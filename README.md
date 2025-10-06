@@ -129,7 +129,7 @@ chmod +x deploy.sh
 make deploy-core-up v=X.Y.Z
 ```
 
-### Run by Pure Docker
+### Run By Pure Docker
 ```bash
 # 1. Build the image
 docker build -f Dockerfile -t api-core-thousand-sunny:latest .
@@ -150,7 +150,7 @@ docker ps
 docker logs api-core-thousand-sunny-app
 ```
 
-### Run by K8S With Minikube and Docker
+### Run By K8S With Minikube and Docker
 
 ```bash
 # start / open your docker
@@ -193,6 +193,88 @@ minikube tunnel
 
 # open http://thousand-sunny.local/health
 ```
+
+### Run By K8S With Production Cluster
+
+```bash
+# Prerequisites: Ensure you have kubectl configured for your K8s cluster
+# and Docker registry access (Docker Hub, ECR, GCR, etc.)
+
+# 1. Build and push image to registry
+docker build -f Dockerfile -t your-registry/api-core-thousand-sunny:latest .
+docker push your-registry/api-core-thousand-sunny:latest
+
+# 2. Update k8s-manifest.yml image reference
+# Change line 20: image: your-registry/api-core-thousand-sunny:latest
+
+# 3. Create namespace if it doesn't exist
+kubectl create namespace internal --dry-run=client -o yaml | kubectl apply -f -
+
+# 4. Create ConfigMap for config.yaml (recommended approach)
+kubectl create configmap thousand-sunny-config \
+  --from-file=config.yaml=./config.yaml \
+  -n internal
+
+# 5. Create PersistentVolume for storage (if using local storage)
+# Note: For production, use cloud storage (EBS, GCE PD, etc.)
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: thousand-sunny-storage-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  hostPath:
+    path: /mnt/thousand-sunny-storage
+EOF
+
+# 6. Deploy the application
+kubectl apply -f k8s-manifest.yml -n internal
+
+# 7. Check deployment status
+kubectl get pods -n internal
+kubectl get services -n internal
+kubectl get ingress -n internal
+
+# 8. View logs
+kubectl logs -f deployment/api-core-thousand-sunny -n internal
+
+# 9. Setup ingress (if using cloud provider)
+# For AWS ALB:
+# kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.4/docs/install/iam_policy.json
+# For GKE:
+# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+
+# 10. Get external IP (for LoadBalancer service type)
+kubectl get svc api-core-thousand-sunny-service -n internal
+
+# 11. Port forward for local testing (alternative to ingress)
+kubectl port-forward svc/api-core-thousand-sunny-service 8081:8081 -n internal
+
+# 12. Access the application
+# Via Ingress: http://thousand-sunny.local/health (configure DNS/hosts)
+# Via Port Forward: http://localhost:8081/health
+# Via NodePort: http://<node-ip>:30081/health
+
+# Cleanup commands
+# kubectl delete -f k8s-manifest.yml -n internal
+# kubectl delete configmap thousand-sunny-config -n internal
+# kubectl delete pv thousand-sunny-storage-pv
+```
+
+**Production Notes:**
+- **Image Registry**: Use a proper container registry (Docker Hub, ECR, GCR, ACR)
+- **Storage**: Replace `hostPath` with cloud storage (EBS, GCE PD, Azure Disk)
+- **ConfigMap**: Store configuration in ConfigMaps instead of volume mounts
+- **Secrets**: Use Kubernetes Secrets for sensitive data (DB passwords, API keys)
+- **Ingress**: Configure proper ingress controller for your cloud provider
+- **Monitoring**: Add health checks, resource limits, and monitoring
+- **Security**: Apply network policies, RBAC, and security contexts
 
 ### Generate Code Repository Queries by SQLC
 
