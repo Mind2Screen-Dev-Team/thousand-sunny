@@ -36,10 +36,6 @@ func main() {
 		fx.NopLogger,
 		injector.GlobalConfig,
 		injector.Database,
-		fx.Provide(dependency.ProvideOtelConfig),
-		fx.Provide(dependency.ProvideOtelGrpcClient),
-		fx.Provide(dependency.ProvideOtelResource),
-		fx.Provide(dependency.ProvideOtelLog),
 		fx.Provide(dependency.ProvideDebugLogger),
 		fx.Provide(func() config.Server { return config.Server{Name: "migration-command"} }),
 		fx.Invoke(func(c config.Cfg, s config.Server, db *sql.DB) {

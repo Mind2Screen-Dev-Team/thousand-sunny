@@ -22,12 +22,8 @@ func main() {
 		injector.GlobalConfig,
 		injector.Database,
 		injector.GormDatabase,
-		fx.Provide(dependency.ProvideOtelConfig),
-		fx.Provide(dependency.ProvideOtelGrpcClient),
-		fx.Provide(dependency.ProvideOtelResource),
-		fx.Provide(dependency.ProvideOtelLog),
 		fx.Provide(dependency.ProvideDebugLogger),
-		fx.Provide(func() config.Server { return config.Server{Name: "generation-command"} }),
+		fx.Provide(func() config.Server { return config.Server{Name: "gorm-generator-command"} }),
 		fx.Invoke(RunGormGen),
 	)
 	if err := app.Start(context.Background()); err != nil {

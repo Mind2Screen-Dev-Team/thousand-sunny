@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"time"
 
 	"go.uber.org/fx"
@@ -60,7 +61,11 @@ func ProvidePostgres(c config.Cfg, s config.Server, d *xlog.DebugLogger, lc fx.L
 	poolCfg.MaxConns = int32(cfg.Options.MaxOpenConnection)
 	poolCfg.MinConns = int32(cfg.Options.MaxIdleConnection)
 	poolCfg.MaxConnLifetime = time.Duration(cfg.Options.MaxConnectionLifetime) * time.Second
-	poolCfg.ConnConfig.Tracer = &xlog.PgxLogger{Log: xlog.NewLogger(d.Logger)}
+
+	// Exclude migration-command and gorm-generator-command
+	if !slices.Contains([]string{"migration-command", "gorm-generator-command"}, s.Name) {
+		poolCfg.ConnConfig.Tracer = &xlog.PgxLogger{Log: xlog.NewLogger(d.Logger)}
+	}
 
 	db, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
