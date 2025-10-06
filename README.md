@@ -137,7 +137,7 @@ docker build -f Dockerfile -t api-core-thousand-sunny:latest .
 # 2. Run the container
 docker run -d \
   --name api-core-thousand-sunny-app \
-  -p 8081:8081 \
+  -p 8080:8080 \
   -v $(pwd)/storage:/app/storage \
   -v $(pwd)/config.yaml:/app/config.yaml:ro \
   --restart unless-stopped \
