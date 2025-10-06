@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-core-thousand-sunny
+  namespace: internal
+  labels:
+    app: api-core-thousand-sunny
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-core-thousand-sunny
+  template:
+    metadata:
+      labels:
+        app: api-core-thousand-sunny
+    spec:
+      containers:
+        - name: api-core-thousand-sunny
+          image: api-core-thousand-sunny:latest #docker hub image
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081 #port yang dibuka di container
+              protocol: TCP
+          volumeMounts:
+            - name: storage-volume
+              mountPath: /app/storage
+            - name: config-volume
+              mountPath: /app/config.yaml
+          env:
+            - name: PATH
+              value: /app/bin:$PATH
+      volumes:
+        - name: storage-volume
+          hostPath:
+            path: /mnt/thousand-sunny/storage
+            type: Directory
+        - name: config-volume
+          hostPath:
+            path: /mnt/thousand-sunny/config.yaml
+            type: File
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-core-thousand-sunny-service
+  namespace: internal
+spec:
+  selector:
+    app: api-core-thousand-sunny
+  type: NodePort
+  ports:
+    - port: 8081
+      targetPort: 8081
+      # DEV
+      nodePort: 30081       # A fixed NodePort in the 30000-32767 range
+      protocol: TCP
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: api-core-thousand-sunny-pv-claim
+  namespace: internal
+spec:
+  # PROD
+  # storageClassName: nfs-client
+  # DEV
+  storageClassName: standard
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi #max storage requirements
+
+---
+
+# PROD
+# apiVersion: k8s.nginx.org/v1
+# kind: VirtualServer
+# metadata:
+#   name: api-core-thousand-sunny-vs
+#   namespace: internal
+# spec:
+#   host: thousand-sunny.local #subdomain yang telah dibuka aksesnya 
+#   upstreams:
+#     - name: restapi
+#       service: api-core-thousand-sunny-service
+#       port: 8081
+#   routes:
+#     - path: /
+#       action:
+#         pass: restapi
+
+# DEV
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-core-thousand-sunny-ingress
+  namespace: internal
+spec:
+  rules:
+    - host: thousand-sunny.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-core-thousand-sunny-service
+                port:
+                  number: 8081

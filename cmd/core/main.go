@@ -8,6 +8,7 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/internal"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/infra/http/middleware"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/infra/sdk"
 )
 
 func main() {
@@ -31,6 +32,9 @@ func main() {
 
 		// Repo SQLC Generator
 		injector.RepoGenerationSqlc,
+
+		// SDK
+		sdk.Modules,
 
 		// HTTP Middleware
 		middleware.GlobalModules,

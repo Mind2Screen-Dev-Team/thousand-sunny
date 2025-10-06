@@ -1,7 +1,10 @@
 # 🏴‍☠️ *Thousand Sunny* – Project Skeleton
 
-Set sail on your next adventure with **Thousand Sunny**!  
-Inspired by the legendary ship from *One Piece*, this Go project skeleton is built for **speed, flexibility, and scalability**. Whether you're building small tools or large-scale applications, Thousand Sunny provides the foundation to power your journey.
+⚡ **Navigate the Grand Line of Go development** with **Thousand Sunny** – where dreams become deployable reality!
+
+Just like Luffy's legendary vessel that conquered impossible seas, this battle-tested Go skeleton breaks through the storms of complex architecture. Built with the **spirit of adventure** and engineered for **legendary performance**, Thousand Sunny transforms your wildest coding ambitions into production-ready masterpieces.
+
+🌊 From humble microservices to enterprise titans – **every great journey starts with the right ship**.
 
 ![Thousand Sunny](./storage/assets/thousand-sunny.png "Thousand Sunny")
 
@@ -30,7 +33,16 @@ Inspired by the legendary ship from *One Piece*, this Go project skeleton is bui
 │       ├── model   # Auto-generated GORM models.
 │       └── query   # Auto-generated GORM query code.
 ├── infra           # Infrastructure packages
-├── internal        # Internal packages (application-specific).
+│   ├── sdk         # SDK packages.
+│   │   ├── <sdk-name>                        # Some SDK packages.
+│   │   │   ├── sdk.<sdk-name>.<action>.go    # Some SDK packages.
+│   │   │   └── sdk.<sdk-name>.fx.modules.go  # Some SDK Uber Fx modules.
+│   │   └── sdk.fx.modules.go                 # Main SDK Uber Fx modules.
+│   └── http            # HTTP packages.
+│       └── middleware  # HTTP middleware.
+│           ├── mdl.<private|global>.<name>.go  # HTTP middleware.
+│           └── mdl.fx.modules.go               # HTTP middleware Uber Fx modules.
+├── internal                # Internal packages (application-specific).
 │   ├── <domain>            # Domain modules.
 │   │   ├── <sub-domain>    # Sub-domains within a domain.
 │   │   │   ├── <domain>.<sub-domain>.<action>.handler.go     # Endpoint handlers.
@@ -117,6 +129,71 @@ chmod +x deploy.sh
 make deploy-core-up v=X.Y.Z
 ```
 
+### Run by Pure Docker
+```bash
+# 1. Build the image
+docker build -f Dockerfile -t api-core-thousand-sunny:latest .
+
+# 2. Run the container
+docker run -d \
+  --name api-core-thousand-sunny-app \
+  -p 8081:8081 \
+  -v $(pwd)/storage:/app/storage \
+  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  --restart unless-stopped \
+  api-core-thousand-sunny:latest
+
+# 3. Check if it's running
+docker ps
+
+# 4. View logs
+docker logs api-core-thousand-sunny-app
+```
+
+### Run by K8S With Minikube and Docker
+
+```bash
+# start / open your docker
+# install minikube
+brew install minikube # macos
+
+# enable ingress
+minikube addons enable ingress
+
+# enable metric
+minikube addons enable metrics-server
+
+# build image
+minikube image build -t api-core-thousand-sunny:latest -f Dockerfile .
+
+# open new tab terminal, run minikube mount directory, ex:
+#   - /Users/<username>/<some_path>/thousand-sunny:/mnt/thousand-sunny
+minikube mount <your_project_path>:/mnt/thousand-sunny
+
+# ------ START: ONLY FOR MAC ------
+# add local domain
+sudo nano /etc/hosts
+# Add
+# 127.0.0.1       thousand-sunny.local
+sudo dscacheutil -flushcache
+sudo killall -HUP mDNSResponder
+# ------ END: ONLY FOR MAC ------
+
+# unload deploy
+kubectl delete -f k8s-manifest.yml -n internal
+
+# deploy
+kubectl apply -f k8s-manifest.yml -n internal 
+
+# open new tab terminal, run minikube dashboard
+minikube dashboard
+
+# open new terminal, and run tunnel into service
+minikube tunnel
+
+# open http://thousand-sunny.local/health
+```
+
 ### Generate Code Repository Queries by SQLC
 
 ```bash
@@ -186,5 +263,5 @@ make git-export-clean
 
 For advanced guides, see the Wiki. To integrate these OpenAPI specs with external tools (e.g., codegen for clients), use the `/openapi.yaml` or `/openapi.json` endpoints directly.
 
-## 📖 Contact
-visit our website, [mindtoscreen.com](https://mindtoscreen.com/).
+## 📖 Contact Us
+Visit our website, [mindtoscreen.com](https://mindtoscreen.com/).
