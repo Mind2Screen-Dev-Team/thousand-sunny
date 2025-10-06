@@ -72,10 +72,7 @@ Just like Luffy's legendary vessel that conquered impossible seas, this battle-t
     ├── cron        # Cron job configurations.
     ├── template    # Templates (emails, configs, etc.).
     └── logs
-        └── <server.name> # Log folders (based on `config.yaml` server name).
-            ├── debug     # Debug-level logs.
-            ├── io        # Input/output logs.
-            └── trx       # Transaction/audit logs.
+        └── <log.name>.log # Log file (based on `config.yaml` log name).
 ````
 
 ---
