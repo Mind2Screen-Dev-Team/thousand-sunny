@@ -9,8 +9,6 @@ var (
 	GlobalLogger = fx.Options(
 		fx.Module("dependency:global:logger",
 			fx.Provide(dependency.ProvideDebugLogger),
-			fx.Provide(dependency.ProvideIoLogger),
-			fx.Provide(dependency.ProvideTrxLogger),
 		),
 	)
 )
