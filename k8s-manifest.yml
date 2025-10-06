@@ -20,7 +20,7 @@ spec:
           image: api-core-thousand-sunny:latest #docker hub image
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8081 #port yang dibuka di container
+            - containerPort: 8080 #port yang dibuka di container
               protocol: TCP
           volumeMounts:
             - name: storage-volume
@@ -53,10 +53,10 @@ spec:
     app: api-core-thousand-sunny
   type: NodePort
   ports:
-    - port: 8081
-      targetPort: 8081
+    - port: 8080
+      targetPort: 8080
       # DEV
-      nodePort: 30081       # A fixed NodePort in the 30000-32767 range
+      nodePort: 30080       # A fixed NodePort in the 30000-32767 range
       protocol: TCP
 
 ---
@@ -90,7 +90,7 @@ spec:
 #   upstreams:
 #     - name: restapi
 #       service: api-core-thousand-sunny-service
-#       port: 8081
+#       port: 8080
 #   routes:
 #     - path: /
 #       action:
@@ -113,4 +113,4 @@ spec:
               service:
                 name: api-core-thousand-sunny-service
                 port:
-                  number: 8081
+                  number: 8080
