@@ -89,11 +89,11 @@ func ProvideDebugLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider)
 		xlog.SetLogFileOutput(&debugLog.LogRotation),
 
 		// # Options Fields
-		xlog.SetField("app_name", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
-		xlog.SetField("app_env", c.App.Env),
-		xlog.SetField("app_server", s.Name),
-		xlog.SetField("app_log", "debug:logger"),
-		xlog.SetField("app_pid", pid),
+		xlog.SetField("appName", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
+		xlog.SetField("appEnv", c.App.Env),
+		xlog.SetField("appServer", s.Name),
+		xlog.SetField("appLog", "debug:logger"),
+		xlog.SetField("appPid", pid),
 	)
 
 	_DebugLogger = &debugLog
@@ -146,11 +146,11 @@ func ProvideIoLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *x
 		xlog.SetLogFileOutput(&ioLog.LogRotation),
 
 		// # fields
-		xlog.SetField("app_name", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
-		xlog.SetField("app_env", c.App.Env),
-		xlog.SetField("app_server", s.Name),
-		xlog.SetField("app_log", "io:logger"),
-		xlog.SetField("app_pid", pid),
+		xlog.SetField("appName", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
+		xlog.SetField("appEnv", c.App.Env),
+		xlog.SetField("appServer", s.Name),
+		xlog.SetField("appLog", "io:logger"),
+		xlog.SetField("appPid", pid),
 	)
 
 	_IOLogger = &ioLog
@@ -211,11 +211,11 @@ func ProvideTrxLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *
 			xlog.SetLogFileOutput(&logFileRotation),
 
 			// # fields
-			xlog.SetField("app_name", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
-			xlog.SetField("app_env", c.App.Env),
-			xlog.SetField("app_server", s.Name),
-			xlog.SetField("app_log", fmt.Sprintf("trx:logger:%s", key)),
-			xlog.SetField("app_pid", pid),
+			xlog.SetField("appName", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
+			xlog.SetField("appEnv", c.App.Env),
+			xlog.SetField("appServer", s.Name),
+			xlog.SetField("appLog", fmt.Sprintf("trx:logger:%s", key)),
+			xlog.SetField("appPid", pid),
 		)
 	}
 
