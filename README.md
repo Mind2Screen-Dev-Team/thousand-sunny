@@ -106,7 +106,7 @@ cp config.example.yaml config.yaml
 make go-run a=core
 ```
 
-### Run By Docker
+### Run By Docker Compose
 
 ```bash
 # Make it Executeable deploy script
