@@ -63,7 +63,7 @@ template:
 log:
   base.path: "./storage/logs" # where you need store to store log
   console.format: "console"   # available values: console and json
-  level: 1                    # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+  level: -1                   # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
   file:                   # file log options
     disabled: false       # disable file logging -> default is console logging
     name: "app.log"       # what a log name
