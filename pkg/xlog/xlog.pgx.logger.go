@@ -30,8 +30,13 @@ func (t *PgxLogger) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pg
 	var (
 		n      = time.Now()
 		fields = make([]any, 0)
-		id, _  = ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID)
 	)
+
+	id, ok := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID)
+	if !ok {
+		sid, _ := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(string)
+		id, _ = xid.FromString(sid)
+	}
 
 	if !id.IsZero() {
 		fields = append(fields, "reqTraceId", id)
@@ -58,11 +63,16 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 		queryStartTime, _ = ctx.Value(queryStartTimeKey{}).(time.Time) // Retrieve the start time from context
 		queryDurr         = queryEndTime.Sub(queryStartTime)
 
-		id, _        = ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID)
 		queryName, _ = ctx.Value(queryNameKey{}).(string)
 		queryData, _ = ctx.Value(querySQLDataKey{}).(pgx.TraceQueryStartData) // Retrieve the trace query start data from context
 		queryType    = getQueryType(data.CommandTag)                          // Determine query typex
 	)
+
+	id, ok := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID)
+	if !ok {
+		sid, _ := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(string)
+		id, _ = xid.FromString(sid)
+	}
 
 	if data.Err != nil {
 		if !id.IsZero() {

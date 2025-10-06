@@ -8,6 +8,7 @@ import (
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
+	"go.uber.org/fx"
 
 	"github.com/rs/zerolog"
 	otelog "go.opentelemetry.io/otel/log"
@@ -28,6 +29,7 @@ func RotateLog() {
 }
 
 type DebugLoggerParamFx struct {
+	fx.In
 	Cfg            config.Cfg
 	Server         config.Server
 	LoggerProvider otelog.LoggerProvider `optional:"true"`
@@ -68,6 +70,7 @@ func ProvideDebugLogger(p DebugLoggerParamFx) *xlog.DebugLogger {
 
 		// console log
 		xlog.SetLogConsoleFormat(p.Cfg.Log.ConsoleFormat),
+		xlog.SetLogConsoleDisabled(false),
 		xlog.SetLogConsoleLevel(p.Cfg.Log.Level),
 		xlog.SetLogConsoleOutput(os.Stderr),
 
