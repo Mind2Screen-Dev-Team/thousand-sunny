@@ -67,22 +67,24 @@ func ProvideFiberConfig(c config.Cfg, l *xlog.DebugLogger) fiber.Config {
 	)
 
 	var (
-		svr = c.Server["http"]
-		add = svr.Additional
-		fbr = fiber.Config{
+		svr        = c.Server["http"]
+		add        = svr.Additional
+		prefork, _ = add["prefork"]
+		fbr        = fiber.Config{
+			Prefork:               prefork == "true",
 			ReduceMemoryUsage:     true,
 			DisableStartupMessage: true,
 		}
 	)
 
 	if dur, ok := parseDurrationConfig(ctx, log, add, "idle.timeout"); ok {
-		fbr.IdleTimeout = dur
+		fbr.IdleTimeout = dur // default is unlimited
 	}
 	if dur, ok := parseDurrationConfig(ctx, log, add, "write.timeout"); ok {
-		fbr.WriteTimeout = dur
+		fbr.WriteTimeout = dur // default is unlimited
 	}
 	if dur, ok := parseDurrationConfig(ctx, log, add, "read.timeout"); ok {
-		fbr.ReadTimeout = dur
+		fbr.ReadTimeout = dur // default is unlimited
 	}
 
 	return fbr

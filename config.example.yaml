@@ -26,6 +26,8 @@ server:
     port: 8080
     address: "0.0.0.0:8080"
     domain: "http://localhost"
+    additional:
+      prefork: "false" # fiber prefork option
     oapi:
       info:
         title: "My Core API"
