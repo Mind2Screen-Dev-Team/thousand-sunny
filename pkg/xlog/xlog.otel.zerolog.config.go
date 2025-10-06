@@ -28,7 +28,7 @@ type config struct {
 	schemaURL         string
 	serverName        string
 	serverAddr        string
-	IgnoreKeys        map[string][]string
+	IgnoreKeys        []string
 }
 
 func newConfig(options []Option) config {
@@ -154,7 +154,7 @@ func WithLoggerProvider(provider log.LoggerProvider) Option {
 	})
 }
 
-func WithListIgnoreKeys(m map[string][]string) Option {
+func WithListIgnoreKeys(m []string) Option {
 	return optFunc(func(c config) config {
 		c.IgnoreKeys = m
 		return c
@@ -162,23 +162,13 @@ func WithListIgnoreKeys(m map[string][]string) Option {
 }
 
 // Converts map[string]any to []log.KeyValue
-func mapToKeyValues(input map[string]any, mapIgnoreKeys map[string][]string) (attrs []log.KeyValue) {
+func mapToKeyValues(input map[string]any, mapIgnoreKeys []string) (attrs []log.KeyValue) {
 	var (
-		group  string
 		result = make([]log.KeyValue, 0, len(input))
 	)
 
-	for k, v := range input {
-		if k == IGNORE_KEY {
-			group, _ = v.(string)
-			break
-		}
-	}
-
-	keys := mapIgnoreKeys[group]
-	keys = append(keys, IGNORE_KEY)
 	for key, value := range input {
-		if slices.Contains(keys, key) {
+		if slices.Contains(mapIgnoreKeys, key) {
 			continue
 		}
 

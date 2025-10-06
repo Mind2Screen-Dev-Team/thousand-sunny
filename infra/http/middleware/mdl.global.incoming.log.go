@@ -25,18 +25,18 @@ import (
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xtracer"
 )
 
-func ProvideIncomingLog(cfg config.Cfg, tracer trace.Tracer, iolog *xlog.IOLogger) IncomingLog {
+func ProvideIncomingLog(cfg config.Cfg, tracer trace.Tracer, debugLog *xlog.DebugLogger) IncomingLog {
 	return IncomingLog{
-		cfg:    cfg,
-		tracer: tracer,
-		iolog:  xlog.NewLogger(iolog.Logger),
+		cfg:      cfg,
+		tracer:   tracer,
+		debugLog: xlog.NewLogger(debugLog.Logger),
 	}
 }
 
 type IncomingLog struct {
-	cfg    config.Cfg
-	tracer trace.Tracer
-	iolog  xlog.Logger
+	cfg      config.Cfg
+	tracer   trace.Tracer
+	debugLog xlog.Logger
 }
 
 func (IncomingLog) Name() string {
@@ -270,5 +270,5 @@ func (in IncomingLog) log(ctx context.Context, d xlog.IncomingLogData) {
 		fields = append(fields, "panicStack", d.PanicStack)
 	}
 
-	in.iolog.Info(ctx, "incoming log request", fields...)
+	in.debugLog.Info(ctx, "incoming log request", fields...)
 }

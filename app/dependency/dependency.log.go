@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/config"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
@@ -16,211 +15,76 @@ import (
 )
 
 var (
-	_DebugLogger *xlog.DebugLogger
-	_IOLogger    *xlog.IOLogger
-	_TrxLogger   *xlog.TrxLogger
+	isFileLogDisabled bool
+	debugLogger       *xlog.DebugLogger
 )
 
 func RotateLog() {
-	if _DebugLogger != nil {
-		if err := _DebugLogger.LogRotation.Rotate(); err != nil {
+	if debugLogger != nil && !isFileLogDisabled {
+		if err := debugLogger.LogRotation.Rotate(); err != nil {
 			log.Printf("try to rotate 'debug:logger', got err: %+v\n", err)
 		}
 	}
-
-	if _IOLogger != nil {
-		if err := _IOLogger.LogRotation.Rotate(); err != nil {
-			log.Printf("try to rotate 'io:logger', got err: %+v\n", err)
-		}
-	}
-
-	if _TrxLogger != nil {
-		if err := _TrxLogger.Rotate(); err != nil {
-			log.Printf("try to rotate 'trx:logger', got err: %+v\n", err)
-		}
-
-		// clear memory trx logger
-		_TrxLogger.Close()
-	}
 }
 
-func ProvideDebugLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *xlog.DebugLogger {
-	pid := os.Getpid()
-	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
-	basePath = strings.ReplaceAll(basePath, "{log.type}", "debug")
+type DebugLoggerParamFx struct {
+	Cfg            config.Cfg
+	Server         config.Server
+	LoggerProvider otelog.LoggerProvider `optional:"true"`
+}
 
+func ProvideDebugLogger(p DebugLoggerParamFx) *xlog.DebugLogger {
 	var (
-		cfg       = c.Log.LogType["debug"]
-		xfilename = path.Join(basePath, cfg.File.Rotation.Filename)
-		debugLog  = xlog.DebugLogger{
+		filename          = path.Join(p.Cfg.Log.BasePath, p.Cfg.Log.File.Name)
+		rotation          = p.Cfg.Log.File.Rotation
+		isFileLogDisabled = p.Cfg.Log.File.Disabled
+		debugLog          = xlog.DebugLogger{
 			SingleLogger: xlog.SingleLogger{
-				LogRotation: lumberjack.Logger{
-					Filename:   xfilename,                   // where you need store to store log and what a log name
-					MaxBackups: cfg.File.Rotation.MaxBackup, // how much backup files
-					MaxSize:    cfg.File.Rotation.MaxSize,   // how much maximum megabytes
-					MaxAge:     cfg.File.Rotation.MaxAge,    // how much maximum days, default is 0 that means not deleted old logs
-					LocalTime:  cfg.File.Rotation.LocalTime, // default UTC -> false
-					Compress:   cfg.File.Rotation.Compress,  // default Un-Compressed -> false
+				LogRotation: &lumberjack.Logger{
+					Filename:   filename,
+					MaxBackups: rotation.MaxBackup,
+					MaxSize:    rotation.MaxSize,
+					MaxAge:     rotation.MaxAge,
+					LocalTime:  rotation.LocalTime,
+					Compress:   rotation.Compress,
 				},
 			},
 		}
 	)
 
 	debugLog.Logger = xlog.NewZeroLog(
-		// # options
+		// otel options
 		xlog.SetLogHook(
 			xlog.NewOtelHook(
-				fmt.Sprintf("%s/%s", c.App.Project, s.Name),
-				xlog.WithLogEnabled(c.Otel.Logs),
-				xlog.WithListIgnoreKeys(c.Otel.Options.Logs.IgnoreAttrKey),
-				xlog.WithLogWriterDisabled(cfg.Otel.Disabled),
-				xlog.WithLevel(zerolog.Level(cfg.Otel.Level)),
-				xlog.WithLoggerProvider(lp),
+				fmt.Sprintf("%s/%s", p.Cfg.App.Project, p.Server.Name),
+				xlog.WithLogEnabled(p.Cfg.Otel.Logs),
+				xlog.WithListIgnoreKeys(p.Cfg.Otel.Options.IgnoreLogKeys),
+				xlog.WithLogWriterDisabled(!p.Cfg.Otel.Logs),
+				xlog.WithLevel(zerolog.Level(p.Cfg.Log.Level)),
+				xlog.WithLoggerProvider(p.LoggerProvider),
 				xlog.WithVersion("1.0.0"),
 			),
 		),
 
-		xlog.SetLogConsoleDisabled(cfg.Console.Disabled),
-		xlog.SetLogConsoleLevel(cfg.Console.Level),
+		// console log
+		xlog.SetLogConsoleFormat(p.Cfg.Log.ConsoleFormat),
+		xlog.SetLogConsoleLevel(p.Cfg.Log.Level),
 		xlog.SetLogConsoleOutput(os.Stderr),
 
-		xlog.SetLogFileDisabled(cfg.File.Disabled),
-		xlog.SetLogFileLevel(cfg.File.Level),
-		xlog.SetLogFileOutput(&debugLog.LogRotation),
+		// file log
+		xlog.SetLogFileDisabled(isFileLogDisabled),
+		xlog.SetLogFileLevel(p.Cfg.Log.Level),
+		xlog.SetLogFileOutput(debugLog.LogRotation),
 
-		// # Options Fields
-		xlog.SetField("appName", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
-		xlog.SetField("appEnv", c.App.Env),
-		xlog.SetField("appServer", s.Name),
+		// options fields
+		xlog.SetField("appName", fmt.Sprintf("%s/%s", p.Cfg.App.Project, p.Server.Name)),
+		xlog.SetField("appEnv", p.Cfg.App.Env),
+		xlog.SetField("appServer", p.Server.Name),
 		xlog.SetField("appLog", "debug:logger"),
-		xlog.SetField("appPid", pid),
+		xlog.SetField("appPid", os.Getpid()),
 	)
 
-	_DebugLogger = &debugLog
+	debugLogger = &debugLog
 
 	return &debugLog
-}
-
-func ProvideIoLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *xlog.IOLogger {
-	pid := os.Getpid()
-	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
-	basePath = strings.ReplaceAll(basePath, "{log.type}", "io")
-
-	var (
-		cfg       = c.Log.LogType["io"]
-		xfilename = path.Join(basePath, cfg.File.Rotation.Filename)
-		ioLog     = xlog.IOLogger{
-			SingleLogger: xlog.SingleLogger{
-				LogRotation: lumberjack.Logger{
-					Filename:   xfilename,                   // where you need store to store log and what a log name
-					MaxBackups: cfg.File.Rotation.MaxBackup, // how much backup files
-					MaxSize:    cfg.File.Rotation.MaxSize,   // how much maximum megabytes
-					MaxAge:     cfg.File.Rotation.MaxAge,    // how much maximum days, default is 0 that means not deleted old logs
-					LocalTime:  cfg.File.Rotation.LocalTime, // default UTC or false
-					Compress:   cfg.File.Rotation.Compress,  // default Un-Compressed or false
-				},
-			},
-		}
-	)
-
-	ioLog.Logger = xlog.NewZeroLog(
-		// # options
-		xlog.SetLogHook(
-			xlog.NewOtelHook(
-				fmt.Sprintf("%s/%s", c.App.Project, s.Name),
-				xlog.WithLogEnabled(c.Otel.Logs),
-				xlog.WithListIgnoreKeys(c.Otel.Options.Logs.IgnoreAttrKey),
-				xlog.WithLogWriterDisabled(cfg.Otel.Disabled),
-				xlog.WithLevel(zerolog.Level(cfg.Otel.Level)),
-				xlog.WithLoggerProvider(lp),
-				xlog.WithVersion("1.0.0"),
-			),
-		),
-
-		xlog.SetLogConsoleDisabled(cfg.Console.Disabled),
-		xlog.SetLogConsoleLevel(cfg.Console.Level),
-		xlog.SetLogConsoleOutput(os.Stderr),
-
-		xlog.SetLogFileDisabled(cfg.File.Disabled),
-		xlog.SetLogFileLevel(cfg.File.Level),
-		xlog.SetLogFileOutput(&ioLog.LogRotation),
-
-		// # fields
-		xlog.SetField("appName", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
-		xlog.SetField("appEnv", c.App.Env),
-		xlog.SetField("appServer", s.Name),
-		xlog.SetField("appLog", "io:logger"),
-		xlog.SetField("appPid", pid),
-	)
-
-	_IOLogger = &ioLog
-
-	return &ioLog
-}
-
-func ProvideTrxLogger(c config.Cfg, s config.Server, lp otelog.LoggerProvider) *xlog.TrxLogger {
-	pid := os.Getpid()
-	basePath := strings.ReplaceAll(c.Log.BasePath, "{server.name}", s.Name)
-	basePath = strings.ReplaceAll(basePath, "{log.type}", "trx")
-	basePath = strings.Join([]string{basePath, "{trx.client}"}, "/")
-
-	var (
-		l       = xlog.TrxLogger{}
-		cfg     = c.Log.LogType["trx"]
-		entries = make([]xlog.Entry, len(c.Log.TrxClient))
-	)
-
-	for i, key := range c.Log.TrxClient {
-		var (
-			keys            = strings.Split(strings.ToLower(strings.TrimSpace(key)), ":")
-			basePath        = strings.ReplaceAll(basePath, "{trx.client}", strings.Join(keys, "/"))
-			xfilename       = path.Join(basePath, cfg.File.Rotation.Filename)
-			logFileRotation = lumberjack.Logger{
-				Filename:   xfilename,                   // where you need store to store log and what a log name
-				MaxBackups: cfg.File.Rotation.MaxBackup, // how much backup files
-				MaxSize:    cfg.File.Rotation.MaxSize,   // how much maximum megabytes
-				MaxAge:     cfg.File.Rotation.MaxAge,    // how much maximum days, default is 0 that means not deleted old logs
-				LocalTime:  cfg.File.Rotation.LocalTime, // default UTC or false
-				Compress:   cfg.File.Rotation.Compress,  // default Un-Compressed -> false
-			}
-		)
-
-		entries[i] = xlog.NewEntry(
-			key,
-			&logFileRotation,
-
-			// # options
-			xlog.SetLogHook(
-				xlog.NewOtelHook(
-					fmt.Sprintf("%s/%s", c.App.Project, s.Name),
-					xlog.WithLogEnabled(c.Otel.Logs),
-					xlog.WithListIgnoreKeys(c.Otel.Options.Logs.IgnoreAttrKey),
-					xlog.WithLogWriterDisabled(cfg.Otel.Disabled),
-					xlog.WithLevel(zerolog.Level(cfg.Otel.Level)),
-					xlog.WithLoggerProvider(lp),
-					xlog.WithVersion("1.0.0"),
-				),
-			),
-
-			xlog.SetLogConsoleDisabled(cfg.Console.Disabled),
-			xlog.SetLogConsoleLevel(cfg.Console.Level),
-			xlog.SetLogConsoleOutput(os.Stderr),
-
-			xlog.SetLogFileDisabled(cfg.File.Disabled),
-			xlog.SetLogFileLevel(cfg.File.Level),
-			xlog.SetLogFileOutput(&logFileRotation),
-
-			// # fields
-			xlog.SetField("appName", fmt.Sprintf("%s/%s", c.App.Project, s.Name)),
-			xlog.SetField("appEnv", c.App.Env),
-			xlog.SetField("appServer", s.Name),
-			xlog.SetField("appLog", fmt.Sprintf("trx:logger:%s", key)),
-			xlog.SetField("appPid", pid),
-		)
-	}
-
-	l.MultiLogger = xlog.NewMultiLogging(entries...)
-	_TrxLogger = &l
-
-	return &l
 }

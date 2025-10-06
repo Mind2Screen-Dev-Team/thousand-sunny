@@ -68,6 +68,7 @@ func NewMultiLogging(entries ...Entry) MultiLogger {
 					SetLogHook(e.Options.Hook...),
 
 					// Log Console
+					SetLogConsoleFormat(e.Options.LogConsoleFormat),
 					SetLogConsoleDisabled(isLogConsoleDisabled),
 					SetLogConsoleLevel(e.Options.LogConsoleLevel),
 					SetLogConsoleOutput(e.Options.LogConsoleOut),

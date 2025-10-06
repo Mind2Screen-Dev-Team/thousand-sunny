@@ -34,14 +34,14 @@ func (t *PgxLogger) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pg
 	)
 
 	if !id.IsZero() {
-		fields = append(fields, "req_trace_id", id)
+		fields = append(fields, "reqTraceId", id)
 	}
 
 	fields = append(fields,
-		"req_trace_id", id,
-		"query_sql", data.SQL,
-		"query_args", data.Args,
-		"query_start_time", n,
+		"reqTraceId", id,
+		"querySql", data.SQL,
+		"queryArgs", data.Args,
+		"queryStartTime", n,
 	)
 	t.Log.Debug(ctx, "start executing query", fields...)
 
@@ -66,50 +66,50 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 
 	if data.Err != nil {
 		if !id.IsZero() {
-			fields = append(fields, "req_trace_id", id)
+			fields = append(fields, "reqTraceId", id)
 		}
 
 		if queryName != "" {
-			fields = append(fields, "query_name", queryName)
+			fields = append(fields, "queryName", queryName)
 		}
 
 		if queryType != "" {
-			fields = append(fields, "query_type", queryType)
+			fields = append(fields, "queryType", queryType)
 		}
 
 		fields = append(fields,
 			"err", data.Err,
-			"query_sql", queryData.SQL,
-			"query_args", queryData.Args,
-			"query_end_time", queryEndTime,
-			"query_start_time", queryStartTime,
-			"query_duration", FormatDuration(queryDurr),
-			"query_duration_ns", queryDurr.Nanoseconds(),
+			"querySql", queryData.SQL,
+			"queryArgs", queryData.Args,
+			"queryEndTime", queryEndTime,
+			"queryStartTime", queryStartTime,
+			"queryDuration", FormatDuration(queryDurr),
+			"queryDurationNs", queryDurr.Nanoseconds(),
 		)
 		t.Log.Debug(ctx, "executing query is failed", fields...)
 		return
 	}
 
 	if !id.IsZero() {
-		fields = append(fields, "req_trace_id", id)
+		fields = append(fields, "reqTraceId", id)
 	}
 
 	if queryName != "" {
-		fields = append(fields, "query_name", queryName)
+		fields = append(fields, "queryName", queryName)
 	}
 
 	if queryType != "" {
-		fields = append(fields, "query_type", queryType)
+		fields = append(fields, "queryType", queryType)
 	}
 
 	fields = append(fields,
-		"query_sql", queryData.SQL,
-		"query_args", queryData.Args,
-		"query_rows_affected", data.CommandTag.RowsAffected(),
-		"query_end_time", queryEndTime,
-		"query_start_time", queryStartTime,
-		"query_duration", FormatDuration(queryDurr),
-		"query_duration_ns", queryDurr.Nanoseconds(),
+		"querySql", queryData.SQL,
+		"queryArgs", queryData.Args,
+		"queryRowsAffected", data.CommandTag.RowsAffected(),
+		"queryEndTime", queryEndTime,
+		"queryStartTime", queryStartTime,
+		"queryDuration", FormatDuration(queryDurr),
+		"queryDurationNs", queryDurr.Nanoseconds(),
 	)
 	t.Log.Debug(ctx, "executing query is success", fields...)
 }

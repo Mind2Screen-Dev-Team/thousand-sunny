@@ -20,7 +20,7 @@ type OtelHook struct {
 	logWriterDisabled null.Bool
 	logEnabled        null.Bool
 	logger            log.Logger
-	IgnoreKeys        map[string][]string
+	IgnoreKeys        []string
 }
 
 // NewHook returns a new [Hook] to be used as a [Zerolog.Hook].
@@ -29,7 +29,7 @@ type OtelHook struct {
 func NewOtelHook(name string, options ...Option) *OtelHook {
 	cfg := newConfig(options)
 	if cfg.IgnoreKeys == nil {
-		cfg.IgnoreKeys = make(map[string][]string)
+		cfg.IgnoreKeys = make([]string, 0)
 	}
 
 	return &OtelHook{

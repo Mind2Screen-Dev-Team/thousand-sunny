@@ -18,6 +18,7 @@ type (
 		LogFields map[string]any
 
 		// Console
+		LogConsoleFormat  string
 		LogConsoleDisable null.Bool
 		LogConsoleLevel   int
 		LogConsoleOut     io.Writer
@@ -44,6 +45,19 @@ func SetField(key string, val any) LogOptionFn {
 func SetLogHook(v ...zerolog.Hook) LogOptionFn {
 	return func(opt *LogOptions) {
 		opt.Hook = v
+	}
+}
+
+func SetLogConsoleFormat(v string) LogOptionFn {
+	return func(opt *LogOptions) {
+		switch v {
+		case "json":
+			opt.LogConsoleFormat = "json"
+		case "console":
+			opt.LogConsoleFormat = "console"
+		default:
+			opt.LogConsoleFormat = "console"
+		}
 	}
 }
 
@@ -86,8 +100,9 @@ func NewZeroLog(opts ...LogOptionFn) zerolog.Logger {
 	var (
 		mw  []io.Writer
 		opt = LogOptions{
-			LogFields:     make(map[string]any),
-			LogConsoleOut: os.Stderr,
+			LogFields:        make(map[string]any),
+			LogConsoleOut:    os.Stderr,
+			LogConsoleFormat: "console",
 		}
 	)
 
@@ -112,8 +127,16 @@ func NewZeroLog(opts ...LogOptionFn) zerolog.Logger {
 	}
 
 	if !isLogConsoleDisabled {
+		var w io.Writer
+		switch opt.LogConsoleFormat {
+		case "json":
+			w = opt.LogConsoleOut
+		case "console":
+			w = zerolog.ConsoleWriter{Out: opt.LogConsoleOut}
+		}
+
 		consoleLog := zerolog.FilteredLevelWriter{
-			Writer: zerolog.LevelWriterAdapter{Writer: zerolog.ConsoleWriter{Out: opt.LogConsoleOut}},
+			Writer: zerolog.LevelWriterAdapter{Writer: w},
 			Level:  zerolog.Level(opt.LogConsoleLevel),
 		}
 

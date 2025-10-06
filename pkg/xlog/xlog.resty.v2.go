@@ -78,7 +78,7 @@ type (
 	HTTPResponse struct {
 		Status     string              `json:"status"`
 		Proto      string              `json:"proto"`
-		ReceivedAt string              `json:"received_at"`
+		ReceivedAt string              `json:"receivedAt"`
 		Duration   string              `json:"duration"`
 		Headers    map[string][]string `json:"headers"`
 		Body       string              `json:"body"`

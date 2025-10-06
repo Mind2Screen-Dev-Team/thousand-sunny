@@ -10,9 +10,15 @@ otel:
     grpc.host: "localhost"
     grpc.port: 4317
   options:
-    logs:
-      ignore.attr.keys:
-        incoming.log: ["req_user_agent", "req_header", "req_body_raw", "req_body_parsed", "res_header", "res_body", "panic_recover_err", "panic_stack"]
+    ignore.log.keys:
+      - "req_user_agent"
+      - "req_header"
+      - "req_body_raw"
+      - "req_body_parsed"
+      - "res_header"
+      - "res_body"
+      - "panic_recover_err"
+      - "panic_stack"
 server:
   http:
     name: "core-svc"
@@ -53,68 +59,18 @@ smtp:
 template:
   example.email.template: "./storage/template/my_template.tpl" 
 log:
-  # Where you need store to store log and what a log name
-  base.path: "./storage/logs/{server.name}/{log.type}"
-  trx.client:
-    # The sparator ':' mean 'merchant/x' it will be directory. I suggest you to use easy and exact naming with no-space for removing complexity.
-    - "merchant:x"
-    - "merchant:y"
-    - "merchant:z"
-  log.type:
-    debug: # For logging debug app, for feed `:log.type`
-      disabled: false
-      otel:
-        disabled: false
-        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-      console:
-        disabled: false
-        level: -1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-      file:
-        disabled: false
-        level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-        rotation:
-          filename: "app_debug_process.log" # what a log name
-          max.backup: 10 # how much backup files
-          max.size: 100 # how much maximum megabytes
-          max.age: 0 # how much maximum days, default is 0 that means not deleted old logs
-          local.time: false # default UTC | false
-          compress: false # default false
-    io: # For logging api input-output / IO proccess, for feed `:log.type`
-      disabled: false
-      otel:
-        disabled: false
-        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-      console:
-        disabled: false
-        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-      file:
-        disabled: false
-        level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-        rotation:
-          filename: "app_io_process.log" #  what a log name
-          max.backup: 10 # how much backup files
-          max.size: 100 # how much maximum megabytes
-          max.age: 0 # how much maximum days, default is 0 that means not deleted old logs
-          local.time: false # default UTC | false
-          compress: false # default false
-    trx: # For logging Transaction process your client, for feed `:log.type`
-      disabled: false
-      otel:
-        disabled: false
-        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-      console:
-        disabled: false
-        level: 0 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-      file:
-        disabled: false
-        level: 1 # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
-        rotation:
-          filename: "app_trx_process.log" # what a log name and {CLIENT} will be replaced by client key
-          max.backup: 10 # how much backup files
-          max.size: 100 # how much maximum megabytes
-          max.age: 0 # how much maximum days, default is 0 that means not deleted old logs
-          local.time: false # default UTC | false
-          compress: false # default false
+  base.path: "./storage/logs" # where you need store to store log
+  console.format: "console"   # available values: console and json
+  level: 1                    # Trace: -1 | Debug: 0 | Info: 1 | Warn: 2 | Error: 3 | Fatal: 4 | Panic: 5
+  file:                   # file log options
+    disabled: false       # disable file logging -> default is console logging
+    name: "app.log"       # what a log name
+    rotation:             # rotation options
+      max.backup: 10      # how much backup files
+      max.size: 100       # how much maximum megabytes
+      max.age: 0          # how much maximum days, default is 0 that means not deleted old logs
+      local.time: false   # default UTC | false
+      compress: false     # default false
 cache:
   redis:
     disabled: false
@@ -126,8 +82,8 @@ cache:
       username: "default"
       password: ""
     options:
-      dial.timeout: 30 # format number is seconds | default is 5 seconds
-      read.timeout: 30 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetReadDeadline calls completely.
+      dial.timeout: 30  # format number is seconds | default is 5 seconds
+      read.timeout: 30  # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetReadDeadline calls completely.
       write.timeout: 30 # format number is seconds | default is 3 seconds | -1 = no timeout | `-2` - disables SetWriteDeadline calls completely.
 db:
   postgres:

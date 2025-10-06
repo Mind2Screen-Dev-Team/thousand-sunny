@@ -61,11 +61,7 @@ type OtelServer struct {
 }
 
 type OtelOptions struct {
-	Logs OtelLogOptions `yaml:"logs"`
-}
-
-type OtelLogOptions struct {
-	IgnoreAttrKey map[string][]string `yaml:"ignore.attr.keys"` // key map is group name
+	IgnoreLogKeys []string `yaml:"ignore.log.keys"`
 }
 
 type Server struct {
@@ -143,37 +139,15 @@ type DBCredential struct {
 }
 
 type Log struct {
-	BasePath  string             `yaml:"base.path"`
-	TrxClient []string           `yaml:"trx.client"`
-	LogType   map[string]LogType `yaml:"log.type"`
-}
-
-type LogType struct {
-	Disabled bool       `yaml:"disabled"`
-	Otel     LogOtel    `yaml:"otel"`
-	Console  LogConsole `yaml:"console"`
-	File     LogFile    `yaml:"file"`
-}
-
-type LogOtel struct {
-	Disabled bool `yaml:"disabled"`
-	Level    int  `yaml:"level"`
-}
-
-type LogConsole struct {
-	Disabled bool `yaml:"disabled"`
-	Level    int  `yaml:"level"`
-}
-
-type LogNotify struct {
-	Enabled   bool `yaml:"enabled"`
-	Debug     bool `yaml:"debug"`
-	Retention int  `yaml:"retention"`
+	BasePath      string  `yaml:"base.path"`
+	Level         int     `yaml:"level"`
+	ConsoleFormat string  `yaml:"console.format"`
+	File          LogFile `yaml:"file"`
 }
 
 type LogFile struct {
 	Disabled bool        `yaml:"disabled"`
-	Level    int         `yaml:"level"`
+	Name     string      `yaml:"name"`
 	Rotation LogRotation `yaml:"rotation"`
 }
 

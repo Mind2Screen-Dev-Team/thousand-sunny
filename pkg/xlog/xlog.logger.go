@@ -8,19 +8,11 @@ import (
 type (
 	SingleLogger struct {
 		Logger      zerolog.Logger
-		LogRotation lumberjack.Logger
+		LogRotation *lumberjack.Logger
 	}
 
 	DebugLogger struct {
 		SingleLogger
-	}
-
-	IOLogger struct {
-		SingleLogger
-	}
-
-	TrxLogger struct {
-		MultiLogger
 	}
 )
 
