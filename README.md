@@ -245,21 +245,21 @@ kubectl get ingress -n internal
 kubectl logs -f deployment/api-core-thousand-sunny -n internal
 
 # 9. Setup ingress (if using cloud provider)
-# For AWS ALB:
-# kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.4/docs/install/iam_policy.json
-# For GKE:
-# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+# For AWS ALB (Updated: 7 Oct 2025):
+# kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.14.0/docs/install/iam_policy.json
+# For GKE (Updated: 7 Oct 2025):
+# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.13.3/deploy/static/provider/cloud/deploy.yaml
 
 # 10. Get external IP (for LoadBalancer service type)
 kubectl get svc api-core-thousand-sunny-service -n internal
 
 # 11. Port forward for local testing (alternative to ingress)
-kubectl port-forward svc/api-core-thousand-sunny-service 8081:8081 -n internal
+kubectl port-forward svc/api-core-thousand-sunny-service 8080:8080 -n internal
 
 # 12. Access the application
 # Via Ingress: http://thousand-sunny.local/health (configure DNS/hosts)
-# Via Port Forward: http://localhost:8081/health
-# Via NodePort: http://<node-ip>:30081/health
+# Via Port Forward: http://localhost:8080/health
+# Via NodePort: http://<node-ip>:30080/health
 
 # Cleanup commands
 # kubectl delete -f k8s-manifest.yml -n internal
