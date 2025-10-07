@@ -12,6 +12,7 @@ import (
 	"github.com/rs/xid"
 	"go.uber.org/fx"
 
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xresp"
 )
@@ -28,8 +29,16 @@ type ExampleUserCreateHandlerFx struct {
 	logger xlog.Logger
 }
 
-func NewCreateHandlerFx(p ExampleUserCreateHandlerParamFx) ExampleUserCreateHandlerFx {
-	return ExampleUserCreateHandlerFx{p: p, logger: xlog.NewLogger(p.LogDebug.Logger)}
+type ExampleUserCreateHandlerFxOut struct {
+	fx.Out
+
+	Handler xhuma.HandlerRegister `group:"global:http:handler"`
+}
+
+func NewCreateHandlerFx(p ExampleUserCreateHandlerParamFx) ExampleUserCreateHandlerFxOut {
+	return ExampleUserCreateHandlerFxOut{
+		Handler: &ExampleUserCreateHandlerFx{p: p, logger: xlog.NewLogger(p.LogDebug.Logger)},
+	}
 }
 
 func (h ExampleUserCreateHandlerFx) Register(api huma.API) {

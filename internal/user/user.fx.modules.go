@@ -2,8 +2,6 @@ package user
 
 import (
 	"go.uber.org/fx"
-
-	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 )
 
 var (
@@ -16,10 +14,10 @@ var (
 	)
 
 	HandlerModules = fx.Module("http:handler:module:user",
-		fx.Provide(xhuma.AnnotateHandlerAs(NewCreateHandlerFx)),
-		fx.Provide(xhuma.AnnotateHandlerAs(NewReadAllHandlerFx)),
-		fx.Provide(xhuma.AnnotateHandlerAs(NewReadHandlerFx)),
-		fx.Provide(xhuma.AnnotateHandlerAs(NewUpdateHandlerFx)),
-		fx.Provide(xhuma.AnnotateHandlerAs(NewDeleteHandlerFx)),
+		fx.Provide(NewCreateHandlerFx),
+		fx.Provide(NewReadAllHandlerFx),
+		fx.Provide(NewReadHandlerFx),
+		fx.Provide(NewUpdateHandlerFx),
+		fx.Provide(NewDeleteHandlerFx),
 	)
 )

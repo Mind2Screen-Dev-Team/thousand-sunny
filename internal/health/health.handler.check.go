@@ -10,6 +10,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/infra/http/middleware"
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 )
 
 type HealthHandlerParamFx struct {
@@ -22,8 +23,16 @@ type HealthHandlerFx struct {
 	p HealthHandlerParamFx
 }
 
-func NewHealthHandlerFx(p HealthHandlerParamFx) HealthHandlerFx {
-	return HealthHandlerFx{p}
+type HealthHandlerFxOut struct {
+	fx.Out
+
+	Handler xhuma.HandlerRegister `group:"global:http:handler"`
+}
+
+func NewHealthHandlerFx(p HealthHandlerParamFx) HealthHandlerFxOut {
+	return HealthHandlerFxOut{
+		Handler: &HealthHandlerFx{p},
+	}
 }
 
 func (h HealthHandlerFx) Register(api huma.API) {

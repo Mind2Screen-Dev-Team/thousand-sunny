@@ -12,6 +12,7 @@ import (
 	"github.com/rs/xid"
 	"go.uber.org/fx"
 
+	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xhuma"
 	"github.com/Mind2Screen-Dev-Team/thousand-sunny/pkg/xlog"
 )
 
@@ -27,8 +28,16 @@ type ExampleUserDeleteHandlerFx struct {
 	logger xlog.Logger
 }
 
-func NewDeleteHandlerFx(p ExampleUserDeleteHandlerParamFx) ExampleUserDeleteHandlerFx {
-	return ExampleUserDeleteHandlerFx{p: p, logger: xlog.NewLogger(p.LogDebug.Logger)}
+type ExampleUserDeleteHandlerFxOut struct {
+	fx.Out
+
+	Handler xhuma.HandlerRegister `group:"global:http:handler"`
+}
+
+func NewDeleteHandlerFx(p ExampleUserDeleteHandlerParamFx) ExampleUserDeleteHandlerFxOut {
+	return ExampleUserDeleteHandlerFxOut{
+		Handler: &ExampleUserDeleteHandlerFx{p: p, logger: xlog.NewLogger(p.LogDebug.Logger)},
+	}
 }
 
 func (h ExampleUserDeleteHandlerFx) Register(api huma.API) {
@@ -88,7 +97,7 @@ func (h ExampleUserDeleteHandlerFx) Operation() huma.Operation {
 		},
 	}
 }
-		
+
 func (h ExampleUserDeleteHandlerFx) Serve(ctx context.Context, in *ExampleUserDeleteRequestInput) (out *ExampleUserDeleteResponseOutput, err error) {
 	d, err := h.p.ExUserSvc.Delete(ctx, in.ID.String())
 	if err != nil {
