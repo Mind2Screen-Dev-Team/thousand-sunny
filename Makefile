@@ -74,7 +74,7 @@ help:
 	@echo ""
 	@echo "Git Export:"
 	@echo "  make git-export-all [s=YYYY-MM-DD u=YYYY-MM-DD l=N]"
-	@echo "  make git-export-last N=5"
+	@echo "  make git-export-last n=5"
 	@echo "  make git-export-range s=YYYY-MM-DD u=YYYY-MM-DD"
 	@echo "  make git-export-clean"
 	@echo ""
