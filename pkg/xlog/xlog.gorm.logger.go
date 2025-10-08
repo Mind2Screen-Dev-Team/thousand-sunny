@@ -56,16 +56,20 @@ func (g *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 
 	fields := make([]any, 0)
 	if id, ok := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID); ok && !id.IsZero() {
-		fields = append(fields, "req_trace_id", id)
+		fields = append(fields, "reqTraceId", id)
+	}
+
+	if id, ok := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(string); ok && id != "" {
+		fields = append(fields, "reqTraceId", id)
 	}
 
 	fields = append(fields,
-		"query_sql", sqlStr,
-		"query_rows_affected", rows,
-		"query_start_time", begin,
-		"query_end_time", time.Now(),
-		"query_duration", FormatDuration(elapsed),
-		"query_duration_ns", elapsed.Nanoseconds(),
+		"querySql", sqlStr,
+		"queryRowsAffected", rows,
+		"queryStartTime", begin,
+		"queryEndTime", time.Now(),
+		"queryDuration", FormatDuration(elapsed),
+		"queryDurationNs", elapsed.Nanoseconds(),
 	)
 
 	// Mark slow queries

@@ -43,7 +43,6 @@ func (t *PgxLogger) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pg
 	}
 
 	fields = append(fields,
-		"reqTraceId", id,
 		"querySql", data.SQL,
 		"queryArgs", data.Args,
 		"queryStartTime", n,
@@ -74,11 +73,11 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 		id, _ = xid.FromString(sid)
 	}
 
-	if data.Err != nil {
-		if !id.IsZero() {
-			fields = append(fields, "reqTraceId", id)
-		}
+	if !id.IsZero() {
+		fields = append(fields, "reqTraceId", id)
+	}
 
+	if data.Err != nil {
 		if queryName != "" {
 			fields = append(fields, "queryName", queryName)
 		}
@@ -98,10 +97,6 @@ func (t *PgxLogger) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 		)
 		t.Log.Debug(ctx, "executing query is failed", fields...)
 		return
-	}
-
-	if !id.IsZero() {
-		fields = append(fields, "reqTraceId", id)
 	}
 
 	if queryName != "" {

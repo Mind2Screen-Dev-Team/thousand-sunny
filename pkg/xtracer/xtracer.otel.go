@@ -32,6 +32,10 @@ func Start(tracer trace.Tracer, ctx context.Context, span string, opts ...trace.
 		opts = append(opts, trace.WithAttributes(attribute.String("req_trace_id", reqTraceId.String())))
 	}
 
+	if reqTraceId, ok := ctx.Value(xlog.XLOG_REQ_TRACE_ID_CTX_KEY).(string); ok {
+		opts = append(opts, trace.WithAttributes(attribute.String("req_trace_id", reqTraceId)))
+	}
+
 	opts = append(opts, trace.WithTimestamp(time.Now()))
 
 	return tracer.Start(ctx, span, opts...)

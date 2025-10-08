@@ -171,13 +171,17 @@ func (zl *ZeroLogger) attachFields(ctx context.Context, e *zerolog.Event, fields
 	span := trace.SpanFromContext(ctx).SpanContext()
 	if span.IsValid() {
 		fields = append(fields,
-			"otel_span_id", span.SpanID().String(),
-			"otel_trace_id", span.TraceID().String(),
+			"otelSpanId", span.SpanID().String(),
+			"otelTraceId", span.TraceID().String(),
 		)
 	}
 
 	if v, ok := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID); ok {
-		fields = append(fields, "req_trace_id", v)
+		fields = append(fields, "reqTraceId", v)
+	}
+
+	if v, ok := ctx.Value(XLOG_REQ_TRACE_ID_CTX_KEY).(string); ok {
+		fields = append(fields, "reqTraceId", v)
 	}
 
 	for i := 0; i < len(fields); i += 2 {
