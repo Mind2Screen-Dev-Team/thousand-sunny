@@ -29,11 +29,11 @@ import (
 
 func Start(tracer trace.Tracer, ctx context.Context, span string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
 	if reqTraceId, ok := ctx.Value(xlog.XLOG_REQ_TRACE_ID_CTX_KEY).(xid.ID); ok {
-		opts = append(opts, trace.WithAttributes(attribute.String("req_trace_id", reqTraceId.String())))
+		opts = append(opts, trace.WithAttributes(attribute.String("reqTraceId", reqTraceId.String())))
 	}
 
 	if reqTraceId, ok := ctx.Value(xlog.XLOG_REQ_TRACE_ID_CTX_KEY).(string); ok {
-		opts = append(opts, trace.WithAttributes(attribute.String("req_trace_id", reqTraceId)))
+		opts = append(opts, trace.WithAttributes(attribute.String("reqTraceId", reqTraceId)))
 	}
 
 	opts = append(opts, trace.WithTimestamp(time.Now()))
